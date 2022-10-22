@@ -12,9 +12,7 @@ impl Level {
             screen_width,
         }
     }
-}
 
-impl Level {
     pub fn generate_actions(&self) -> Vec<DrawAction> {
         let mut actions: Vec<DrawAction> = vec![];
 
@@ -76,4 +74,59 @@ fn build_walls(width: u16, height: u16) -> Vec<DrawAction> {
         actions.push(DrawAction::Line(start, end, color));
     }
     actions
+}
+
+#[cfg(test)]
+mod level_test {
+    use crate::domain::draw_action::DrawAction;
+
+    use super::Level;
+    use spectral::prelude::*;
+
+    #[test]
+    fn actions_should_start_with_a_clear() {
+        let level = Level::new(100, 100);
+
+        let actions = level.generate_actions();
+
+        assert_that(&actions.len()).is_greater_than(0);
+
+        assert!(matches!(actions[0], DrawAction::Clear { .. }));
+    }
+
+    #[test]
+    fn actions_should_draw_ceiling() {
+        let level = Level::new(100, 200);
+        let mut found = false;
+
+        let actions = level.generate_actions();
+
+        for action in actions {
+            if let DrawAction::Rectangle(start, end, _) = action {
+                if start.x() == 0 && start.y() == 0 && end.x() == 100 && end.y() == 100 {
+                    found = true
+                }
+            }
+        }
+
+        assert_that(&found).is_true();
+    }
+
+    #[test]
+    fn actions_should_draw_floor() {
+        let level = Level::new(100, 200);
+        let mut found = false;
+
+        let actions = level.generate_actions();
+
+        for action in actions {
+            if let DrawAction::Rectangle(start, end, _) = action {
+                if start.x() == 0 && start.y() == 100 && end.x() == 100 && end.y() == 200 {
+                    found = true
+                }
+            }
+        }
+
+        assert_that(&found).is_true();
+    }
 }
