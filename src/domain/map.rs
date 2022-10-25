@@ -1,5 +1,5 @@
 pub struct Map {
-    paving: Vec<Vec<Tile>>
+    paving: Vec<Vec<Tile>>,
 }
 
 pub enum Tile {
@@ -22,12 +22,15 @@ impl Map {
             }
             p.push(chars);
         }
-        Map {paving: p}
+
+        p.reverse();
+
+        Map { paving: p }
     }
 
     pub fn paving_at(&self, x: u8, y: u8) -> &Tile {
-        let v: &Vec<Tile> = self.paving.get(x as usize).unwrap();
-        let x: &Tile = v.get(y as usize).unwrap();
+        let v: &Vec<Tile> = self.paving.get(y as usize).unwrap();
+        let x: &Tile = v.get(x as usize).unwrap();
         x
     }
 }
@@ -37,19 +40,23 @@ mod map_test {
 
     #[test]
     fn should_read_paving_information() {
-        let paving = String::from("###\n# #\n###");
+        let paving = String::from("###\n# #\n# #\n###");
         let map = Map::new(&paving);
 
         assert!(matches!(&map.paving_at(0, 0), Tile::Wall));
-        assert!(matches!(&map.paving_at(0, 1), Tile::Wall));
-        assert!(matches!(&map.paving_at(0, 2), Tile::Wall));
-
         assert!(matches!(&map.paving_at(1, 0), Tile::Wall));
-        assert!(matches!(&map.paving_at(1, 1), Tile::Nothing));
-        assert!(matches!(&map.paving_at(1, 2), Tile::Wall));
-
         assert!(matches!(&map.paving_at(2, 0), Tile::Wall));
+
+        assert!(matches!(&map.paving_at(0, 1), Tile::Wall));
+        assert!(matches!(&map.paving_at(1, 1), Tile::Nothing));
         assert!(matches!(&map.paving_at(2, 1), Tile::Wall));
+
+        assert!(matches!(&map.paving_at(0, 2), Tile::Wall));
+        assert!(matches!(&map.paving_at(1, 2), Tile::Nothing));
         assert!(matches!(&map.paving_at(2, 2), Tile::Wall));
+
+        assert!(matches!(&map.paving_at(0, 3), Tile::Wall));
+        assert!(matches!(&map.paving_at(1, 3), Tile::Wall));
+        assert!(matches!(&map.paving_at(2, 3), Tile::Wall));
     }
 }

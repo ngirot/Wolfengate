@@ -23,8 +23,8 @@ fn clear_screen(
 fn draw_line(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     color: &crate::domain::color::Color,
-    start: &crate::domain::point::Point,
-    end: &crate::domain::point::Point,
+    start: &crate::domain::point::ScreenPoint,
+    end: &crate::domain::point::ScreenPoint,
 ) {
     canvas.set_draw_color(to_sdl_color(color));
     canvas
@@ -35,8 +35,8 @@ fn draw_line(
 fn draw_rectangle(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     color: &crate::domain::color::Color,
-    start: &crate::domain::point::Point,
-    end: &crate::domain::point::Point,
+    start: &crate::domain::point::ScreenPoint,
+    end: &crate::domain::point::ScreenPoint,
 ) {
     canvas.set_draw_color(to_sdl_color(color));
     canvas
@@ -48,11 +48,14 @@ fn to_sdl_color(color: &crate::domain::color::Color) -> sdl2::pixels::Color {
     sdl2::pixels::Color::RGB(color.red(), color.green(), color.blue())
 }
 
-fn to_sdl_point(point: &crate::domain::point::Point) -> sdl2::rect::Point {
+fn to_sdl_point(point: &crate::domain::point::ScreenPoint) -> sdl2::rect::Point {
     sdl2::rect::Point::new(point.x(), point.y())
 }
 
-fn to_sdl_rect(start: &crate::domain::point::Point, end: &crate::domain::point::Point) -> Rect {
+fn to_sdl_rect(
+    start: &crate::domain::point::ScreenPoint,
+    end: &crate::domain::point::ScreenPoint,
+) -> Rect {
     let width: u32 = (end.x() - start.x())
         .try_into()
         .expect("Unable to draw a rectable");

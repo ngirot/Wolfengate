@@ -1,7 +1,7 @@
-use super::{color::Color, point::Point};
+use super::{color::Color, point::ScreenPoint};
 
 pub enum DrawAction {
-    Rectangle(Point, Point, Color),
-    Line(Point, Point, Color),
+    Rectangle(ScreenPoint, ScreenPoint, Color),
+    Line(ScreenPoint, ScreenPoint, Color),
     Clear(Color),
 }

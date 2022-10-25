@@ -1,4 +1,4 @@
-use super::{color::Color, draw_action::DrawAction, point::Point};
+use super::{color::Color, draw_action::DrawAction, point::ScreenPoint};
 
 pub struct Level {
     screen_height: u16,
@@ -40,13 +40,13 @@ fn build_background_actions(width: u16, height: u16) -> Vec<DrawAction> {
 
     vec![
         DrawAction::Rectangle(
-            Point::new(0, 0),
-            Point::new(width, mid_screen),
+            ScreenPoint::new(0, 0),
+            ScreenPoint::new(width, mid_screen),
             Color::new(50, 50, 50),
         ),
         DrawAction::Rectangle(
-            Point::new(0, mid_screen),
-            Point::new(width, height),
+            ScreenPoint::new(0, mid_screen),
+            ScreenPoint::new(width, height),
             Color::new(100, 100, 100),
         ),
     ]
@@ -67,8 +67,8 @@ fn build_walls(width: u16, height: u16) -> Vec<DrawAction> {
         let screen_length: i32 = height.into();
 
         let biais: i32 = (distance * 75).into();
-        let start = Point::new(column, biais);
-        let end = Point::new(column, screen_length - biais);
+        let start = ScreenPoint::new(column, biais);
+        let end = ScreenPoint::new(column, screen_length - biais);
         let color = Color::new(0, 0, 255 / distance);
 
         actions.push(DrawAction::Line(start, end, color));
