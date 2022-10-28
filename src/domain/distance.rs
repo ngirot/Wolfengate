@@ -21,7 +21,7 @@ pub fn distance(position: Position, map: &Map) -> Option<f32> {
     let distance_to_next_y = position.distance(&next_y_position);
 
     let bloc: MapPoint;
-    let edge_position = if distance_to_next_x < distance_to_next_y {
+    let next_position = if distance_to_next_x < distance_to_next_y {
         if direction_x > 0.0 {
             bloc = MapPoint::new(next_x_position.x() as u8, next_x_position.y().floor() as u8);
         } else {
@@ -30,7 +30,6 @@ pub fn distance(position: Position, map: &Map) -> Option<f32> {
                 next_x_position.y().floor() as u8,
             );
         }
-
         next_x_position
     } else {
         if direction_y > 0.0 {
@@ -41,21 +40,17 @@ pub fn distance(position: Position, map: &Map) -> Option<f32> {
         next_y_position
     };
 
-    if bloc.x() < 0 as u8
-        || bloc.y() < 0 as u8
-        || bloc.x() >= map.width()
-        || bloc.y() >= map.height()
-    {
+    if !map.is_in_map(bloc.x(), bloc.y()) {
         return None;
     }
 
     let bloc_tile = map.paving_at(bloc.x(), bloc.y());
 
-    let distance_total = position.distance(&edge_position);
+    let distance_total = position.distance(&next_position);
     match bloc_tile {
         Tile::Wall => Some(distance_total),
         _ => {
-            let added = distance(edge_position, map);
+            let added = distance(next_position, map);
             added.map(|d| d + distance_total)
         }
     }

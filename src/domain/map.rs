@@ -44,17 +44,16 @@ impl Map {
         x
     }
 
-    pub fn width(&self) -> u8 {
-        self.width
-    }
-
-    pub fn height(&self) -> u8 {
-        self.height
+    pub fn is_in_map(&self, x: u8, y: u8) -> bool {
+        let in_map = x >= 0 as u8 && y >= 0 as u8 && x < self.width && y < self.height;
+        in_map
     }
 }
 
 #[cfg(test)]
 mod map_test {
+    use spectral::{assert_that, prelude::BooleanAssertions};
+
     use crate::domain::map::{Map, Tile};
 
     #[test]
@@ -77,5 +76,26 @@ mod map_test {
         assert!(matches!(&map.paving_at(0, 3), Tile::Wall));
         assert!(matches!(&map.paving_at(1, 3), Tile::Wall));
         assert!(matches!(&map.paving_at(2, 3), Tile::Wall));
+    }
+
+    #[test]
+    fn all_tiles_should_be_in_map() {
+        let map = Map::new("  \n  ");
+        assert_that!(map.is_in_map(0, 0)).is_true();
+        assert_that!(map.is_in_map(0, 1)).is_true();
+        assert_that!(map.is_in_map(1, 0)).is_true();
+        assert_that!(map.is_in_map(0, 1)).is_true();
+    }
+
+    #[test]
+    fn tiles_bigger_than_width_should_not_be_in_map() {
+        let map = Map::new("  \n  ");
+        assert_that!(map.is_in_map(0, 2)).is_false();
+    }
+
+    #[test]
+    fn tiles_bigger_than_height_should_not_be_in_map() {
+        let map = Map::new("  \n  ");
+        assert_that!(map.is_in_map(2, 0)).is_false();
     }
 }
