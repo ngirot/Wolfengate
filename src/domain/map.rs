@@ -1,5 +1,7 @@
 pub struct Map {
     paving: Vec<Vec<Tile>>,
+    width: u8,
+    height: u8,
 }
 
 pub enum Tile {
@@ -10,8 +12,11 @@ pub enum Tile {
 impl Map {
     pub fn new(paving: &str) -> Self {
         let mut p: Vec<Vec<Tile>> = vec![];
+        let mut height: u8 = 0;
+        let mut width: u8 = 0;
 
         for line in paving.split("\n") {
+            height = height + 1;
             let mut chars: Vec<Tile> = vec![];
             for char in line.chars() {
                 if char == '#' {
@@ -20,18 +25,31 @@ impl Map {
                     chars.push(Tile::Nothing)
                 }
             }
+            width = chars.len() as u8;
             p.push(chars);
         }
 
         p.reverse();
 
-        Map { paving: p }
+        Map {
+            paving: p,
+            height,
+            width,
+        }
     }
 
     pub fn paving_at(&self, x: u8, y: u8) -> &Tile {
         let v: &Vec<Tile> = self.paving.get(y as usize).unwrap();
         let x: &Tile = v.get(x as usize).unwrap();
         x
+    }
+
+    pub fn width(&self) -> u8 {
+        self.width
+    }
+
+    pub fn height(&self) -> u8 {
+        self.height
     }
 }
 

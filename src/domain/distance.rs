@@ -20,35 +20,39 @@ pub fn distance(position: Position, map: Map) -> Option<f32> {
     let distance_to_next_x = position.distance(&next_x_position);
     let distance_to_next_y = position.distance(&next_y_position);
 
-    let bloc1: MapPoint;
-    let bloc2: MapPoint;
+    let bloc: MapPoint;
     let edge_position = if distance_to_next_x < distance_to_next_y {
-        bloc1 = MapPoint::new(next_x_position.x() as u8, next_x_position.y().floor() as u8);
-        bloc2 = MapPoint::new(
-            next_x_position.x() as u8 - 1,
-            next_x_position.y().floor() as u8,
-        );
+        if direction_x > 0.0 {
+            bloc = MapPoint::new(next_x_position.x() as u8, next_x_position.y().floor() as u8);
+        } else {
+            bloc = MapPoint::new(
+                next_x_position.x() as u8 - 1,
+                next_x_position.y().floor() as u8,
+            );
+        }
+
         next_x_position
     } else {
-        bloc1 = MapPoint::new(next_y_position.x() as u8, next_y_position.y() as u8);
-        bloc2 = MapPoint::new(next_y_position.x() as u8, next_y_position.y() as u8 - 1);
+        if direction_y > 0.0 {
+            bloc = MapPoint::new(next_y_position.x() as u8, next_y_position.y() as u8);
+        } else {
+            bloc = MapPoint::new(next_y_position.x() as u8, next_y_position.y() as u8 - 1);
+        }
         next_y_position
     };
 
-   
-    let bloc_tile1 = map.paving_at(bloc1.x(), bloc1.y());
-    let bloc_tile2 = map.paving_at(bloc2.x(), bloc2.y());
+    if bloc.x() < 0 as u8
+        || bloc.y() < 0 as u8
+        || bloc.x() >= map.width()
+        || bloc.y() >= map.height()
+    {
+        return None;
+    }
 
-    let mut bloc_tile_aggregate = Tile::Nothing;
-    if let Tile::Wall = bloc_tile1 {
-        bloc_tile_aggregate = Tile::Wall;
-    }
-    if let Tile::Wall = bloc_tile2 {
-        bloc_tile_aggregate = Tile::Wall;
-    }
+    let bloc_tile = map.paving_at(bloc.x(), bloc.y());
 
     let distance_total = position.distance(&edge_position);
-    match bloc_tile_aggregate {
+    match bloc_tile {
         Tile::Wall => Some(distance_total),
         _ => {
             let added = distance(edge_position, map);
@@ -265,6 +269,7 @@ mod distance_test {
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
     }
+
     #[test]
     fn should_find_distance_with_angle_lower_left() {
         let map = Map::new(
@@ -281,4 +286,19 @@ mod distance_test {
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
     }
+
+    #[test]
+    fn should_return_none_when_there_is_no_border() {
+        let map = Map::new(
+            "\"
+            #####\n\
+            #    \n\
+            #####",
+        );
+        let center = Position::new(1.5, 1.5, 0.0);
+        let distance = distance(center, map);
+
+        assert_that(&distance).is_none();
+    }
+
 }
