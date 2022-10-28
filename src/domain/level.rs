@@ -1,15 +1,27 @@
-use super::{color::Color, draw_action::DrawAction, point::ScreenPoint};
+use std::f32::consts::PI;
+
+use super::{
+    color::Color,
+    distance::distance,
+    draw_action::DrawAction,
+    map::Map,
+    point::{Position, ScreenPoint},
+};
 
 pub struct Level {
     screen_height: u16,
     screen_width: u16,
+    position: Position,
+    map: Map,
 }
 
 impl Level {
-    pub fn new(screen_width: u16, screen_height: u16) -> Self {
+    pub fn new(screen_width: u16, screen_height: u16, position: Position, map: Map) -> Self {
         Self {
             screen_height,
             screen_width,
+            position,
+            map,
         }
     }
 
@@ -23,9 +35,34 @@ impl Level {
             self.screen_height,
         ));
 
-        actions.extend(build_walls(self.screen_width, self.screen_height));
+        actions.extend(build_walls(
+            self.screen_width,
+            self.screen_height,
+            &self.position,
+            &self.map,
+        ));
 
         actions
+    }
+
+    pub fn rotate_right(&mut self) {
+        self.position = self.position.with_angle(self.position.angle() - 0.05);
+    }
+
+    pub fn rotate_left(&mut self) {
+        self.position = self.position.with_angle(self.position.angle() + 0.05);
+    }
+
+    pub fn forward(&mut self) {
+        self.position = self.position
+            .with_x(self.position.x()+self.position.angle().cos())
+            .with_y(self.position.y()+self.position.angle().sin())
+    }
+
+    pub fn backward(&mut self) {
+        self.position = self.position
+            .with_x(self.position.x()-self.position.angle().cos())
+            .with_y(self.position.y()-self.position.angle().sin())
     }
 }
 
@@ -52,24 +89,36 @@ fn build_background_actions(width: u16, height: u16) -> Vec<DrawAction> {
     ]
 }
 
-fn build_walls(width: u16, height: u16) -> Vec<DrawAction> {
+fn build_walls(
+    width: u16,
+    height: u16,
+    position: &Position,
+    map: &Map
+) -> Vec<DrawAction> {
     let mut actions = vec![];
-    for i in 0..width {
-        let distance = if i < 300 {
-            3
-        } else if i > 600 {
-            2
-        } else {
-            1
-        };
+
+    let angle = PI / 2.0; // 45° fov
+    let min = position.angle() + (angle / 2.0);
+    let step = angle / width as f32;
+
+    'drawer: for i in 0..width {
+        let mult = min - step * i as f32;
+
+        let pos = position.with_angle(mult);
+        let distance_option = distance(pos, map);
+        if distance_option.is_none() {
+            break 'drawer;
+        }
+        let distance = distance_option.unwrap();
 
         let column: i32 = i.into();
         let screen_length: i32 = height.into();
 
-        let biais: i32 = (distance * 75).into();
-        let start = ScreenPoint::new(column, biais);
-        let end = ScreenPoint::new(column, screen_length - biais);
-        let color = Color::new(0, 0, 255 / distance);
+
+        let wall_height = (height as f32 * 0.8)/distance;
+        let start = ScreenPoint::new(column, (screen_length as f32/2.0 - wall_height/2.0) as i32);
+        let end = ScreenPoint::new(column, (screen_length as f32/2.0 + wall_height/2.0) as i32);
+        let color = Color::new(0, 0, (255.0 / (distance / 2.0)) as u8);
 
         actions.push(DrawAction::Line(start, end, color));
     }
@@ -78,14 +127,14 @@ fn build_walls(width: u16, height: u16) -> Vec<DrawAction> {
 
 #[cfg(test)]
 mod level_test {
-    use crate::domain::draw_action::DrawAction;
+    use crate::domain::{draw_action::DrawAction, point::Position, map::Map};
 
     use super::Level;
     use spectral::prelude::*;
 
     #[test]
     fn actions_should_start_with_a_clear() {
-        let level = Level::new(100, 100);
+        let level = Level::new(0, 0, Position::new(0.0, 0.0, 0.0), Map::new("#"));
 
         let actions = level.generate_actions();
 
@@ -96,7 +145,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_ceiling() {
-        let level = Level::new(100, 200);
+        let level = Level::new(100, 200, Position::new(0.0, 0.0, 0.0), Map::new("#"));
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -114,7 +163,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_floor() {
-        let level = Level::new(100, 200);
+        let level = Level::new(100, 200, Position::new(0.0, 0.0, 0.0), Map::new("#"));
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -129,4 +178,5 @@ mod level_test {
 
         assert_that(&found).is_true();
     }
+
 }

@@ -3,7 +3,7 @@ use super::{
     point::{MapPoint, Position},
 };
 
-pub fn distance(position: Position, map: Map) -> Option<f32> {
+pub fn distance(position: Position, map: &Map) -> Option<f32> {
     let direction_x = position.angle().cos().signum();
     let direction_y = position.angle().sin().signum();
 
@@ -94,7 +94,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, PI / 2.0);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
@@ -111,7 +111,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 1.3, PI / 2.0);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(1.7, 0.1)
@@ -128,7 +128,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, PI * 1.5);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
@@ -145,7 +145,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 3.2, PI * 1.5);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(1.2, 0.1)
@@ -162,7 +162,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, PI);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
@@ -179,7 +179,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(3.1, 2.5, PI);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(1.1, 0.1)
@@ -196,7 +196,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, 0.0);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
@@ -213,7 +213,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(1.1, 2.5, 0.0);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(1.9, 0.1)
@@ -230,7 +230,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, 0.7);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
@@ -247,7 +247,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, PI - 0.7);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
@@ -264,7 +264,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, -0.7);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
@@ -281,7 +281,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(2.5, 2.5, PI + 0.7);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_some();
         assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
@@ -296,7 +296,7 @@ mod distance_test {
             #####",
         );
         let center = Position::new(1.5, 1.5, 0.0);
-        let distance = distance(center, map);
+        let distance = distance(center, &map);
 
         assert_that(&distance).is_none();
     }

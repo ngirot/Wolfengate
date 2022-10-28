@@ -74,6 +74,15 @@ impl Position {
         }
     }
 
+    pub fn with_angle(&self, angle: f32) -> Self {
+        Position {
+            x: self.x,
+            y: self.y,
+            angle,
+        }
+    }
+    
+
     pub fn distance(&self, position: &Position) -> f32 {
         ((self.x - position.x).abs().powi(2) + (self.y - position.y).abs().powi(2)).sqrt()
     }
