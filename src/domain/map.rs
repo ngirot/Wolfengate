@@ -53,6 +53,7 @@ impl Map {
     }
 }
 
+#[cfg(test)]
 mod map_test {
     use crate::domain::map::{Map, Tile};
 

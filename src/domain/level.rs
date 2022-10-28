@@ -54,15 +54,17 @@ impl Level {
     }
 
     pub fn forward(&mut self) {
-        self.position = self.position
-            .with_x(self.position.x()+self.position.angle().cos())
-            .with_y(self.position.y()+self.position.angle().sin())
+        self.position = self
+            .position
+            .with_x(self.position.x() + self.position.angle().cos())
+            .with_y(self.position.y() + self.position.angle().sin())
     }
 
     pub fn backward(&mut self) {
-        self.position = self.position
-            .with_x(self.position.x()-self.position.angle().cos())
-            .with_y(self.position.y()-self.position.angle().sin())
+        self.position = self
+            .position
+            .with_x(self.position.x() - self.position.angle().cos())
+            .with_y(self.position.y() - self.position.angle().sin())
     }
 }
 
@@ -89,12 +91,7 @@ fn build_background_actions(width: u16, height: u16) -> Vec<DrawAction> {
     ]
 }
 
-fn build_walls(
-    width: u16,
-    height: u16,
-    position: &Position,
-    map: &Map
-) -> Vec<DrawAction> {
+fn build_walls(width: u16, height: u16, position: &Position, map: &Map) -> Vec<DrawAction> {
     let mut actions = vec![];
 
     let angle = PI / 2.0; // 45° fov
@@ -114,10 +111,15 @@ fn build_walls(
         let column: i32 = i.into();
         let screen_length: i32 = height.into();
 
-
-        let wall_height = (height as f32 * 0.8)/distance;
-        let start = ScreenPoint::new(column, (screen_length as f32/2.0 - wall_height/2.0) as i32);
-        let end = ScreenPoint::new(column, (screen_length as f32/2.0 + wall_height/2.0) as i32);
+        let wall_height = (height as f32 * 0.8) / distance;
+        let start = ScreenPoint::new(
+            column,
+            (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
+        );
+        let end = ScreenPoint::new(
+            column,
+            (screen_length as f32 / 2.0 + wall_height / 2.0) as i32,
+        );
         let color = Color::new(0, 0, (255.0 / (distance / 2.0)) as u8);
 
         actions.push(DrawAction::Line(start, end, color));
@@ -127,7 +129,7 @@ fn build_walls(
 
 #[cfg(test)]
 mod level_test {
-    use crate::domain::{draw_action::DrawAction, point::Position, map::Map};
+    use crate::domain::{draw_action::DrawAction, map::Map, point::Position};
 
     use super::Level;
     use spectral::prelude::*;
@@ -178,5 +180,4 @@ mod level_test {
 
         assert_that(&found).is_true();
     }
-
 }

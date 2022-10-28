@@ -75,6 +75,7 @@ fn round(number: f32, sign: f32) -> f32 {
     }
 }
 
+#[cfg(test)]
 mod distance_test {
     use std::f32::consts::PI;
 
@@ -300,5 +301,4 @@ mod distance_test {
 
         assert_that(&distance).is_none();
     }
-
 }

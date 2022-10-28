@@ -37,7 +37,7 @@ fn main() -> Result<(), String> {
         ################\n\
         ################",
     );
-    let position = Position::new(12.0, 3.0, PI/2.0);
+    let position = Position::new(12.0, 3.0, PI / 2.0);
 
     let mut level = level::Level::new(800, 500, position, map);
 
@@ -61,11 +61,23 @@ fn main() -> Result<(), String> {
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. }
-                | Event::KeyDown { keycode: Some(Keycode::Z), ..} => {level.forward()}
-                | Event::KeyDown { keycode: Some(Keycode::S), ..} => {level.backward()}
-                | Event::KeyDown { keycode: Some(Keycode::Q), ..} => {level.rotate_left()}
-                | Event::KeyDown { keycode: Some(Keycode::D), ..} => {level.rotate_right()}
                 | Event::KeyDown {
+                    keycode: Some(Keycode::Z),
+                    ..
+                } => level.forward(),
+                Event::KeyDown {
+                    keycode: Some(Keycode::S),
+                    ..
+                } => level.backward(),
+                Event::KeyDown {
+                    keycode: Some(Keycode::Q),
+                    ..
+                } => level.rotate_left(),
+                Event::KeyDown {
+                    keycode: Some(Keycode::D),
+                    ..
+                } => level.rotate_right(),
+                Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => {

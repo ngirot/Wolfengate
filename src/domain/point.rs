@@ -81,7 +81,6 @@ impl Position {
             angle,
         }
     }
-    
 
     pub fn distance(&self, position: &Position) -> f32 {
         ((self.x - position.x).abs().powi(2) + (self.y - position.y).abs().powi(2)).sqrt()
