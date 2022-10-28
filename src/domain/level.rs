@@ -11,21 +11,19 @@ use super::{
 pub struct Level {
     screen_height: u16,
     screen_width: u16,
-    position: Position,
     map: Map,
 }
 
 impl Level {
-    pub fn new(screen_width: u16, screen_height: u16, position: Position, map: Map) -> Self {
+    pub fn new(screen_width: u16, screen_height: u16, map: Map) -> Self {
         Self {
             screen_height,
             screen_width,
-            position,
             map,
         }
     }
 
-    pub fn generate_actions(&self) -> Vec<DrawAction> {
+    pub fn generate_actions(&self, position: Position, angle: f32) -> Vec<DrawAction> {
         let mut actions: Vec<DrawAction> = vec![];
 
         actions.extend(build_clear_actions());
@@ -38,33 +36,12 @@ impl Level {
         actions.extend(build_walls(
             self.screen_width,
             self.screen_height,
-            &self.position,
+            &position,
+            angle,
             &self.map,
         ));
 
         actions
-    }
-
-    pub fn rotate_right(&mut self) {
-        self.position = self.position.with_angle(self.position.angle() - 0.05);
-    }
-
-    pub fn rotate_left(&mut self) {
-        self.position = self.position.with_angle(self.position.angle() + 0.05);
-    }
-
-    pub fn forward(&mut self) {
-        self.position = self
-            .position
-            .with_x(self.position.x() + self.position.angle().cos())
-            .with_y(self.position.y() + self.position.angle().sin())
-    }
-
-    pub fn backward(&mut self) {
-        self.position = self
-            .position
-            .with_x(self.position.x() - self.position.angle().cos())
-            .with_y(self.position.y() - self.position.angle().sin())
     }
 }
 
@@ -91,18 +68,23 @@ fn build_background_actions(width: u16, height: u16) -> Vec<DrawAction> {
     ]
 }
 
-fn build_walls(width: u16, height: u16, position: &Position, map: &Map) -> Vec<DrawAction> {
+fn build_walls(
+    width: u16,
+    height: u16,
+    position: &Position,
+    angle: f32,
+    map: &Map,
+) -> Vec<DrawAction> {
     let mut actions = vec![];
 
-    let angle = PI / 2.0; // 45° fov
-    let min = position.angle() + (angle / 2.0);
-    let step = angle / width as f32;
+    let view_angle = PI / 2.0; // 45° fov
+    let min = angle + (view_angle / 2.0);
+    let step = view_angle / width as f32;
 
     'drawer: for i in 0..width {
-        let mult = min - step * i as f32;
+        let current_angle = min - step * i as f32;
 
-        let pos = position.with_angle(mult);
-        let distance_option = distance(pos, map);
+        let distance_option = distance(*position, current_angle, map);
         if distance_option.is_none() {
             break 'drawer;
         }
@@ -136,9 +118,9 @@ mod level_test {
 
     #[test]
     fn actions_should_start_with_a_clear() {
-        let level = Level::new(0, 0, Position::new(0.0, 0.0, 0.0), Map::new("#"));
+        let level = Level::new(0, 0, Map::new("#"));
 
-        let actions = level.generate_actions();
+        let actions = level.generate_actions(Position::new(0.0, 0.0), 0.0);
 
         assert_that(&actions.len()).is_greater_than(0);
 
@@ -147,10 +129,10 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_ceiling() {
-        let level = Level::new(100, 200, Position::new(0.0, 0.0, 0.0), Map::new("#"));
+        let level = Level::new(100, 200, Map::new("#"));
         let mut found = false;
 
-        let actions = level.generate_actions();
+        let actions = level.generate_actions(Position::new(0.0, 0.0), 0.0);
 
         for action in actions {
             if let DrawAction::Rectangle(start, end, _) = action {
@@ -165,10 +147,10 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_floor() {
-        let level = Level::new(100, 200, Position::new(0.0, 0.0, 0.0), Map::new("#"));
+        let level = Level::new(100, 200, Map::new("#"));
         let mut found = false;
 
-        let actions = level.generate_actions();
+        let actions = level.generate_actions(Position::new(0.0, 0.0), 0.0);
 
         for action in actions {
             if let DrawAction::Rectangle(start, end, _) = action {

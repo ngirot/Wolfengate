@@ -1,16 +1,18 @@
+#[derive(Copy, Clone)]
 pub struct ScreenPoint {
     x: i32,
     y: i32,
 }
 
+#[derive(Copy, Clone)]
 pub struct MapPoint {
     x: u8,
     y: u8,
 }
+#[derive(Copy, Clone)]
 pub struct Position {
     x: f32,
     y: f32,
-    angle: f32,
 }
 
 impl ScreenPoint {
@@ -42,8 +44,8 @@ impl MapPoint {
 }
 
 impl Position {
-    pub fn new(x: f32, y: f32, angle: f32) -> Self {
-        Self { x, y, angle }
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
     }
 
     pub fn x(&self) -> f32 {
@@ -54,32 +56,12 @@ impl Position {
         self.y
     }
 
-    pub fn angle(&self) -> f32 {
-        self.angle
-    }
-
     pub fn with_x(&self, x: f32) -> Self {
-        Position {
-            x,
-            y: self.y,
-            angle: self.angle,
-        }
+        Position { x, y: self.y }
     }
 
     pub fn with_y(&self, y: f32) -> Self {
-        Position {
-            x: self.x,
-            y,
-            angle: self.angle,
-        }
-    }
-
-    pub fn with_angle(&self, angle: f32) -> Self {
-        Position {
-            x: self.x,
-            y: self.y,
-            angle,
-        }
+        Position { x: self.x, y }
     }
 
     pub fn distance(&self, position: &Position) -> f32 {

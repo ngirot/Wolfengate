@@ -1,3 +1,4 @@
+pub mod actor;
 pub mod color;
 mod distance;
 pub mod draw_action;

@@ -1,3 +1,4 @@
+use domain::actor::{ActorStats, Player};
 use domain::level::Level;
 use domain::map::Map;
 use domain::point::Position;
@@ -17,8 +18,11 @@ fn render_ask_display(canvas: &mut WindowCanvas) {
     canvas.present();
 }
 
-fn render(canvas: &mut WindowCanvas, level: &Level) {
-    drawer::draw(canvas, level.generate_actions());
+fn render(canvas: &mut WindowCanvas, level: &Level, player: &Player) {
+    drawer::draw(
+        canvas,
+        level.generate_actions(*player.position(), player.orientation()),
+    );
     render_ask_display(canvas);
 }
 
@@ -37,9 +41,10 @@ fn main() -> Result<(), String> {
         ################\n\
         ################",
     );
-    let position = Position::new(12.0, 3.0, PI / 2.0);
-
-    let mut level = level::Level::new(800, 500, position, map);
+    let position = Position::new(12.0, 3.0);
+    let player_stats = ActorStats::new(0.2, 0.05);
+    let mut player = Player::new(position, PI / 2.0, player_stats);
+    let level = level::Level::new(800, 500, map);
 
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -64,19 +69,19 @@ fn main() -> Result<(), String> {
                 | Event::KeyDown {
                     keycode: Some(Keycode::Z),
                     ..
-                } => level.forward(),
+                } => player = player.move_forward(),
                 Event::KeyDown {
                     keycode: Some(Keycode::S),
                     ..
-                } => level.backward(),
+                } => player = player.move_backward(),
                 Event::KeyDown {
                     keycode: Some(Keycode::Q),
                     ..
-                } => level.rotate_left(),
+                } => player = player.rotate_left(),
                 Event::KeyDown {
                     keycode: Some(Keycode::D),
                     ..
-                } => level.rotate_right(),
+                } => player = player.rotate_right(),
                 Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
@@ -88,7 +93,7 @@ fn main() -> Result<(), String> {
         }
 
         // Render
-        render(&mut canvas, &level);
+        render(&mut canvas, &level, &player);
 
         // Time management!
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
