@@ -1,15 +1,23 @@
-use sdl2::{rect::Rect, render::WindowCanvas};
+use sdl2::rect::Rect;
 
 use crate::domain::draw_action::DrawAction;
 
-pub fn draw(canvas: &mut WindowCanvas, actions: Vec<DrawAction>) {
+use super::context::SdlContext;
+
+pub fn draw(context: &mut SdlContext, actions: Vec<DrawAction>) {
+    let canva = context.canva();
+
     for action in actions.iter() {
         match action {
-            DrawAction::Rectangle(start, end, color) => draw_rectangle(canvas, color, start, end),
-            DrawAction::Line(start, end, color) => draw_line(canvas, color, start, end),
-            DrawAction::Clear(color) => clear_screen(canvas, color),
+            DrawAction::Rectangle(start, end, color) => draw_rectangle(canva, color, start, end),
+            DrawAction::Line(start, end, color) => draw_line(canva, color, start, end),
+            DrawAction::Clear(color) => clear_screen(canva, color),
         }
     }
+}
+
+pub fn ask_display(context: &mut SdlContext) {
+    context.canva().present();
 }
 
 fn clear_screen(
