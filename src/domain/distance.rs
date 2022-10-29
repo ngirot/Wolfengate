@@ -7,37 +7,20 @@ pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
     let direction_x = angle.cos().signum();
     let direction_y = angle.sin().signum();
 
-    let next_x = round(position.x(), direction_x);
-    let next_y = round(position.y(), direction_y);
-
-    let next_x_position = position
-        .with_x(next_x)
-        .with_y(position.y() + angle.tan() * (next_x - position.x()));
-    let next_y_position = position
-        .with_x(position.x() + (next_y - position.y()) / angle.tan())
-        .with_y(next_y);
+    let next_x_position = position.projection_x(angle);
+    let next_y_position = position.projection_y(angle);
 
     let distance_to_next_x = position.distance(&next_x_position);
     let distance_to_next_y = position.distance(&next_y_position);
 
     let bloc: MapPoint;
-    let next_position = if distance_to_next_x < distance_to_next_y {
-        if direction_x > 0.0 {
-            bloc = MapPoint::new(next_x_position.x() as u8, next_x_position.y().floor() as u8);
-        } else {
-            bloc = MapPoint::new(
-                next_x_position.x() as u8 - 1,
-                next_x_position.y().floor() as u8,
-            );
-        }
-        next_x_position
+    let next_position;
+    if distance_to_next_x < distance_to_next_y {
+        bloc = next_x_position.to_map_point(direction_x, 0.0);
+        next_position = next_x_position
     } else {
-        if direction_y > 0.0 {
-            bloc = MapPoint::new(next_y_position.x() as u8, next_y_position.y() as u8);
-        } else {
-            bloc = MapPoint::new(next_y_position.x() as u8, next_y_position.y() as u8 - 1);
-        }
-        next_y_position
+        bloc = next_y_position.to_map_point(0.0, direction_y);
+        next_position = next_y_position
     };
 
     if !map.is_in_map(bloc.x(), bloc.y()) {
@@ -56,19 +39,6 @@ pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
     }
 }
 
-fn round(number: f32, sign: f32) -> f32 {
-    let rounded = if sign > 0.0 {
-        number.ceil()
-    } else {
-        number.floor()
-    };
-
-    if rounded == number {
-        number + sign
-    } else {
-        rounded
-    }
-}
 
 #[cfg(test)]
 mod distance_test {
