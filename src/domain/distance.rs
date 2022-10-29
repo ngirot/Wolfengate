@@ -1,6 +1,6 @@
 use super::{
     map::{Map, Tile},
-    point::{MapPoint, Position},
+    coord::{MapPoint, Position},
 };
 
 pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
@@ -74,7 +74,7 @@ fn round(number: f32, sign: f32) -> f32 {
 mod distance_test {
     use std::f32::consts::PI;
 
-    use crate::domain::{map::Map, point::Position};
+    use crate::domain::{map::Map, coord::Position};
     use spectral::prelude::*;
 
     use super::distance;

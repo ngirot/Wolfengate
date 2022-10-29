@@ -2,10 +2,10 @@ use std::f32::consts::PI;
 
 use super::{
     color::Color,
+    coord::{Position, ScreenPoint},
     distance::distance,
     draw_action::DrawAction,
     map::Map,
-    point::{Position, ScreenPoint},
 };
 
 pub struct Level {
@@ -111,7 +111,7 @@ fn build_walls(
 
 #[cfg(test)]
 mod level_test {
-    use crate::domain::{draw_action::DrawAction, map::Map, point::Position};
+    use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
 
     use super::Level;
     use spectral::prelude::*;

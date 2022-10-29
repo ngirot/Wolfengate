@@ -1,4 +1,4 @@
-use super::{color::Color, point::ScreenPoint};
+use super::{color::Color, coord::ScreenPoint};
 
 pub enum DrawAction {
     Rectangle(ScreenPoint, ScreenPoint, Color),

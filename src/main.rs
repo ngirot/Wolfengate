@@ -1,7 +1,7 @@
 use domain::actor::{ActorStats, Player};
+use domain::coord::Position;
 use domain::level::Level;
 use domain::map::Map;
-use domain::point::Position;
 use sdl::context::SdlContext;
 use sdl::drawer::ask_display;
 use sdl::input::{poll_input, Input};

@@ -1,4 +1,4 @@
-use super::point::Position;
+use super::coord::Position;
 
 #[derive(Copy, Clone)]
 pub struct ActorStats {
@@ -86,7 +86,7 @@ impl ActorStats {
 mod actor_test {
     use spectral::prelude::*;
 
-    use crate::domain::point::Position;
+    use crate::domain::coord::Position;
 
     use super::Player;
 
