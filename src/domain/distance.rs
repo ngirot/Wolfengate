@@ -23,15 +23,12 @@ pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
         next_position = next_y_position
     };
 
-    if !map.is_in_map(bloc.x(), bloc.y()) {
-        return None;
-    }
-
     let bloc_tile = map.paving_at(bloc.x(), bloc.y());
 
     let distance_total = position.distance(&next_position);
     match bloc_tile {
-        Tile::Wall => Some(distance_total),
+        None => None,
+        Some(Tile::Wall) => Some(distance_total),
         _ => {
             let added = distance(next_position, angle, map);
             added.map(|d| d + distance_total)

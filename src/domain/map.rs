@@ -1,7 +1,7 @@
 pub struct Map {
     paving: Vec<Vec<Tile>>,
-    width: u8,
-    height: u8,
+    width: i16,
+    height: i16,
 }
 
 pub enum Tile {
@@ -12,8 +12,8 @@ pub enum Tile {
 impl Map {
     pub fn new(paving: &str) -> Self {
         let mut p: Vec<Vec<Tile>> = vec![];
-        let mut height: u8 = 0;
-        let mut width: u8 = 0;
+        let mut height: i16 = 0;
+        let mut width: i16 = 0;
 
         for line in paving.split("\n") {
             height = height + 1;
@@ -25,7 +25,7 @@ impl Map {
                     chars.push(Tile::Nothing)
                 }
             }
-            width = chars.len() as u8;
+            width = chars.len() as i16;
             p.push(chars);
         }
 
@@ -38,22 +38,19 @@ impl Map {
         }
     }
 
-    pub fn paving_at(&self, x: u8, y: u8) -> &Tile {
+    pub fn paving_at(&self, x: i16, y: i16) -> Option<&Tile> {
+        if x < 0 || y < 0 || x >= self.width || y >= self.height {
+            return None;
+        }
+
         let v: &Vec<Tile> = self.paving.get(y as usize).unwrap();
         let x: &Tile = v.get(x as usize).unwrap();
-        x
-    }
-
-    pub fn is_in_map(&self, x: u8, y: u8) -> bool {
-        let in_map = x >= 0 as u8 && y >= 0 as u8 && x < self.width && y < self.height;
-        in_map
+        Some(x)
     }
 }
 
 #[cfg(test)]
 mod map_test {
-    use spectral::{assert_that, prelude::BooleanAssertions};
-
     use crate::domain::map::{Map, Tile};
 
     #[test]
@@ -61,41 +58,48 @@ mod map_test {
         let paving = String::from("###\n# #\n# #\n###");
         let map = Map::new(&paving);
 
-        assert!(matches!(&map.paving_at(0, 0), Tile::Wall));
-        assert!(matches!(&map.paving_at(1, 0), Tile::Wall));
-        assert!(matches!(&map.paving_at(2, 0), Tile::Wall));
+        assert!(matches!(&map.paving_at(0, 0), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(1, 0), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(2, 0), Some(Tile::Wall)));
 
-        assert!(matches!(&map.paving_at(0, 1), Tile::Wall));
-        assert!(matches!(&map.paving_at(1, 1), Tile::Nothing));
-        assert!(matches!(&map.paving_at(2, 1), Tile::Wall));
+        assert!(matches!(&map.paving_at(0, 1), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(1, 1), Some(Tile::Nothing)));
+        assert!(matches!(&map.paving_at(2, 1), Some(Tile::Wall)));
 
-        assert!(matches!(&map.paving_at(0, 2), Tile::Wall));
-        assert!(matches!(&map.paving_at(1, 2), Tile::Nothing));
-        assert!(matches!(&map.paving_at(2, 2), Tile::Wall));
+        assert!(matches!(&map.paving_at(0, 2), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(1, 2), Some(Tile::Nothing)));
+        assert!(matches!(&map.paving_at(2, 2), Some(Tile::Wall)));
 
-        assert!(matches!(&map.paving_at(0, 3), Tile::Wall));
-        assert!(matches!(&map.paving_at(1, 3), Tile::Wall));
-        assert!(matches!(&map.paving_at(2, 3), Tile::Wall));
+        assert!(matches!(&map.paving_at(0, 3), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(1, 3), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(2, 3), Some(Tile::Wall)));
     }
 
     #[test]
-    fn all_tiles_should_be_in_map() {
+    fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_width_map() {
         let map = Map::new("  \n  ");
-        assert_that!(map.is_in_map(0, 0)).is_true();
-        assert_that!(map.is_in_map(0, 1)).is_true();
-        assert_that!(map.is_in_map(1, 0)).is_true();
-        assert_that!(map.is_in_map(0, 1)).is_true();
+        let tile = map.paving_at(0, 2);
+        assert!(matches!(tile, None));
     }
 
     #[test]
-    fn tiles_bigger_than_width_should_not_be_in_map() {
+    fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_height_map() {
         let map = Map::new("  \n  ");
-        assert_that!(map.is_in_map(0, 2)).is_false();
+        let tile = map.paving_at(2, 0);
+        assert!(matches!(tile, None));
     }
 
     #[test]
-    fn tiles_bigger_than_height_should_not_be_in_map() {
+    fn should_not_get_paving_information_on_tiles_with_negative_x_coordinate() {
         let map = Map::new("  \n  ");
-        assert_that!(map.is_in_map(2, 0)).is_false();
+        let tile = map.paving_at(-1, 0);
+        assert!(matches!(tile, None));
+    }
+
+    #[test]
+    fn should_not_get_paving_information_on_tiles_with_negative_u_coordinate() {
+        let map = Map::new("  \n  ");
+        let tile = map.paving_at(0, -1);
+        assert!(matches!(tile, None));
     }
 }

@@ -86,7 +86,7 @@ fn build_walls(
 
         let distance_option = distance(*position, current_angle, map);
         if distance_option.is_none() {
-            break 'drawer;
+            continue 'drawer;
         }
         let distance = distance_option.unwrap();
 

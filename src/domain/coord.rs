@@ -6,8 +6,8 @@ pub struct ScreenPoint {
 
 #[derive(Copy, Clone)]
 pub struct MapPoint {
-    x: u8,
-    y: u8,
+    x: i16,
+    y: i16,
 }
 #[derive(Copy, Clone)]
 pub struct Position {
@@ -30,15 +30,15 @@ impl ScreenPoint {
 }
 
 impl MapPoint {
-    pub fn new(x: u8, y: u8) -> Self {
+    pub fn new(x: i16, y: i16) -> Self {
         Self { x, y }
     }
 
-    pub fn x(&self) -> u8 {
+    pub fn x(&self) -> i16 {
         self.x
     }
 
-    pub fn y(&self) -> u8 {
+    pub fn y(&self) -> i16 {
         self.y
     }
 }
@@ -69,11 +69,11 @@ impl Position {
     }
 
     pub fn to_map_point(&self, direction_x: f32, direction_y: f32) -> MapPoint {
-        let offset_x: u8 = if direction_x >= 0.0 { 0 } else { 1 };
-        let offset_y: u8 = if direction_y >= 0.0 { 0 } else { 1 };
+        let offset_x: i16 = if direction_x >= 0.0 { 0 } else { 1 };
+        let offset_y: i16 = if direction_y >= 0.0 { 0 } else { 1 };
 
-        let x = self.x().floor() as u8 - offset_x;
-        let y = self.y().floor() as u8 - offset_y;
+        let x = self.x().floor() as i16 - offset_x;
+        let y = self.y().floor() as i16 - offset_y;
 
         MapPoint::new(x, y)
     }
