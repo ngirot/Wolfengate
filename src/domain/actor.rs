@@ -54,17 +54,9 @@ impl Player {
         }
     }
 
-    pub fn rotate_left(&self) -> Self {
-        let new_orientation = self.orientation + self.stats.rotation_speed;
-        Self {
-            position: self.position,
-            orientation: new_orientation,
-            stats: self.stats,
-        }
-    }
-
-    pub fn rotate_right(&self) -> Self {
-        let new_orientation = self.orientation - self.stats.rotation_speed;
+    pub fn rotate(&self, amplitude: i32) -> Self {
+        let angle = self.stats.rotation_speed * -amplitude as f32;
+        let new_orientation = self.orientation + angle;
         Self {
             position: self.position,
             orientation: new_orientation,
@@ -121,8 +113,8 @@ mod actor_test {
             1.05,
             super::ActorStats::new(1.0, 0.3),
         );
-        let after_move = player.rotate_left();
-        assert_that(&after_move.orientation).is_close_to(1.349, 0.001);
+        let after_move = player.rotate(12);
+        assert_that(&after_move.orientation).is_close_to(-2.55, 0.001);
     }
 
     #[test]
@@ -132,7 +124,7 @@ mod actor_test {
             1.05,
             super::ActorStats::new(1.0, 0.3),
         );
-        let after_move = player.rotate_right();
-        assert_that(&after_move.orientation).is_close_to(0.749, 0.001);
+        let after_move = player.rotate(-12);
+        assert_that(&after_move.orientation).is_close_to(4.65, 0.001);
     }
 }

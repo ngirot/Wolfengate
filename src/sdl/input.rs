@@ -8,6 +8,7 @@ pub enum Input {
     Backward,
     StrafeLeft,
     StrafeRight,
+    Rotate(i32),
     Quit,
 }
 
@@ -26,6 +27,7 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
                 keycode: Some(Keycode::S),
                 ..
             } => inputs.push(Input::Backward),
+            Event::MouseMotion { xrel, .. } => inputs.push(Input::Rotate(xrel)),
             Event::KeyDown {
                 keycode: Some(Keycode::Q),
                 ..

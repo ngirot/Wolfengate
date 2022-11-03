@@ -32,7 +32,7 @@ fn main() -> Result<(), String> {
     )
     .unwrap();
     let position = Position::new(12.0, 3.0);
-    let player_stats = ActorStats::new(0.2, 0.05);
+    let player_stats = ActorStats::new(0.2, 0.005);
     let mut player = Player::new(position, PI / 2.0, player_stats);
     let level = level::Level::new(800, 500, map);
 
@@ -44,8 +44,9 @@ fn main() -> Result<(), String> {
                 Input::Quit => break 'running,
                 Input::Forward => player = player.move_forward(),
                 Input::Backward => player = player.move_backward(),
-                Input::StrafeLeft => player = player.rotate_left(),
-                Input::StrafeRight => player = player.rotate_right(),
+                Input::StrafeLeft => (),
+                Input::StrafeRight => (),
+                Input::Rotate(x) => player = player.rotate(x),
             }
         }
 

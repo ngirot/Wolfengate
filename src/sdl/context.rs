@@ -23,6 +23,8 @@ impl SdlContext {
 
         let event_pump = sdl_context.event_pump()?;
 
+        sdl_context.mouse().set_relative_mouse_mode(true);
+
         Ok(SdlContext {
             canva: canvas,
             event_pump,
