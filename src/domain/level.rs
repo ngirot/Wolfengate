@@ -118,7 +118,7 @@ mod level_test {
 
     #[test]
     fn actions_should_start_with_a_clear() {
-        let level = Level::new(0, 0, Map::new("#"));
+        let level = Level::new(0, 0, Map::new("#").unwrap());
 
         let actions = level.generate_actions(Position::new(0.0, 0.0), 0.0);
 
@@ -129,7 +129,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_ceiling() {
-        let level = Level::new(100, 200, Map::new("#"));
+        let level = Level::new(100, 200, Map::new("#").unwrap());
         let mut found = false;
 
         let actions = level.generate_actions(Position::new(0.0, 0.0), 0.0);
@@ -147,7 +147,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_floor() {
-        let level = Level::new(100, 200, Map::new("#"));
+        let level = Level::new(100, 200, Map::new("#").unwrap());
         let mut found = false;
 
         let actions = level.generate_actions(Position::new(0.0, 0.0), 0.0);

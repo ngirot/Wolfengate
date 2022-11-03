@@ -1,6 +1,6 @@
 use super::{
-    map::{Map, Tile},
     coord::{MapPoint, Position},
+    map::{Map, Tile},
 };
 
 pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
@@ -36,12 +36,11 @@ pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
     }
 }
 
-
 #[cfg(test)]
 mod distance_test {
     use std::f32::consts::PI;
 
-    use crate::domain::{map::Map, coord::Position};
+    use crate::domain::{coord::Position, map::Map};
     use spectral::prelude::*;
 
     use super::distance;
@@ -49,13 +48,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_one_tile_ahead() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             # # #\n\
             #   #\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, PI / 2.0, &map);
 
@@ -66,13 +66,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_multiple_tile_ahead() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             # # #\n\
             #   #\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 1.3);
         let distance = distance(center, PI / 2.0, &map);
 
@@ -83,13 +84,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_one_tile_behind() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             #   #\n\
             # # #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, PI * 1.5, &map);
 
@@ -100,13 +102,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_multiple_tile_behind() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             #   #\n\
             # # #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 3.2);
         let distance = distance(center, PI * 1.5, &map);
 
@@ -117,13 +120,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_one_tile_left() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             ##  #\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, PI, &map);
 
@@ -134,13 +138,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_multiple_tile_left() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             ##  #\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(3.1, 2.5);
         let distance = distance(center, PI, &map);
 
@@ -151,13 +156,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_one_tile_right() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             #  ##\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, 0.0, &map);
 
@@ -168,13 +174,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_multiple_tile_right() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             #  ##\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(1.1, 2.5);
         let distance = distance(center, 0.0, &map);
 
@@ -185,13 +192,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_with_angle_upper_right() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #  ##\n\
             #   #\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, 0.7, &map);
 
@@ -202,13 +210,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_with_angle_upper_left() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             ##  #\n\
             #   #\n\
             #   #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, PI - 0.7, &map);
 
@@ -219,13 +228,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_with_angle_lower_right() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             #   #\n\
             #  ##\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, -0.7, &map);
 
@@ -236,13 +246,14 @@ mod distance_test {
     #[test]
     fn should_find_distance_with_angle_lower_left() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #   #\n\
             #   #\n\
             ##  #\n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, PI + 0.7, &map);
 
@@ -253,11 +264,12 @@ mod distance_test {
     #[test]
     fn should_return_none_when_there_is_no_border() {
         let map = Map::new(
-            "\"
+            "\
             #####\n\
             #    \n\
             #####",
-        );
+        )
+        .unwrap();
         let center = Position::new(1.5, 1.5);
         let distance = distance(center, 0.0, &map);
 

@@ -22,19 +22,18 @@ fn render(context: &mut SdlContext, level: &Level, player: &Player) {
 
 fn main() -> Result<(), String> {
     let map = Map::new(
-        "\"
-        ################\n\
-        ################\n\
-        ##            ##\n\
-        ##            ##\n\
-        ##        #   ##\n\
-        ##        #   ##\n\
-        ##        #   ##\n\
-        ##        #   ##\n\
-        ##        #   ##\n\
-        ################\n\
-        ################",
-    );
+        "\
+        ##############\n\
+        #            #\n\
+        #            #\n\
+        #        #   #\n\
+        #        #   #\n\
+        #        #    \n\
+        #        #   #\n\
+        #        #   #\n\
+        ##############",
+    )
+    .unwrap();
     let position = Position::new(12.0, 3.0);
     let player_stats = ActorStats::new(0.2, 0.05);
     let mut player = Player::new(position, PI / 2.0, player_stats);
