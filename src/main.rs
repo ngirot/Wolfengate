@@ -1,18 +1,15 @@
-use domain::actor::{ActorStats, Player};
-use domain::coord::Position;
-use domain::level::Level;
-use domain::map::Map;
-use sdl::context::SdlContext;
-use sdl::drawer::ask_display;
-use sdl::input::{poll_input, Input};
 use std::f32::consts::PI;
 use std::time::Duration;
+use wolfengate::domain::actor::{ActorStats, Player};
+use wolfengate::domain::coord::Position;
+use wolfengate::domain::level::Level;
+use wolfengate::domain::map::Map;
+use wolfengate::sdl::context::SdlContext;
+use wolfengate::sdl::drawer::ask_display;
+use wolfengate::sdl::input::{poll_input, Input};
 
-mod domain;
-mod sdl;
-
-use crate::domain::level;
-use crate::sdl::drawer;
+use wolfengate::domain::level;
+use wolfengate::sdl::drawer;
 
 fn render(context: &mut SdlContext, level: &Level, player: &Player) {
     let actions = level.generate_actions(*player.position(), player.orientation());
