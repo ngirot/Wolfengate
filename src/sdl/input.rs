@@ -18,31 +18,37 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
     let event_pump = sdl_context.event_pump();
     for event in event_pump.poll_iter() {
         match event {
-            Event::Quit { .. }
-            | Event::KeyDown {
-                keycode: Some(Keycode::Z),
-                ..
-            } => inputs.push(Input::Forward),
-            Event::KeyDown {
-                keycode: Some(Keycode::S),
-                ..
-            } => inputs.push(Input::Backward),
+            Event::Quit { .. } => inputs.push(Input::Quit), 
             Event::MouseMotion { xrel, .. } => inputs.push(Input::Rotate(xrel)),
-            Event::KeyDown {
-                keycode: Some(Keycode::Q),
-                ..
-            } => inputs.push(Input::StrafeLeft),
-            Event::KeyDown {
-                keycode: Some(Keycode::D),
-                ..
-            } => inputs.push(Input::StrafeRight),
-            Event::KeyDown {
+             Event::KeyDown {
                 keycode: Some(Keycode::Escape),
                 ..
             } => {
                 inputs.push(Input::Quit);
             }
             _ => {}
+        }
+    }
+
+    let keys: Vec<Keycode> = event_pump
+            .keyboard_state()
+            .pressed_scancodes()
+            .filter_map(Keycode::from_scancode)
+            .collect();
+
+    for key in keys {
+        match key {
+            Keycode::W => inputs.push(Input::Forward),
+            Keycode::Z => inputs.push(Input::Forward),
+
+            Keycode::S => inputs.push(Input::Backward),
+
+            Keycode::Q => inputs.push(Input::StrafeLeft),
+            Keycode::A => inputs.push(Input::StrafeLeft),
+
+            Keycode::D => inputs.push(Input::StrafeRight),
+
+            _ => ()
         }
     }
 
