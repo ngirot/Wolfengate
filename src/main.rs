@@ -44,8 +44,8 @@ fn main() -> Result<(), String> {
                 Input::Quit => break 'running,
                 Input::Forward => player = player.move_forward(),
                 Input::Backward => player = player.move_backward(),
-                Input::StrafeLeft => (),
-                Input::StrafeRight => (),
+                Input::StrafeLeft => player = player.move_left(),
+                Input::StrafeRight => player = player.move_right(),
                 Input::Rotate(x) => player = player.rotate(x),
             }
         }

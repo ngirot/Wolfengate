@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use super::coord::Position;
 
 #[derive(Copy, Clone)]
@@ -46,6 +48,32 @@ impl Player {
         let new_position = Position::new(
             self.position.x() - self.orientation.cos() * self.stats.movement_speed,
             self.position.y() - self.orientation.sin() * self.stats.movement_speed,
+        );
+        Self {
+            position: new_position,
+            orientation: self.orientation,
+            stats: self.stats,
+        }
+    }
+
+    pub fn move_left(&self) -> Self {
+        let new_angle = self.orientation + PI/2.0;
+        let new_position = Position::new(
+            self.position.x() + new_angle.cos() * self.stats.movement_speed,
+            self.position.y() + new_angle.sin() * self.stats.movement_speed,
+        );
+        Self {
+            position: new_position,
+            orientation: self.orientation,
+            stats: self.stats,
+        }
+    }
+
+    pub fn move_right(&self) -> Self {
+        let new_angle = self.orientation + PI/2.0;
+        let new_position = Position::new(
+            self.position.x() - new_angle.cos() * self.stats.movement_speed,
+            self.position.y() - new_angle.sin() * self.stats.movement_speed,
         );
         Self {
             position: new_position,
@@ -126,5 +154,29 @@ mod actor_test {
         );
         let after_move = player.rotate(-12);
         assert_that(&after_move.orientation).is_close_to(4.65, 0.001);
+    }
+
+    #[test]
+    fn should_strafe_left() {
+        let player = Player::new(
+            Position::new(1.0, 2.0),
+            1.05,
+            super::ActorStats::new(1.0, 0.3),
+        );
+        let after_move = player.move_left();
+        assert_that(&after_move.position().x()).is_close_to(0.132, 0.001);
+        assert_that(&after_move.position().y()).is_close_to(2.497, 0.001);
+    }
+
+    #[test]
+    fn should_strafe_right() {
+        let player = Player::new(
+            Position::new(1.0, 2.0),
+            1.05,
+            super::ActorStats::new(1.0, 0.3),
+        );
+        let after_move = player.move_right();
+        assert_that(&after_move.position().x()).is_close_to(1.867, 0.001);
+        assert_that(&after_move.position().y()).is_close_to(1.502, 0.001);
     }
 }
