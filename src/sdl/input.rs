@@ -1,17 +1,9 @@
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
-use super::context::SdlContext;
+use crate::domain::input::Input;
 
-pub enum Input {
-    Forward,
-    Backward,
-    StrafeLeft,
-    StrafeRight,
-    Rotate(i32),
-    ToggleFullscreen,
-    Quit,
-}
+use super::context::SdlContext;
 
 pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
     let mut inputs = vec![];

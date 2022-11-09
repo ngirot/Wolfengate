@@ -2,11 +2,12 @@ use std::f32::consts::PI;
 use std::time::Duration;
 use wolfengate::domain::actor::{ActorStats, Player};
 use wolfengate::domain::coord::Position;
+use wolfengate::domain::input::Input;
 use wolfengate::domain::level::Level;
 use wolfengate::domain::map::Map;
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer::ask_display;
-use wolfengate::sdl::input::{poll_input, Input};
+use wolfengate::sdl::input::poll_input;
 
 use wolfengate::domain::level;
 use wolfengate::sdl::drawer;
