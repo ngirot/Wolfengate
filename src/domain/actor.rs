@@ -57,7 +57,7 @@ impl Player {
     }
 
     pub fn move_left(&self) -> Self {
-        let new_angle = self.orientation + PI/2.0;
+        let new_angle = self.orientation + PI / 2.0;
         let new_position = Position::new(
             self.position.x() + new_angle.cos() * self.stats.movement_speed,
             self.position.y() + new_angle.sin() * self.stats.movement_speed,
@@ -70,7 +70,7 @@ impl Player {
     }
 
     pub fn move_right(&self) -> Self {
-        let new_angle = self.orientation + PI/2.0;
+        let new_angle = self.orientation + PI / 2.0;
         let new_position = Position::new(
             self.position.x() - new_angle.cos() * self.stats.movement_speed,
             self.position.y() - new_angle.sin() * self.stats.movement_speed,
