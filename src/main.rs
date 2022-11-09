@@ -47,6 +47,7 @@ fn main() -> Result<(), String> {
                 Input::StrafeLeft => player = player.move_left(),
                 Input::StrafeRight => player = player.move_right(),
                 Input::Rotate(x) => player = player.rotate(x),
+                Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
             }
         }
 

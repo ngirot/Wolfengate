@@ -9,6 +9,7 @@ pub enum Input {
     StrafeLeft,
     StrafeRight,
     Rotate(i32),
+    ToggleFullscreen,
     Quit,
 }
 
@@ -16,25 +17,14 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
     let mut inputs = vec![];
 
     let event_pump = sdl_context.event_pump();
-    for event in event_pump.poll_iter() {
-        match event {
-            Event::Quit { .. } => inputs.push(Input::Quit), 
-            Event::MouseMotion { xrel, .. } => inputs.push(Input::Rotate(xrel)),
-             Event::KeyDown {
-                keycode: Some(Keycode::Escape),
-                ..
-            } => {
-                inputs.push(Input::Quit);
-            }
-            _ => {}
-        }
-    }
 
     let keys: Vec<Keycode> = event_pump
-            .keyboard_state()
-            .pressed_scancodes()
-            .filter_map(Keycode::from_scancode)
-            .collect();
+        .keyboard_state()
+        .pressed_scancodes()
+        .filter_map(Keycode::from_scancode)
+        .collect();
+
+    let mut alt_pressed = false;
 
     for key in keys {
         match key {
@@ -48,7 +38,31 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
 
             Keycode::D => inputs.push(Input::StrafeRight),
 
-            _ => ()
+            Keycode::LAlt => alt_pressed = true,
+
+            _ => (),
+        }
+    }
+
+    for event in event_pump.poll_iter() {
+        match event {
+            Event::Quit { .. } => inputs.push(Input::Quit),
+            Event::MouseMotion { xrel, .. } => inputs.push(Input::Rotate(xrel)),
+            Event::KeyDown {
+                keycode: Some(Keycode::Return),
+                ..
+            } => {
+                if alt_pressed {
+                    inputs.push(Input::ToggleFullscreen);
+                }
+            }
+            Event::KeyDown {
+                keycode: Some(Keycode::Escape),
+                ..
+            } => {
+                inputs.push(Input::Quit);
+            }
+            _ => {}
         }
     }
 
