@@ -3,7 +3,13 @@ use super::{
     map::{Map, Tile},
 };
 
-pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
+#[derive(Debug)]
+pub struct ProjectedPoint {
+    distance: f32,
+    offset_in_bloc: f32,
+}
+
+pub fn distance(position: Position, angle: f32, map: &Map) -> Option<ProjectedPoint> {
     let direction_x = angle.cos().signum();
     let direction_y = angle.sin().signum();
 
@@ -15,11 +21,14 @@ pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
 
     let bloc: MapPoint;
     let next_position;
+    let position_on_texture;
     if distance_to_next_x < distance_to_next_y {
         bloc = next_x_position.to_map_point(direction_x, 0.0);
-        next_position = next_x_position
+        position_on_texture = decimal_part(next_x_position.y());
+        next_position = next_x_position;
     } else {
         bloc = next_y_position.to_map_point(0.0, direction_y);
+        position_on_texture = decimal_part(next_y_position.x());
         next_position = next_y_position
     };
 
@@ -28,12 +37,40 @@ pub fn distance(position: Position, angle: f32, map: &Map) -> Option<f32> {
     let distance_total = position.distance(&next_position);
     match bloc_tile {
         None => None,
-        Some(Tile::Wall) => Some(distance_total),
+        Some(Tile::Wall) => Some(ProjectedPoint::new(distance_total, position_on_texture)),
         _ => {
             let added = distance(next_position, angle, map);
-            added.map(|d| d + distance_total)
+            added.map(|d| d.with_distance_added(distance_total))
         }
     }
+}
+
+impl ProjectedPoint {
+    pub fn new(distance: f32, offset_in_bloc: f32) -> Self {
+        ProjectedPoint {
+            distance,
+            offset_in_bloc,
+        }
+    }
+
+    pub fn distance(&self) -> f32 {
+        self.distance
+    }
+
+    pub fn offset_in_bloc(&self) -> f32 {
+        self.offset_in_bloc
+    }
+
+    fn with_distance_added(&self, distance_to_add: f32) -> Self {
+        ProjectedPoint {
+            distance: self.distance + distance_to_add,
+            offset_in_bloc: self.offset_in_bloc,
+        }
+    }
+}
+
+fn decimal_part(number: f32) -> f32 {
+    number.ceil() - number
 }
 
 #[cfg(test)]
@@ -60,7 +97,7 @@ mod distance_test {
         let distance = distance(center, PI / 2.0, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.5, 0.1)
     }
 
     #[test]
@@ -78,7 +115,7 @@ mod distance_test {
         let distance = distance(center, PI / 2.0, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(1.7, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(1.7, 0.1)
     }
 
     #[test]
@@ -96,7 +133,7 @@ mod distance_test {
         let distance = distance(center, PI * 1.5, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.5, 0.1)
     }
 
     #[test]
@@ -114,7 +151,7 @@ mod distance_test {
         let distance = distance(center, PI * 1.5, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(1.2, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(1.2, 0.1)
     }
 
     #[test]
@@ -132,7 +169,7 @@ mod distance_test {
         let distance = distance(center, PI, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.5, 0.1)
     }
 
     #[test]
@@ -150,7 +187,7 @@ mod distance_test {
         let distance = distance(center, PI, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(1.1, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(1.1, 0.1)
     }
 
     #[test]
@@ -168,7 +205,7 @@ mod distance_test {
         let distance = distance(center, 0.0, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.5, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.5, 0.1)
     }
 
     #[test]
@@ -186,7 +223,7 @@ mod distance_test {
         let distance = distance(center, 0.0, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(1.9, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(1.9, 0.1)
     }
 
     #[test]
@@ -204,7 +241,7 @@ mod distance_test {
         let distance = distance(center, 0.7, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.7, 0.1)
     }
 
     #[test]
@@ -222,7 +259,7 @@ mod distance_test {
         let distance = distance(center, PI - 0.7, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.7, 0.1)
     }
 
     #[test]
@@ -240,7 +277,7 @@ mod distance_test {
         let distance = distance(center, -0.7, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.7, 0.1)
     }
 
     #[test]
@@ -258,7 +295,7 @@ mod distance_test {
         let distance = distance(center, PI + 0.7, &map);
 
         assert_that(&distance).is_some();
-        assert_that(&distance.unwrap()).is_close_to(0.7, 0.1)
+        assert_that(&distance.unwrap().distance()).is_close_to(0.7, 0.1)
     }
 
     #[test]
@@ -274,5 +311,41 @@ mod distance_test {
         let distance = distance(center, 0.0, &map);
 
         assert_that(&distance).is_none();
+    }
+
+    #[test]
+    fn position_on_texture_on_straight_direction() {
+        let map = Map::new(
+            "\
+            #####\n\
+            # # #\n\
+            #   #\n\
+            #   #\n\
+            #####",
+        )
+        .unwrap();
+        let center = Position::new(2.5, 2.5);
+        let distance = distance(center, PI / 2.0, &map);
+
+        assert_that(&distance).is_some();
+        assert_that(&distance.unwrap().offset_in_bloc()).is_close_to(0.5, 0.001)
+    }
+
+    #[test]
+    fn position_on_texture_on_diagonal_direction() {
+        let map = Map::new(
+            "\
+            #####\n\
+            # # #\n\
+            #   #\n\
+            #   #\n\
+            #####",
+        )
+        .unwrap();
+        let center = Position::new(2.5, 2.5);
+        let distance = distance(center, PI / 2.0 + 0.23, &map);
+
+        assert_that(&distance).is_some();
+        assert_that(&distance.unwrap().offset_in_bloc()).is_close_to(0.617, 0.001)
     }
 }

@@ -88,12 +88,12 @@ fn build_walls(
         if distance_option.is_none() {
             continue 'drawer;
         }
-        let distance = distance_option.unwrap();
+        let projected_point = distance_option.unwrap();
 
         let column: i32 = i.into();
         let screen_length: i32 = height.into();
 
-        let wall_height = (height as f32 * 0.8) / distance;
+        let wall_height = (height as f32 * 0.8) / projected_point.distance();
         let start = ScreenPoint::new(
             column,
             (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
@@ -102,9 +102,12 @@ fn build_walls(
             column,
             (screen_length as f32 / 2.0 + wall_height / 2.0) as i32,
         );
-        let color = Color::new(0, 0, (255.0 / (distance / 2.0)) as u8);
 
-        actions.push(DrawAction::Line(start, end, color));
+        actions.push(DrawAction::TexturedLine(
+            start,
+            end,
+            projected_point.offset_in_bloc(),
+        ));
     }
     actions
 }

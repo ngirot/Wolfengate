@@ -3,14 +3,21 @@ use sdl2::rect::Rect;
 use crate::domain::draw_action::DrawAction;
 
 use super::context::SdlContext;
+use super::texture::{TextureIndex, TextureRegistry};
 
 pub fn draw(context: &mut SdlContext, actions: Vec<DrawAction>) {
     let canva = context.canva();
+    let texture_creator1 = canva.texture_creator();
+
+    let registry1 = TextureRegistry::new(&texture_creator1);
 
     for action in actions.iter() {
         match action {
             DrawAction::Rectangle(start, end, color) => draw_rectangle(canva, color, start, end),
             DrawAction::Line(start, end, color) => draw_line(canva, color, start, end),
+            DrawAction::TexturedLine(start, end, position_on_texture) => {
+                draw_textured_line(canva, position_on_texture, start, end, &registry1)
+            }
             DrawAction::Clear(color) => clear_screen(canva, color),
         }
     }
@@ -38,6 +45,32 @@ fn draw_line(
     canvas
         .draw_line(to_sdl_point(start), to_sdl_point(end))
         .expect("cannot render");
+}
+
+fn draw_textured_line(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    position_on_texture: &f32,
+    start: &crate::domain::coord::ScreenPoint,
+    end: &crate::domain::coord::ScreenPoint,
+    texture_registry: &TextureRegistry,
+) {
+    let texture = texture_registry
+        .get(TextureIndex::WALL)
+        .expect("No texture loaded");
+
+    let rect_texture = Rect::new(
+        (texture.width() as f32 * (*position_on_texture)) as i32,
+        0,
+        1,
+        texture.height(),
+    );
+    canvas
+        .copy(
+            &texture.data(),
+            Some(rect_texture),
+            Some(to_sdl_rect(start, end)),
+        )
+        .expect("Cannot render texture");
 }
 
 fn draw_rectangle(

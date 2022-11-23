@@ -1,5 +1,4 @@
 use std::f32::consts::PI;
-use std::time::Duration;
 use wolfengate::domain::actor::{ActorStats, Player};
 use wolfengate::domain::coord::Position;
 use wolfengate::domain::input::Input;
@@ -54,9 +53,6 @@ fn main() -> Result<(), String> {
 
         // Render
         render(&mut sdl_context, &level, &player);
-
-        // Time management!
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 
     Ok(())
