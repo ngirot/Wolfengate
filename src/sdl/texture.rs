@@ -6,10 +6,7 @@ use sdl2::{
     video::WindowContext,
 };
 
-#[derive(PartialEq, Eq, Hash)]
-pub enum TextureIndex {
-    WALL,
-}
+use crate::domain::texture::TextureIndex;
 
 pub struct TextureRegistry<'a> {
     // texture_creator: &'a TextureCreator<WindowContext>,

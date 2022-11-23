@@ -1,9 +1,10 @@
 use sdl2::rect::Rect;
 
 use crate::domain::draw_action::DrawAction;
+use crate::domain::texture::TextureIndex;
 
 use super::context::SdlContext;
-use super::texture::{TextureIndex, TextureRegistry};
+use super::texture::TextureRegistry;
 
 pub fn draw(context: &mut SdlContext, actions: Vec<DrawAction>) {
     let canva = context.canva();
@@ -15,8 +16,15 @@ pub fn draw(context: &mut SdlContext, actions: Vec<DrawAction>) {
         match action {
             DrawAction::Rectangle(start, end, color) => draw_rectangle(canva, color, start, end),
             DrawAction::Line(start, end, color) => draw_line(canva, color, start, end),
-            DrawAction::TexturedLine(start, end, position_on_texture) => {
-                draw_textured_line(canva, position_on_texture, start, end, &registry1)
+            DrawAction::TexturedLine(start, end, texture_index, position_on_texture) => {
+                draw_textured_line(
+                    canva,
+                    position_on_texture,
+                    start,
+                    end,
+                    &registry1,
+                    *texture_index,
+                )
             }
             DrawAction::Clear(color) => clear_screen(canva, color),
         }
@@ -53,9 +61,10 @@ fn draw_textured_line(
     start: &crate::domain::coord::ScreenPoint,
     end: &crate::domain::coord::ScreenPoint,
     texture_registry: &TextureRegistry,
+    texture_index: TextureIndex,
 ) {
     let texture = texture_registry
-        .get(TextureIndex::WALL)
+        .get(texture_index)
         .expect("No texture loaded");
 
     let rect_texture = Rect::new(

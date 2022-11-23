@@ -6,6 +6,7 @@ use super::{
     distance::distance,
     draw_action::DrawAction,
     map::Map,
+    texture::TextureIndex,
 };
 
 pub struct Level {
@@ -106,6 +107,7 @@ fn build_walls(
         actions.push(DrawAction::TexturedLine(
             start,
             end,
+            TextureIndex::WALL,
             projected_point.offset_in_bloc(),
         ));
     }
