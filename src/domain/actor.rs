@@ -32,10 +32,12 @@ impl Player {
         self.orientation
     }
 
-    pub fn move_forward(&self) -> Self {
+    pub fn move_forward(&self, milliseconds_elapsed: u128) -> Self {
+        let factor = self.get_speed_factor(milliseconds_elapsed);
+
         let new_position = Position::new(
-            self.position.x() + self.orientation.cos() * self.stats.movement_speed,
-            self.position.y() + self.orientation.sin() * self.stats.movement_speed,
+            self.position.x() + self.orientation.cos() * factor,
+            self.position.y() + self.orientation.sin() * factor,
         );
         Self {
             position: new_position,
@@ -44,10 +46,12 @@ impl Player {
         }
     }
 
-    pub fn move_backward(&self) -> Self {
+    pub fn move_backward(&self, milliseconds_elapsed: u128) -> Self {
+        let factor = self.get_speed_factor(milliseconds_elapsed);
+
         let new_position = Position::new(
-            self.position.x() - self.orientation.cos() * self.stats.movement_speed,
-            self.position.y() - self.orientation.sin() * self.stats.movement_speed,
+            self.position.x() - self.orientation.cos() * factor,
+            self.position.y() - self.orientation.sin() * factor,
         );
         Self {
             position: new_position,
@@ -56,11 +60,13 @@ impl Player {
         }
     }
 
-    pub fn move_left(&self) -> Self {
+    pub fn move_left(&self, milliseconds_elapsed: u128) -> Self {
+        let factor = self.get_speed_factor(milliseconds_elapsed);
         let new_angle = self.orientation + PI / 2.0;
+
         let new_position = Position::new(
-            self.position.x() + new_angle.cos() * self.stats.movement_speed,
-            self.position.y() + new_angle.sin() * self.stats.movement_speed,
+            self.position.x() + new_angle.cos() * factor,
+            self.position.y() + new_angle.sin() * factor,
         );
         Self {
             position: new_position,
@@ -69,11 +75,13 @@ impl Player {
         }
     }
 
-    pub fn move_right(&self) -> Self {
+    pub fn move_right(&self, milliseconds_elapsed: u128) -> Self {
+        let factor = self.get_speed_factor(milliseconds_elapsed);
         let new_angle = self.orientation + PI / 2.0;
+
         let new_position = Position::new(
-            self.position.x() - new_angle.cos() * self.stats.movement_speed,
-            self.position.y() - new_angle.sin() * self.stats.movement_speed,
+            self.position.x() - new_angle.cos() * factor,
+            self.position.y() - new_angle.sin() * factor,
         );
         Self {
             position: new_position,
@@ -90,6 +98,10 @@ impl Player {
             orientation: new_orientation,
             stats: self.stats,
         }
+    }
+
+    fn get_speed_factor(&self, milliseconds_elapsed: u128) -> f32 {
+        self.stats.movement_speed * milliseconds_elapsed as f32
     }
 }
 
@@ -115,11 +127,11 @@ mod actor_test {
         let player = Player::new(
             Position::new(1.0, 2.0),
             1.05,
-            super::ActorStats::new(1.0, 1.0),
+            super::ActorStats::new(1.2, 1.0),
         );
-        let after_move = player.move_forward();
-        assert_that(&after_move.position().x()).is_close_to(1.497, 0.001);
-        assert_that(&after_move.position().y()).is_close_to(2.867, 0.001);
+        let after_move = player.move_forward(20);
+        assert_that(&after_move.position().x()).is_close_to(12.941, 0.001);
+        assert_that(&after_move.position().y()).is_close_to(22.818, 0.001);
     }
 
     #[test]
@@ -129,9 +141,9 @@ mod actor_test {
             1.05,
             super::ActorStats::new(1.0, 1.0),
         );
-        let after_move = player.move_backward();
-        assert_that(&after_move.position().x()).is_close_to(0.502, 0.001);
-        assert_that(&after_move.position().y()).is_close_to(1.132, 0.001);
+        let after_move = player.move_backward(27);
+        assert_that(&after_move.position().x()).is_close_to(-12.434, 0.001);
+        assert_that(&after_move.position().y()).is_close_to(-21.420, 0.001);
     }
 
     #[test]
@@ -163,9 +175,9 @@ mod actor_test {
             1.05,
             super::ActorStats::new(1.0, 0.3),
         );
-        let after_move = player.move_left();
-        assert_that(&after_move.position().x()).is_close_to(0.132, 0.001);
-        assert_that(&after_move.position().y()).is_close_to(2.497, 0.001);
+        let after_move = player.move_left(12);
+        assert_that(&after_move.position().x()).is_close_to(-9.409, 0.001);
+        assert_that(&after_move.position().y()).is_close_to(7.970, 0.001);
     }
 
     #[test]
@@ -175,8 +187,8 @@ mod actor_test {
             1.05,
             super::ActorStats::new(1.0, 0.3),
         );
-        let after_move = player.move_right();
-        assert_that(&after_move.position().x()).is_close_to(1.867, 0.001);
-        assert_that(&after_move.position().y()).is_close_to(1.502, 0.001);
+        let after_move = player.move_right(34);
+        assert_that(&after_move.position().x()).is_close_to(30.492, 0.001);
+        assert_that(&after_move.position().y()).is_close_to(-14.917, 0.001);
     }
 }
