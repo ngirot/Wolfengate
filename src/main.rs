@@ -19,6 +19,9 @@ fn render(context: &mut SdlContext, level: &Level, player: &Player) {
 }
 
 fn main() -> Result<(), String> {
+    let width = 800;
+    let height = 500;
+
     let map = Map::new(
         "\
         ##############\n\
@@ -36,9 +39,9 @@ fn main() -> Result<(), String> {
     let position = Position::new(12.0, 3.0);
     let player_stats = ActorStats::new(0.004, 0.005);
     let mut player = Player::new(position, PI / 2.0, player_stats);
-    let level = level::Level::new(800, 500, map);
+    let level = level::Level::new(width, height, map);
 
-    let mut sdl_context = SdlContext::new()?;
+    let mut sdl_context = SdlContext::new(width, height)?;
 
     let mut start = Instant::now();
     'running: loop {

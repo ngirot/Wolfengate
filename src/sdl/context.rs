@@ -10,21 +10,21 @@ pub struct SdlContext {
 }
 
 impl SdlContext {
-    pub fn new() -> Result<Self, String> {
+    pub fn new(width: u16, height: u16) -> Result<Self, String> {
         let sdl_context = sdl2::init()?;
 
         let video_subsystem = sdl_context.video()?;
 
         let mut window = video_subsystem
-            .window("Wolfengate engine", 800, 500)
+            .window("Wolfengate engine", width as u32, height as u32)
             .position_centered()
             .build()
             .expect("could not initialize video subsystem");
 
         window.set_display_mode(DisplayMode::new(
             sdl2::pixels::PixelFormatEnum::ARGB32,
-            800,
-            500,
+            width as i32,
+            height as i32,
             60,
         ))?;
 
