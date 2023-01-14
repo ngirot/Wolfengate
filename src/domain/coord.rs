@@ -9,10 +9,17 @@ pub struct MapPoint {
     x: i16,
     y: i16,
 }
+
 #[derive(Copy, Clone)]
 pub struct Position {
     x: f32,
     y: f32,
+}
+
+#[derive(Copy, Clone)]
+pub struct Force {
+    orientation: f32,
+    power: f32,
 }
 
 impl ScreenPoint {
@@ -68,6 +75,16 @@ impl Position {
         ((self.x - position.x).abs().powi(2) + (self.y - position.y).abs().powi(2)).sqrt()
     }
 
+    pub fn apply_force(&self, force: Force) -> Position {
+        let factor = force.power;
+        let new_angle = force.orientation;
+
+        Position::new(
+            self.x + new_angle.cos() * factor,
+            self.y + new_angle.sin() * factor,
+        )
+    }
+
     pub fn to_map_point(&self, direction_x: f32, direction_y: f32) -> MapPoint {
         let offset_x: i16 = if direction_x >= 0.0 { 0 } else { 1 };
         let offset_y: i16 = if direction_y >= 0.0 { 0 } else { 1 };
@@ -109,12 +126,27 @@ impl Position {
     }
 }
 
+impl Force {
+    pub fn new(orientation: f32, power: f32) -> Self {
+        Force { orientation, power }
+    }
+
+    pub fn orientation(&self) -> f32 {
+        self.orientation
+    }
+
+    pub fn power(&self) -> f32 {
+        self.power
+    }
+}
+
 #[cfg(test)]
 mod coord_test {
     use std::f32::consts::PI;
 
     use super::Position;
     use spectral::prelude::*;
+    use crate::domain::coord::Force;
 
     #[test]
     fn should_have_no_distance_between_the_same_point() {
@@ -250,5 +282,38 @@ mod coord_test {
         let projected = position.projection_y((-PI / 2.0) - 0.15);
 
         assert_that(&projected.x()).is_close_to(3.124, 0.001);
+    }
+
+    #[test]
+    fn apply_simple_x_force() {
+        let position = Position::new(5.0, 10.0);
+        let force = Force::new(0.0, 4.0);
+
+        let applied = position.apply_force(force);
+
+        assert_that(&applied.x()).is_close_to(9.0, 0.0);
+        assert_that(&applied.y()).is_close_to(10.0, 0.0);
+    }
+
+    #[test]
+    fn apply_simple_y_force() {
+        let position = Position::new(5.0, 10.0);
+        let force = Force::new(PI / 2.0, 4.0);
+
+        let applied = position.apply_force(force);
+
+        assert_that(&applied.x()).is_close_to(5.0, 0.0);
+        assert_that(&applied.y()).is_close_to(14.0, 0.0);
+    }
+
+    #[test]
+    fn apply_force_with_angle() {
+        let position = Position::new(3.1, 6.4);
+        let force = Force::new(1.2, 3.2);
+
+        let applied = position.apply_force(force);
+
+        assert_that(&applied.x()).is_close_to(4.259, 0.001);
+        assert_that(&applied.y()).is_close_to(9.382, 0.001);
     }
 }

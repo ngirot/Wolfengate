@@ -1,4 +1,5 @@
 use std::f32::consts::PI;
+use crate::domain::coord::Force;
 
 use super::coord::Position;
 
@@ -33,61 +34,22 @@ impl Player {
     }
 
     pub fn move_forward(&self, milliseconds_elapsed: u128) -> Self {
-        let factor = self.get_speed_factor(milliseconds_elapsed);
-
-        let new_position = Position::new(
-            self.position.x() + self.orientation.cos() * factor,
-            self.position.y() + self.orientation.sin() * factor,
-        );
-        Self {
-            position: new_position,
-            orientation: self.orientation,
-            stats: self.stats,
-        }
+        self.move_direction(self.orientation, milliseconds_elapsed)
     }
 
     pub fn move_backward(&self, milliseconds_elapsed: u128) -> Self {
-        let factor = self.get_speed_factor(milliseconds_elapsed);
-
-        let new_position = Position::new(
-            self.position.x() - self.orientation.cos() * factor,
-            self.position.y() - self.orientation.sin() * factor,
-        );
-        Self {
-            position: new_position,
-            orientation: self.orientation,
-            stats: self.stats,
-        }
+        let direction = self.orientation + PI;
+        self.move_direction(direction, milliseconds_elapsed)
     }
 
     pub fn move_left(&self, milliseconds_elapsed: u128) -> Self {
-        let factor = self.get_speed_factor(milliseconds_elapsed);
-        let new_angle = self.orientation + PI / 2.0;
-
-        let new_position = Position::new(
-            self.position.x() + new_angle.cos() * factor,
-            self.position.y() + new_angle.sin() * factor,
-        );
-        Self {
-            position: new_position,
-            orientation: self.orientation,
-            stats: self.stats,
-        }
+        let direction = self.orientation + (PI / 2.0);
+        self.move_direction(direction, milliseconds_elapsed)
     }
 
     pub fn move_right(&self, milliseconds_elapsed: u128) -> Self {
-        let factor = self.get_speed_factor(milliseconds_elapsed);
-        let new_angle = self.orientation + PI / 2.0;
-
-        let new_position = Position::new(
-            self.position.x() - new_angle.cos() * factor,
-            self.position.y() - new_angle.sin() * factor,
-        );
-        Self {
-            position: new_position,
-            orientation: self.orientation,
-            stats: self.stats,
-        }
+        let direction = self.orientation - (PI / 2.0);
+        self.move_direction(direction, milliseconds_elapsed)
     }
 
     pub fn rotate(&self, amplitude: i32) -> Self {
@@ -102,6 +64,18 @@ impl Player {
 
     fn get_speed_factor(&self, milliseconds_elapsed: u128) -> f32 {
         self.stats.movement_speed * milliseconds_elapsed as f32
+    }
+
+    fn move_direction(&self, orientation: f32, milliseconds_elapsed: u128) -> Player {
+        let factor = self.get_speed_factor(milliseconds_elapsed);
+        let force = Force::new(orientation, factor);
+
+        let new_position = self.position.apply_force(force);
+        Self {
+            position: new_position,
+            orientation: self.orientation,
+            stats: self.stats,
+        }
     }
 }
 
