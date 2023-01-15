@@ -1,8 +1,9 @@
 use std::f32::consts::PI;
 use std::time::Instant;
 
-use wolfengate::domain::actor::{ActorStats, Player};
+use wolfengate::domain::actor::Player;
 use wolfengate::domain::coord::Position;
+use wolfengate::domain::force::InputForce;
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level;
 use wolfengate::domain::level::Level;
@@ -43,7 +44,7 @@ fn main() -> Result<(), String> {
         .unwrap();
 
     let position = Position::new(12.0, 3.0);
-    let player_stats = ActorStats::new(0.004, 0.005);
+    let input_force = InputForce::new(0.004, 0.005);
     let mut player = Player::new(position, PI / 2.0);
     let level = level::Level::new(width, height, map);
 
@@ -56,26 +57,11 @@ fn main() -> Result<(), String> {
         for input in poll_input(&mut sdl_context) {
             match input {
                 Input::Quit => break 'running,
-                Input::Forward => {
-                    let force = player_stats.movement_to_force(player.orientation(), elapsed);
-                    player = player.apply_force(force)
-                }
-                Input::Backward => {
-                    let force = player_stats.movement_to_force(player.orientation() + PI, elapsed);
-                    player = player.apply_force(force)
-                }
-                Input::StrafeLeft => {
-                    let force = player_stats.movement_to_force(player.orientation() + (PI / 2.0), elapsed);
-                    player = player.apply_force(force)
-                }
-                Input::StrafeRight => {
-                    let force = player_stats.movement_to_force(player.orientation() - (PI / 2.0), elapsed);
-                    player = player.apply_force(force)
-                }
-                Input::Rotate(x) => {
-                    let force = player_stats.rotation_to_force(x);
-                    player = player.apply_force(force)
-                }
+                Input::Forward => player = player.apply_force(input_force.forward(elapsed)),
+                Input::Backward => player = player.apply_force(input_force.backward(elapsed)),
+                Input::StrafeLeft => player = player.apply_force(input_force.strafe_left(elapsed)),
+                Input::StrafeRight => player = player.apply_force(input_force.state_right(elapsed)),
+                Input::Rotate(x) => player = player.apply_force(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
             }
         }
