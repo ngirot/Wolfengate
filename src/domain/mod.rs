@@ -6,5 +6,6 @@ pub mod input;
 pub mod level;
 pub mod map;
 pub mod texture;
+pub mod force;
 
 mod distance;

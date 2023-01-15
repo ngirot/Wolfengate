@@ -1,3 +1,5 @@
+use crate::domain::force::Force;
+
 #[derive(Copy, Clone)]
 pub struct ScreenPoint {
     x: i32,
@@ -14,12 +16,6 @@ pub struct MapPoint {
 pub struct Position {
     x: f32,
     y: f32,
-}
-
-#[derive(Copy, Clone)]
-pub struct Force {
-    orientation: f32,
-    power: f32,
 }
 
 impl ScreenPoint {
@@ -76,8 +72,8 @@ impl Position {
     }
 
     pub fn apply_force(&self, force: Force) -> Position {
-        let factor = force.power;
-        let new_angle = force.orientation;
+        let factor = force.power();
+        let new_angle = force.orientation();
 
         Position::new(
             self.x + new_angle.cos() * factor,
@@ -126,27 +122,14 @@ impl Position {
     }
 }
 
-impl Force {
-    pub fn new(orientation: f32, power: f32) -> Self {
-        Force { orientation, power }
-    }
-
-    pub fn orientation(&self) -> f32 {
-        self.orientation
-    }
-
-    pub fn power(&self) -> f32 {
-        self.power
-    }
-}
-
 #[cfg(test)]
 mod coord_test {
     use std::f32::consts::PI;
 
-    use super::Position;
     use spectral::prelude::*;
-    use crate::domain::coord::Force;
+    use crate::domain::force::Force;
+
+    use super::Position;
 
     #[test]
     fn should_have_no_distance_between_the_same_point() {
@@ -287,7 +270,7 @@ mod coord_test {
     #[test]
     fn apply_simple_x_force() {
         let position = Position::new(5.0, 10.0);
-        let force = Force::new(0.0, 4.0);
+        let force = Force::new(0.0, 4.0, 0.0);
 
         let applied = position.apply_force(force);
 
@@ -298,7 +281,7 @@ mod coord_test {
     #[test]
     fn apply_simple_y_force() {
         let position = Position::new(5.0, 10.0);
-        let force = Force::new(PI / 2.0, 4.0);
+        let force = Force::new(PI / 2.0, 4.0, 0.0);
 
         let applied = position.apply_force(force);
 
@@ -309,7 +292,7 @@ mod coord_test {
     #[test]
     fn apply_force_with_angle() {
         let position = Position::new(3.1, 6.4);
-        let force = Force::new(1.2, 3.2);
+        let force = Force::new(1.2, 3.2, 0.0);
 
         let applied = position.apply_force(force);
 
