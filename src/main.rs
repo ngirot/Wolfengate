@@ -13,8 +13,8 @@ use wolfengate::sdl::drawer;
 use wolfengate::sdl::drawer::ask_display;
 use wolfengate::sdl::input::poll_input;
 
-fn render(context: &mut SdlContext, level: &Level, player: &Player) {
-    let actions = level.generate_actions(*player.position(), player.orientation());
+fn render(context: &mut SdlContext, level: &Level) {
+    let actions = level.generate_actions();
     drawer::draw(context, actions);
     ask_display(context);
 }
@@ -45,8 +45,8 @@ fn main() -> Result<(), String> {
 
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
-    let mut player = Player::new(position, PI / 2.0);
-    let level = level::Level::new(width, height, map);
+    let player = Player::new(position, PI / 2.0);
+    let mut level = level::Level::new(width, height, map, player);
 
     let mut sdl_context = SdlContext::new(width, height)?;
 
@@ -57,17 +57,17 @@ fn main() -> Result<(), String> {
         for input in poll_input(&mut sdl_context) {
             match input {
                 Input::Quit => break 'running,
-                Input::Forward => player = player.apply_force(input_force.forward(elapsed)),
-                Input::Backward => player = player.apply_force(input_force.backward(elapsed)),
-                Input::StrafeLeft => player = player.apply_force(input_force.strafe_left(elapsed)),
-                Input::StrafeRight => player = player.apply_force(input_force.state_right(elapsed)),
-                Input::Rotate(x) => player = player.apply_force(input_force.rotate(x)),
+                Input::Forward => level.apply_forces(input_force.forward(elapsed)),
+                Input::Backward => level.apply_forces(input_force.backward(elapsed)),
+                Input::StrafeLeft => level.apply_forces(input_force.strafe_left(elapsed)),
+                Input::StrafeRight => level.apply_forces(input_force.state_right(elapsed)),
+                Input::Rotate(x) => level.apply_forces(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
             }
         }
 
         // Render
-        render(&mut sdl_context, &level, &player);
+        render(&mut sdl_context, &level);
     }
 
     Ok(())
