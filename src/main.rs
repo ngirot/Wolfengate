@@ -55,7 +55,7 @@ fn main() -> Result<(), String> {
 
     let mut start = Instant::now();
     'running: loop {
-        let elapsed = start.elapsed().as_millis();
+        let elapsed = start.elapsed().as_micros();
         start = Instant::now();
         for input in poll_input(&mut sdl_context) {
             match input {

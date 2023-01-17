@@ -47,28 +47,28 @@ impl InputForce {
         }
     }
 
-    pub fn forward(&self, milliseconds_elapsed: u128) -> Force {
-        self.movement_to_force(0.0, milliseconds_elapsed)
+    pub fn forward(&self, microseconds_elapsed: u128) -> Force {
+        self.movement_to_force(0.0, microseconds_elapsed)
     }
 
-    pub fn backward(&self, milliseconds_elapsed: u128) -> Force {
-        self.movement_to_force(PI, milliseconds_elapsed)
+    pub fn backward(&self, microseconds_elapsed: u128) -> Force {
+        self.movement_to_force(PI, microseconds_elapsed)
     }
 
-    pub fn strafe_left(&self, milliseconds_elapsed: u128) -> Force {
-        self.movement_to_force(PI / 2.0, milliseconds_elapsed)
+    pub fn strafe_left(&self, microseconds_elapsed: u128) -> Force {
+        self.movement_to_force(PI / 2.0, microseconds_elapsed)
     }
 
-    pub fn state_right(&self, milliseconds_elapsed: u128) -> Force {
-        self.movement_to_force(-PI / 2.0, milliseconds_elapsed)
+    pub fn state_right(&self, microseconds_elapsed: u128) -> Force {
+        self.movement_to_force(-PI / 2.0, microseconds_elapsed)
     }
 
     pub fn rotate(&self, amplitude: i32) -> Force {
         self.rotation_to_force(amplitude)
     }
 
-    fn movement_to_force(&self, orientation: f32, milliseconds_elapsed: u128) -> Force {
-        let factor = self.movement_speed * milliseconds_elapsed as f32;
+    fn movement_to_force(&self, orientation: f32, microseconds_elapsed: u128) -> Force {
+        let factor = self.movement_speed * microseconds_elapsed as f32 / 1000.0;
         Force::new(orientation, factor, 0.0)
     }
 
@@ -103,7 +103,7 @@ mod input_force_test {
     #[test]
     fn move_force_should_have_the_a_power_calculated_from_speed() {
         let stats = InputForce::new(1.2, 2.3);
-        let force = stats.movement_to_force(1.2, 120);
+        let force = stats.movement_to_force(1.2, 120000);
 
         assert_that(&force.power()).is_equal_to(144.0);
     }
