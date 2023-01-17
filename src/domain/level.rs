@@ -9,7 +9,7 @@ use super::{
     distance::distance,
     draw_action::DrawAction,
     map::Map,
-    texture::TextureIndex,
+    index::TextureIndex,
 };
 
 const WALL_MINIMUM_DISTANCE: f32 = 0.1;

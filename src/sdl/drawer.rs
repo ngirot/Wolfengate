@@ -1,14 +1,13 @@
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
-use sdl2::ttf;
 
 use crate::domain::draw_action::DrawAction;
-use crate::domain::texture::TextureIndex;
+use crate::domain::index::{FontIndex, TextureIndex};
 
 use super::context::SdlContext;
-use super::texture::TextureRegistry;
+use super::texture::ResourceRegistry;
 
-pub fn draw(context: &mut SdlContext, registry: &TextureRegistry, actions: Vec<DrawAction>) {
+pub fn draw(context: &mut SdlContext, registry: &ResourceRegistry, actions: Vec<DrawAction>) {
     let canva = context.canva();
 
     for action in actions.iter() {
@@ -26,7 +25,7 @@ pub fn draw(context: &mut SdlContext, registry: &TextureRegistry, actions: Vec<D
                 )
             }
             DrawAction::Clear(color) => clear_screen(canva, color),
-            DrawAction::Text(text, start, end) => draw_text(canva, text, start, end)
+            DrawAction::Text(text, start, end) => draw_text(canva, registry, text, start, end)
         }
     }
 }
@@ -36,12 +35,12 @@ pub fn ask_display(context: &mut SdlContext) {
 }
 
 fn draw_text(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+             registry: &ResourceRegistry,
              text: &str,
              start: &crate::domain::coord::ScreenPoint,
              end: &crate::domain::coord::ScreenPoint) {
     let display_zone = to_sdl_rect(start, end);
-    let ttf_context = ttf::init().unwrap();
-    let font = ttf_context.load_font("res/MontserratAlternates-Medium.otf", 128).unwrap();
+    let font = registry.get_font(FontIndex::MONTSERRAT).unwrap();
 
     let surface = font.render(&text).blended(Color::RGBA(255, 0, 0, 255)).unwrap();
     let texture_creator = canvas.texture_creator();
@@ -76,11 +75,11 @@ fn draw_textured_line(
     position_on_texture: &f32,
     start: &crate::domain::coord::ScreenPoint,
     end: &crate::domain::coord::ScreenPoint,
-    texture_registry: &TextureRegistry,
+    registry: &ResourceRegistry,
     texture_index: TextureIndex,
 ) {
-    let texture = texture_registry
-        .get(texture_index)
+    let texture = registry
+        .get_texture(texture_index)
         .expect("No texture loaded");
 
     let rect_texture = Rect::new(

@@ -1,23 +1,24 @@
 use std::f32::consts::PI;
-use std::{thread, time};
 use std::time::Instant;
+
+use sdl2::ttf;
 
 use wolfengate::domain::actor::Player;
 use wolfengate::domain::coord::Position;
 use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::InputForce;
+use wolfengate::domain::index::{FontIndex, TextureIndex};
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level;
 use wolfengate::domain::level::Level;
 use wolfengate::domain::map::Map;
-use wolfengate::domain::texture::TextureIndex;
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer;
 use wolfengate::sdl::drawer::ask_display;
 use wolfengate::sdl::input::poll_input;
-use wolfengate::sdl::texture::TextureRegistry;
+use wolfengate::sdl::texture::ResourceRegistry;
 
-fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo, registry: &TextureRegistry) {
+fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo, registry: &ResourceRegistry) {
     let actions = level.generate_actions();
     drawer::draw(context, &registry, actions);
     drawer::draw(context, &registry, debug_info.generate_actions());
@@ -56,8 +57,10 @@ fn main() -> Result<(), String> {
 
     let mut sdl_context = SdlContext::new(width, height)?;
     let texture_creator = sdl_context.canva().texture_creator();
-    let mut registry = TextureRegistry::new(&texture_creator);
-    registry.load(TextureIndex::WALL, String::from("wall.png"));
+    let ttf_creator = ttf::init().unwrap();
+    let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator);
+    registry.load_texture(TextureIndex::WALL, String::from("wall.png"));
+    registry.load_font(FontIndex::MONTSERRAT, String::from("MontserratAlternates-Medium.otf"));
 
     let mut start = Instant::now();
     'running: loop {

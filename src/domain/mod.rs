@@ -5,7 +5,7 @@ pub mod draw_action;
 pub mod input;
 pub mod level;
 pub mod map;
-pub mod texture;
+pub mod index;
 pub mod force;
 pub mod debug;
 
