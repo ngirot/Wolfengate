@@ -1,4 +1,6 @@
+use sdl2::pixels::Color;
 use sdl2::rect::Rect;
+use sdl2::ttf;
 
 use crate::domain::draw_action::DrawAction;
 use crate::domain::texture::TextureIndex;
@@ -27,12 +29,29 @@ pub fn draw(context: &mut SdlContext, actions: Vec<DrawAction>) {
                 )
             }
             DrawAction::Clear(color) => clear_screen(canva, color),
+            DrawAction::Text(text, start, end) => draw_text(canva, text, start, end)
         }
     }
 }
 
 pub fn ask_display(context: &mut SdlContext) {
     context.canva().present();
+}
+
+fn draw_text(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+             text: &str,
+             start: &crate::domain::coord::ScreenPoint,
+             end: &crate::domain::coord::ScreenPoint) {
+    let display_zone = to_sdl_rect(start, end);
+    let ttf_context = ttf::init().unwrap();
+    let font = ttf_context.load_font("res/MontserratAlternates-Medium.otf", 128).unwrap();
+
+    let surface = font.render(&text).blended(Color::RGBA(255, 0, 0, 255)).unwrap();
+    let texture_creator = canvas.texture_creator();
+    let texture = texture_creator
+        .create_texture_from_surface(&surface)
+        .unwrap();
+    canvas.copy(&texture, None, Some(display_zone)).unwrap();
 }
 
 fn clear_screen(
@@ -94,8 +113,8 @@ fn draw_rectangle(
         .expect("Cannot render a rectangle");
 }
 
-fn to_sdl_color(color: &crate::domain::color::Color) -> sdl2::pixels::Color {
-    sdl2::pixels::Color::RGB(color.red(), color.green(), color.blue())
+fn to_sdl_color(color: &crate::domain::color::Color) -> Color {
+    Color::RGB(color.red(), color.green(), color.blue())
 }
 
 fn to_sdl_point(point: &crate::domain::coord::ScreenPoint) -> sdl2::rect::Point {

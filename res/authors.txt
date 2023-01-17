@@ -2,3 +2,8 @@
 Url: https://opengameart.org/content/procedural-texture-pack-wallpng
 Author: drummyfish [Miloslav Číž]
 License: CC0 [https://creativecommons.org/publicdomain/zero/1.0/]
+
+- MontserratAlternates-Medium.otf
+Url: https://www.fontsquirrel.com/fonts/montserrat / https://github.com/JulietaUla/Montserrat
+Author: Julieta Ulanovsky
+License: SIL Open Font License 1.1

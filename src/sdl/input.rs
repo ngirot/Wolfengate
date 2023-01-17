@@ -41,6 +41,12 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
             Event::Quit { .. } => inputs.push(Input::Quit),
             Event::MouseMotion { xrel, .. } => inputs.push(Input::Rotate(xrel)),
             Event::KeyDown {
+                keycode: Some(Keycode::H),
+                ..
+            } => {
+                inputs.push(Input::ShowFps)
+            }
+            Event::KeyDown {
                 keycode: Some(Keycode::Return),
                 ..
             } => {

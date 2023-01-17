@@ -10,8 +10,9 @@ spectral = "0.6.0"
 
 [features]
 image = ["sdl2/image"]
+ttf = ["sdl2/ttf"]
 
 [dependencies.sdl2]
 version = "0.35.2"
 default-features = false
-features = ["image"]
+features = ["image","ttf"]

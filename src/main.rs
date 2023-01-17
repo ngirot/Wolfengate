@@ -3,6 +3,7 @@ use std::time::Instant;
 
 use wolfengate::domain::actor::Player;
 use wolfengate::domain::coord::Position;
+use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::InputForce;
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level;
@@ -13,9 +14,10 @@ use wolfengate::sdl::drawer;
 use wolfengate::sdl::drawer::ask_display;
 use wolfengate::sdl::input::poll_input;
 
-fn render(context: &mut SdlContext, level: &Level) {
+fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo) {
     let actions = level.generate_actions();
     drawer::draw(context, actions);
+    drawer::draw(context, debug_info.generate_actions());
     ask_display(context);
 }
 
@@ -47,6 +49,7 @@ fn main() -> Result<(), String> {
     let input_force = InputForce::new(0.004, 0.005);
     let player = Player::new(position, PI / 2.0);
     let mut level = level::Level::new(width, height, map, player);
+    let mut debug_info = DebugInfo::new();
 
     let mut sdl_context = SdlContext::new(width, height)?;
 
@@ -63,11 +66,13 @@ fn main() -> Result<(), String> {
                 Input::StrafeRight => level.apply_forces(input_force.state_right(elapsed)),
                 Input::Rotate(x) => level.apply_forces(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
+                Input::ShowFps => {debug_info = debug_info.toggle_fps()}
             }
         }
 
         // Render
-        render(&mut sdl_context, &level);
+        render(&mut sdl_context, &level, &debug_info);
+        debug_info = debug_info.with_another_frame_displayed(elapsed);
     }
 
     Ok(())
