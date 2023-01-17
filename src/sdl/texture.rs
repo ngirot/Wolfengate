@@ -9,7 +9,7 @@ use sdl2::{
 use crate::domain::texture::TextureIndex;
 
 pub struct TextureRegistry<'a> {
-    // texture_creator: &'a TextureCreator<WindowContext>,
+    texture_creator: &'a TextureCreator<WindowContext>,
     registry: HashMap<TextureIndex, LoadedTexture<'a>>,
 }
 
@@ -21,17 +21,21 @@ pub struct LoadedTexture<'a> {
 
 impl<'s> TextureRegistry<'s> {
     pub fn new<'a>(texture_creator: &'a TextureCreator<WindowContext>) -> TextureRegistry {
-        let mut map = HashMap::new();
-
-        let texture = load_texture(texture_creator, String::from("wall.png"));
-        let query = texture.query();
-        let loaded_texture = LoadedTexture::new(texture, query.width, query.height);
-        map.insert(TextureIndex::WALL, loaded_texture);
+        let map = HashMap::new();
 
         TextureRegistry {
-            // texture_creator: &texture_creator,
+            texture_creator: &texture_creator,
             registry: map,
         }
+    }
+
+    pub fn load(&mut self, index: TextureIndex, file: String) {
+        let texture = load_texture(self.texture_creator, file);
+        let query = texture.query();
+
+        let loaded_texture = LoadedTexture::new(texture, query.width, query.height);
+
+        self.registry.insert(index, loaded_texture);
     }
 
     pub fn get(&self, index: TextureIndex) -> Option<&LoadedTexture> {

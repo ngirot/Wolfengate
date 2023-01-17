@@ -1,4 +1,5 @@
 use std::f32::consts::PI;
+use std::{thread, time};
 use std::time::Instant;
 
 use wolfengate::domain::actor::Player;
@@ -9,15 +10,17 @@ use wolfengate::domain::input::Input;
 use wolfengate::domain::level;
 use wolfengate::domain::level::Level;
 use wolfengate::domain::map::Map;
+use wolfengate::domain::texture::TextureIndex;
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer;
 use wolfengate::sdl::drawer::ask_display;
 use wolfengate::sdl::input::poll_input;
+use wolfengate::sdl::texture::TextureRegistry;
 
-fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo) {
+fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo, registry: &TextureRegistry) {
     let actions = level.generate_actions();
-    drawer::draw(context, actions);
-    drawer::draw(context, debug_info.generate_actions());
+    drawer::draw(context, &registry, actions);
+    drawer::draw(context, &registry, debug_info.generate_actions());
     ask_display(context);
 }
 
@@ -52,6 +55,9 @@ fn main() -> Result<(), String> {
     let mut debug_info = DebugInfo::new();
 
     let mut sdl_context = SdlContext::new(width, height)?;
+    let texture_creator = sdl_context.canva().texture_creator();
+    let mut registry = TextureRegistry::new(&texture_creator);
+    registry.load(TextureIndex::WALL, String::from("wall.png"));
 
     let mut start = Instant::now();
     'running: loop {
@@ -66,12 +72,12 @@ fn main() -> Result<(), String> {
                 Input::StrafeRight => level.apply_forces(input_force.state_right(elapsed)),
                 Input::Rotate(x) => level.apply_forces(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
-                Input::ShowFps => {debug_info = debug_info.toggle_fps()}
+                Input::ShowFps => { debug_info = debug_info.toggle_fps() }
             }
         }
 
         // Render
-        render(&mut sdl_context, &level, &debug_info);
+        render(&mut sdl_context, &level, &debug_info, &registry);
         debug_info = debug_info.with_another_frame_displayed(elapsed);
     }
 

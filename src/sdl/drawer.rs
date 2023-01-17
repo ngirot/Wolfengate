@@ -8,11 +8,8 @@ use crate::domain::texture::TextureIndex;
 use super::context::SdlContext;
 use super::texture::TextureRegistry;
 
-pub fn draw(context: &mut SdlContext, actions: Vec<DrawAction>) {
+pub fn draw(context: &mut SdlContext, registry: &TextureRegistry, actions: Vec<DrawAction>) {
     let canva = context.canva();
-    let texture_creator1 = canva.texture_creator();
-
-    let registry1 = TextureRegistry::new(&texture_creator1);
 
     for action in actions.iter() {
         match action {
@@ -24,7 +21,7 @@ pub fn draw(context: &mut SdlContext, actions: Vec<DrawAction>) {
                     position_on_texture,
                     start,
                     end,
-                    &registry1,
+                    &registry,
                     *texture_index,
                 )
             }
