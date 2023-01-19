@@ -8,8 +8,8 @@ use super::{
     coord::{Position, ScreenPoint},
     distance::distance,
     draw_action::DrawAction,
-    map::Map,
     index::TextureIndex,
+    map::Map,
 };
 
 const WALL_MINIMUM_DISTANCE: f32 = 0.1;
@@ -61,18 +61,44 @@ impl Level {
     }
 
     fn constrains(&self, start: Position, angle: f32, end: Position) -> Position {
-        let distance_wall = distance(start, angle, &self.map);
-        let distance_move = start.distance(&end);
-
-        if distance_wall.is_none() {
+        let distance_wall_option = distance(start, angle, &self.map)
+            .map(|projected| projected.distance());
+        if distance_wall_option.is_none() {
             return end;
         }
 
-        return if distance_move < distance_wall.unwrap().distance() - WALL_MINIMUM_DISTANCE {
+        let distance_wall = distance_wall_option.unwrap();
+        let distance_move = start.distance(&end);
+
+        return if distance_move < distance_wall - WALL_MINIMUM_DISTANCE {
             end
         } else {
-            start
+            let angle_x = if angle.cos() >= 0.0 { 0.0 } else { PI };
+            let angle_y = if angle.sin() >= 0.0 { PI / 2.0 } else { 3.0 * PI / 2.0 };
+
+            /*            let distance_x = distance(start, angle_x, &self.map).map(|x| x.distance()).unwrap_or_else(|| { 1000.0 });
+                        let distance_y = distance(start, angle_y, &self.map).map(|x| x.distance()).unwrap_or_else(|| { 1000.0 });
+            */
+            let distance_x = self.xxx(start, angle_x);
+            let distance_y = self.xxx(start, angle_y);
+
+
+            if distance_x < distance_wall && distance_y < distance_wall {
+                return start;
+            }
+
+            if distance_x < distance_y {
+                start.with_y(end.y())
+            } else {
+                start.with_x(end.x())
+            }
         };
+    }
+
+    fn xxx(&self, start: Position, angle: f32) -> f32 {
+        distance(start, angle, &self.map)
+            .map(|projected| projected.distance())
+            .unwrap_or_else(|| { 1000000.0 })
     }
 }
 
@@ -146,6 +172,8 @@ fn build_walls(
 
 #[cfg(test)]
 mod level_test {
+    use std::f32::consts::PI;
+
     use spectral::prelude::*;
 
     use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
@@ -225,5 +253,53 @@ mod level_test {
         level.apply_forces(Force::new(0.0, 0.2, 0.0));
 
         assert_that(&level.player.position().x()).is_equal_to(1.7);
+    }
+
+    #[test]
+    fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_top() {
+        let map = Map::new("# #").unwrap();
+        let player = Player::new(Position::new(1.5, 0.5), PI / 4.0);
+        let mut level = Level::new(100, 100, map, player);
+
+        level.apply_forces(Force::new(0.0, 0.2, 0.0));
+
+        assert_that(&level.player.position().x()).is_close_to(1.641, 0.001);
+        assert_that(&level.player.position().y()).is_close_to(0.641, 0.001);
+    }
+
+    #[test]
+    fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_bottom() {
+        let map = Map::new("# #").unwrap();
+        let player = Player::new(Position::new(1.5, 0.5), -PI / 4.0);
+        let mut level = Level::new(100, 100, map, player);
+
+        level.apply_forces(Force::new(0.0, 0.2, 0.0));
+
+        assert_that(&level.player.position().x()).is_close_to(1.641, 0.001);
+        assert_that(&level.player.position().y()).is_close_to(0.358, 0.001);
+    }
+
+    #[test]
+    fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_right() {
+        let map = Map::new("#\n \n#").unwrap();
+        let player = Player::new(Position::new(1.5, 0.5), PI / 4.0);
+        let mut level = Level::new(100, 100, map, player);
+
+        level.apply_forces(Force::new(PI / 2.0, 0.2, 0.0));
+
+        assert_that(&level.player.position().x()).is_close_to(1.358, 0.001);
+        assert_that(&level.player.position().y()).is_close_to(0.641, 0.001);
+    }
+
+    #[test]
+    fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_left() {
+        let map = Map::new("#\n \n#").unwrap();
+        let player = Player::new(Position::new(1.5, 0.5), 3.0 * PI / 4.0);
+        let mut level = Level::new(100, 100, map, player);
+
+        level.apply_forces(Force::new(PI / 2.0, 0.2, 0.0));
+
+        assert_that(&level.player.position().x()).is_close_to(1.358, 0.001);
+        assert_that(&level.player.position().y()).is_close_to(0.358, 0.001);
     }
 }
