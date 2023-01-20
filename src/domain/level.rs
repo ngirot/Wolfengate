@@ -8,7 +8,6 @@ use super::{
     coord::{Position, ScreenPoint},
     distance::distance,
     draw_action::DrawAction,
-    index::TextureIndex,
     map::Map,
 };
 
@@ -61,13 +60,8 @@ impl Level {
     }
 
     fn constrains(&self, start: Position, angle: f32, end: Position) -> Position {
-        let distance_wall_option = distance(start, angle, &self.map)
-            .map(|projected| projected.distance());
-        if distance_wall_option.is_none() {
-            return end;
-        }
+        let distance_wall = distance(start, angle, &self.map).distance();
 
-        let distance_wall = distance_wall_option.unwrap();
         let distance_move = start.distance(&end);
 
         return if distance_move < distance_wall - WALL_MINIMUM_DISTANCE {
@@ -76,17 +70,16 @@ impl Level {
             let angle_x = if angle.cos() >= 0.0 { 0.0 } else { PI };
             let angle_y = if angle.sin() >= 0.0 { PI / 2.0 } else { 3.0 * PI / 2.0 };
 
-            /*            let distance_x = distance(start, angle_x, &self.map).map(|x| x.distance()).unwrap_or_else(|| { 1000.0 });
-                        let distance_y = distance(start, angle_y, &self.map).map(|x| x.distance()).unwrap_or_else(|| { 1000.0 });
-            */
-            let distance_x = self.xxx(start, angle_x);
-            let distance_y = self.xxx(start, angle_y);
-
+            let distance_x = self.distance(start, angle_x);
+            let distance_y = self.distance(start, angle_y);
 
             if distance_x < distance_wall && distance_y < distance_wall {
                 return start;
             }
 
+            if distance_x == distance_y {
+                return start;
+            }
             if distance_x < distance_y {
                 start.with_y(end.y())
             } else {
@@ -95,10 +88,9 @@ impl Level {
         };
     }
 
-    fn xxx(&self, start: Position, angle: f32) -> f32 {
+    fn distance(&self, start: Position, angle: f32) -> f32 {
         distance(start, angle, &self.map)
-            .map(|projected| projected.distance())
-            .unwrap_or_else(|| { 1000000.0 })
+            .distance()
     }
 }
 
@@ -138,14 +130,10 @@ fn build_walls(
     let min = angle + (view_angle / 2.0);
     let step = view_angle / width as f32;
 
-    'drawer: for i in 0..width {
+    for i in 0..width {
         let current_angle = min - step * i as f32;
 
-        let distance_option = distance(*position, current_angle, map);
-        if distance_option.is_none() {
-            continue 'drawer;
-        }
-        let projected_point = distance_option.unwrap();
+        let projected_point = distance(*position, current_angle, map);
 
         let column: i32 = i.into();
         let screen_length: i32 = height.into();
@@ -163,7 +151,7 @@ fn build_walls(
         actions.push(DrawAction::TexturedLine(
             start,
             end,
-            TextureIndex::WALL,
+            projected_point.tile_type(),
             projected_point.offset_in_bloc(),
         ));
     }
@@ -240,7 +228,6 @@ mod level_test {
         let mut level = Level::new(100, 100, map, player);
 
         level.apply_forces(Force::new(0.0, 10.0, 0.0));
-
         assert_that(&level.player.position().x()).is_less_than(2.0 - WALL_MINIMUM_DISTANCE);
     }
 

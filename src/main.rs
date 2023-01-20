@@ -60,6 +60,7 @@ fn main() -> Result<(), String> {
     let ttf_creator = ttf::init().unwrap();
     let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator);
     registry.load_texture(TextureIndex::WALL, String::from("wall.png"));
+    registry.load_texture(TextureIndex::VOID, String::from("transparency.png"));
     registry.load_font(FontIndex::MONTSERRAT, String::from("MontserratAlternates-Medium.otf"));
 
     let mut start = Instant::now();
