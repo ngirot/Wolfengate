@@ -6,4 +6,5 @@ pub enum DrawAction {
     TexturedLine(ScreenPoint, ScreenPoint, TextureIndex, f32),
     Text(String, ScreenPoint, ScreenPoint),
     Clear(Color),
+    Sprite(ScreenPoint, ScreenPoint, TextureIndex)
 }

@@ -8,6 +8,10 @@ pub struct Player {
     orientation: f32,
 }
 
+pub struct Enemy {
+    position: Position,
+}
+
 impl Player {
     pub fn new(position: Position, orientation: f32) -> Self {
         Self {
@@ -43,6 +47,16 @@ impl Player {
             position: new_position,
             orientation: self.orientation,
         }
+    }
+}
+
+impl Enemy {
+    pub fn new(position: Position) -> Self {
+        Self { position }
+    }
+
+    pub fn position(&self) -> Position {
+        self.position
     }
 }
 

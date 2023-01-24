@@ -18,6 +18,12 @@ pub struct Position {
     y: f32,
 }
 
+#[derive(Copy, Clone)]
+pub struct Vector {
+    start: Position,
+    end: Position,
+}
+
 impl ScreenPoint {
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
@@ -68,7 +74,7 @@ impl Position {
     }
 
     pub fn distance(&self, position: &Position) -> f32 {
-        ((self.x - position.x).abs().powi(2) + (self.y - position.y).abs().powi(2)).sqrt()
+        Vector::new(*self, *position).length()
     }
 
     pub fn apply_force(&self, force: Force) -> Position {
@@ -122,11 +128,59 @@ impl Position {
     }
 }
 
+impl Vector {
+    pub fn new(start: Position, end: Position) -> Self {
+        Self { start, end }
+    }
+
+    pub fn angle(&self, vector: Vector) -> Option<f32> {
+        let len = self.length() * vector.length();
+        if len == 0.0 {
+            return None;
+        }
+        Some((self.scalar(vector) / len).acos())
+    }
+
+    pub fn scalar(&self, vector: Vector) -> f32 {
+        let self_origin = self.to_origin();
+        let other_origin = vector.to_origin();
+
+        self_origin.end.x() * other_origin.end.x() + self_origin.end.y() * other_origin.end.y()
+    }
+
+    pub fn angle_sign(&self, vector: Vector) -> f32 {
+        let self_origin = self.to_origin().end;
+        let other_origin = vector.to_origin().end;
+
+        let z_in_cross_product = self_origin.x() * other_origin.y() - self_origin.y() * other_origin.x();
+        if z_in_cross_product < 0.0 {
+            1.0
+        } else {
+            -1.0
+        }
+    }
+
+    pub fn length(&self) -> f32 {
+        let x = self.end.x() - self.start.x();
+        let y = self.end.y() - self.start.y();
+
+        (x * x + y * y).sqrt()
+    }
+
+    fn to_origin(&self) -> Self {
+        Vector {
+            start: Position::new(0.0, 0.0),
+            end: Position::new(self.end.x() - self.start.x(), self.end.y() - self.start.y()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod coord_test {
     use std::f32::consts::PI;
 
     use spectral::prelude::*;
+
     use crate::domain::force::Force;
 
     use super::Position;
@@ -298,5 +352,151 @@ mod coord_test {
 
         assert_that(&applied.x()).is_close_to(4.259, 0.001);
         assert_that(&applied.y()).is_close_to(9.382, 0.001);
+    }
+}
+
+#[cfg(test)]
+mod vector_test {
+    use spectral::prelude::*;
+
+    use crate::domain::coord::{Position, Vector};
+
+    #[test]
+    fn vector_length_of_two_points() {
+        let vector = Vector::new(Position::new(2.0, 3.4), Position::new(4.2, 5.3));
+
+        let length = vector.length();
+
+        assert_that(&length).is_close_to(2.907, 0.001);
+    }
+
+    #[test]
+    fn vector_length_is_between_two_point_is_the_same_in_any_order() {
+        let point_1 = Position::new(2.3, 4.5);
+        let point_2 = Position::new(2.6, 6.5);
+
+        let length_1 = Vector::new(point_1, point_2).length();
+        let length_2 = Vector::new(point_2, point_1).length();
+
+        assert_that(&length_1).is_equal_to(length_2);
+    }
+
+    #[test]
+    fn vector_length_of_same_point_is_0() {
+        let point = Position::new(3.0, 4.0);
+        let vector = Vector::new(point, point);
+
+        let length = vector.length();
+
+        assert_that(&length).is_equal_to(0.0);
+    }
+
+    #[test]
+    fn should_calculate_scalar_on_vector_from_origin() {
+        let vector1 = Vector::new(Position::new(0.0, 0.0), Position::new(3.2, 4.2));
+        let vector2 = Vector::new(Position::new(0.0, 0.0), Position::new(5.6, 6.4));
+
+        let scalar = vector1.scalar(vector2);
+
+        assert_that(&scalar).is_close_to(44.8, 0.001);
+    }
+
+    #[test]
+    fn should_calculate_scalar_on_vector_not_from_origin() {
+        let vector1 = Vector::new(Position::new(2.2, 4.3), Position::new(5.7, 2.5));
+        let vector2 = Vector::new(Position::new(2.2, 4.3), Position::new(8.4, 1.9));
+
+        let scalar = vector1.scalar(vector2);
+
+        assert_that(&scalar).is_close_to(26.02, 0.001);
+    }
+
+    #[test]
+    fn should_calculate_scalar_on_vector_with_different_origin() {
+        let vector1 = Vector::new(Position::new(1.2, 2.3), Position::new(4.8, 7.1));
+        let vector2 = Vector::new(Position::new(4.3, 6.4), Position::new(9.3, 8.7));
+
+        let scalar = vector1.scalar(vector2);
+
+        assert_that(&scalar).is_close_to(29.04, 0.001);
+    }
+
+    #[test]
+    fn should_calculate_angle_on_vector_from_origin() {
+        let vector1 = Vector::new(Position::new(0.0, 0.0), Position::new(3.2, 4.2));
+        let vector2 = Vector::new(Position::new(0.0, 0.0), Position::new(5.6, 6.4));
+
+        let angle = vector1.angle(vector2);
+
+        assert_that(&angle)
+            .is_some()
+            .is_close_to(0.068, 0.001);
+    }
+
+    #[test]
+    fn should_calculate_angle_on_vector_not_from_origin() {
+        let vector1 = Vector::new(Position::new(2.2, 4.3), Position::new(5.7, 2.5));
+        let vector2 = Vector::new(Position::new(2.2, 4.3), Position::new(8.4, 1.9));
+
+        let angle = vector1.angle(vector2);
+
+        assert_that(&angle)
+            .is_some()
+            .is_close_to(0.106, 0.001);
+    }
+
+    #[test]
+    fn should_calculate_angle_on_vector_with_different_origin() {
+        let vector1 = Vector::new(Position::new(1.2, 2.3), Position::new(4.8, 7.1));
+        let vector2 = Vector::new(Position::new(4.3, 6.4), Position::new(9.3, 8.7));
+
+        let angle = vector1.angle(vector2);
+
+        assert_that(&angle)
+            .is_some()
+            .is_close_to(0.496, 0.001);
+    }
+
+    #[test]
+    fn should_not_have_angle_if_first_vector_is_a_point() {
+        let position = Position::new(1.2, 1.3);
+        let vector1 = Vector::new(position, position);
+        let vector2 = Vector::new(Position::new(1.0, 1.0), Position::new(2.0, 2.0));
+
+        let angle = vector1.angle(vector2);
+
+        assert_that(&angle).is_none();
+    }
+
+    #[test]
+    fn should_not_have_angle_if_second_vector_is_a_point() {
+        let vector1 = Vector::new(Position::new(1.0, 1.0), Position::new(2.0, 2.0));
+        let position = Position::new(1.2, 1.3);
+        let vector2 = Vector::new(position, position);
+
+        let angle = vector1.angle(vector2);
+
+        assert_that(&angle).is_none();
+    }
+
+    #[test]
+    fn angle_sign_should_be_opposite() {
+        let vector1 = Vector::new(Position::new(1.0, 1.0), Position::new(2.0, 2.0));
+        let vector2 = Vector::new(Position::new(-1.0, 4.0), Position::new(6.0, 3.0));
+
+        let sign1 = vector1.angle_sign(vector2);
+        let sign2 = vector2.angle_sign(vector1);
+
+        assert_that(&sign1).is_equal_to(sign2 * -1.0);
+    }
+
+    #[test]
+    fn should_calculate_angle_sign() {
+        let vector1 = Vector::new(Position::new(1.0, 1.0), Position::new(2.0, 2.0));
+        let vector2 = Vector::new(Position::new(-1.0, 4.0), Position::new(6.0, 3.0));
+
+        let sign = vector1.angle_sign(vector2);
+
+        assert_that(&sign).is_equal_to(1.0);
     }
 }

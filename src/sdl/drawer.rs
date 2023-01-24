@@ -1,6 +1,7 @@
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 
+use crate::domain::coord::ScreenPoint;
 use crate::domain::draw_action::DrawAction;
 use crate::domain::index::{FontIndex, TextureIndex};
 
@@ -25,7 +26,8 @@ pub fn draw(context: &mut SdlContext, registry: &ResourceRegistry, actions: Vec<
                 )
             }
             DrawAction::Clear(color) => clear_screen(canva, color),
-            DrawAction::Text(text, start, end) => draw_text(canva, registry, text, start, end)
+            DrawAction::Text(text, start, end) => draw_text(canva, registry, text, start, end),
+            DrawAction::Sprite(start, end, texture) => draw_sprite(canva, *start, *end, registry, *texture),
         }
     }
 }
@@ -95,6 +97,20 @@ fn draw_textured_line(
             Some(to_sdl_rect(start, end)),
         )
         .expect("Cannot render texture");
+}
+
+fn draw_sprite(
+    canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+    start: ScreenPoint,
+    end: ScreenPoint,
+    registry: &ResourceRegistry,
+    texture_index: TextureIndex,
+) {
+    let texture = registry.get_texture(texture_index)
+        .expect("No texture loaded");
+
+    canvas.copy(texture.data(), None, Some(to_sdl_rect(&start, &end)))
+        .expect("Cannot render a sprite");
 }
 
 fn draw_rectangle(

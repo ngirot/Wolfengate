@@ -1,7 +1,9 @@
 use std::f32::consts::PI;
 
-use crate::domain::actor::Player;
+use crate::domain::actor::{Enemy, Player};
+use crate::domain::coord::Vector;
 use crate::domain::force::Force;
+use crate::domain::index::TextureIndex;
 
 use super::{
     color::Color,
@@ -16,8 +18,10 @@ const WALL_MINIMUM_DISTANCE: f32 = 0.1;
 pub struct Level {
     screen_height: u16,
     screen_width: u16,
+    view_angle: f32,
     map: Map,
     player: Player,
+    enemies: Vec<Enemy>,
 }
 
 impl Level {
@@ -25,8 +29,10 @@ impl Level {
         Self {
             screen_height,
             screen_width,
+            view_angle: PI / 2.0, // 45° fov
             map,
             player,
+            enemies: vec![Enemy::new(Position::new(5.0, 5.0))],
         }
     }
 
@@ -51,9 +57,19 @@ impl Level {
         actions.extend(build_walls(
             self.screen_width,
             self.screen_height,
+            self.view_angle,
             &self.player.position(),
             self.player.orientation(),
             &self.map,
+        ));
+
+        actions.extend(build_enemies(
+            self.screen_height,
+            self.screen_width,
+            self.view_angle,
+            *self.player.position(),
+            &self.player.orientation(),
+            &self.enemies,
         ));
 
         actions
@@ -120,13 +136,13 @@ fn build_background_actions(width: u16, height: u16) -> Vec<DrawAction> {
 fn build_walls(
     width: u16,
     height: u16,
+    view_angle: f32,
     position: &Position,
     angle: f32,
     map: &Map,
 ) -> Vec<DrawAction> {
     let mut actions = vec![];
 
-    let view_angle = PI / 2.0; // 45° fov
     let min = angle + (view_angle / 2.0);
     let step = view_angle / width as f32;
 
@@ -138,7 +154,7 @@ fn build_walls(
         let column: i32 = i.into();
         let screen_length: i32 = height.into();
 
-        let wall_height = (height as f32 * 0.8) / projected_point.distance();
+        let wall_height = height_ratio(height) / projected_point.distance();
         let start = ScreenPoint::new(
             column,
             (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
@@ -156,6 +172,32 @@ fn build_walls(
         ));
     }
     actions
+}
+
+fn build_enemies(height: u16, width: u16, view_angle: f32, view_position: Position, orientation: &f32, enemies: &Vec<Enemy>) -> Vec<DrawAction> {
+    let mut actions = vec![];
+    for enemy in enemies {
+        let view_vector = Vector::new(view_position, Position::new(view_position.x() + orientation.cos(), view_position.y() + orientation.sin()));
+        let enemy_vector = Vector::new(view_position, enemy.position());
+
+        let angle = (view_vector.angle(enemy_vector).unwrap()) % (2.0 * PI);
+        let angle_sign = view_vector.angle_sign(enemy_vector);
+        let step = width as f32 / view_angle as f32;
+
+        let x = width as f32 / 2.0 + angle * step * angle_sign;
+
+        let distance = view_position.distance(&enemy.position());
+        let sprite_height = height_ratio(height) / distance;
+        let start = ScreenPoint::new((x - sprite_height / 2.0) as i32, (height as f32 / 2.0 - sprite_height / 2.0) as i32);
+        let end = ScreenPoint::new((x + sprite_height / 2.0) as i32, (height as f32 / 2.0 + sprite_height / 2.0) as i32);
+
+        actions.push(DrawAction::Sprite(start, end, TextureIndex::ENEMY))
+    }
+    actions
+}
+
+fn height_ratio(screen_height: u16) -> f32 {
+    screen_height as f32 * 0.8
 }
 
 #[cfg(test)]
