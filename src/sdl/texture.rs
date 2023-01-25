@@ -22,7 +22,7 @@ pub struct LoadedTexture<'a> {
 impl<'s> ResourceRegistry<'s> {
     pub fn new(texture_creator: &'s TextureCreator<WindowContext>, ttf_creator: &'s Sdl2TtfContext) -> ResourceRegistry<'s> {
         ResourceRegistry {
-            texture_creator: &texture_creator,
+            texture_creator,
             ttf_context: ttf_creator,
             texture_registry: HashMap::new(),
             font_registry: HashMap::new(),

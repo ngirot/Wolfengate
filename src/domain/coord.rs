@@ -167,7 +167,7 @@ impl Vector {
         (x * x + y * y).sqrt()
     }
 
-    fn to_origin(&self) -> Self {
+    fn to_origin(self) -> Self {
         Vector {
             start: Position::new(0.0, 0.0),
             end: Position::new(self.end.x() - self.start.x(), self.end.y() - self.start.y()),

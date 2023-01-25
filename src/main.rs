@@ -9,7 +9,6 @@ use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::InputForce;
 use wolfengate::domain::index::{FontIndex, TextureIndex};
 use wolfengate::domain::input::Input;
-use wolfengate::domain::level;
 use wolfengate::domain::level::Level;
 use wolfengate::domain::map::Map;
 use wolfengate::sdl::context::SdlContext;
@@ -20,8 +19,8 @@ use wolfengate::sdl::texture::ResourceRegistry;
 
 fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo, registry: &ResourceRegistry) {
     let actions = level.generate_actions();
-    drawer::draw(context, &registry, actions);
-    drawer::draw(context, &registry, debug_info.generate_actions());
+    drawer::draw(context, registry, actions);
+    drawer::draw(context, registry, debug_info.generate_actions());
     ask_display(context);
 }
 
@@ -52,11 +51,11 @@ fn main() -> Result<(), String> {
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
     let player = Player::new(position, PI / 2.0);
-    let mut level = level::Level::new(width, height, map, player);
+    let mut level = Level::new(width, height, map, player);
     let mut debug_info = DebugInfo::new();
 
     let mut sdl_context = SdlContext::new(width, height)?;
-    let texture_creator = sdl_context.canva().texture_creator();
+    let texture_creator = sdl_context.canvas().texture_creator();
     let ttf_creator = ttf::init().unwrap();
     let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator);
     registry.load_texture(TextureIndex::WALL, String::from("wall.png"));

@@ -58,7 +58,7 @@ impl Level {
             self.screen_width,
             self.screen_height,
             self.view_angle,
-            &self.player.position(),
+            self.player.position(),
             self.player.orientation(),
             &self.map,
         ));
@@ -80,7 +80,7 @@ impl Level {
 
         let distance_move = start.distance(&end);
 
-        return if distance_move < distance_wall - WALL_MINIMUM_DISTANCE {
+        if distance_move < distance_wall - WALL_MINIMUM_DISTANCE {
             end
         } else {
             let angle_x = if angle.cos() >= 0.0 { 0.0 } else { PI };
@@ -101,7 +101,7 @@ impl Level {
             } else {
                 start.with_x(end.x())
             }
-        };
+        }
     }
 
     fn distance(&self, start: Position, angle: f32) -> f32 {

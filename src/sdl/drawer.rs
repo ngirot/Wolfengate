@@ -9,42 +9,42 @@ use super::context::SdlContext;
 use super::texture::ResourceRegistry;
 
 pub fn draw(context: &mut SdlContext, registry: &ResourceRegistry, actions: Vec<DrawAction>) {
-    let canva = context.canva();
+    let canvas = context.canvas();
 
     for action in actions.iter() {
         match action {
-            DrawAction::Rectangle(start, end, color) => draw_rectangle(canva, color, start, end),
-            DrawAction::Line(start, end, color) => draw_line(canva, color, start, end),
+            DrawAction::Rectangle(start, end, color) => draw_rectangle(canvas, color, start, end),
+            DrawAction::Line(start, end, color) => draw_line(canvas, color, start, end),
             DrawAction::TexturedLine(start, end, texture_index, position_on_texture) => {
                 draw_textured_line(
-                    canva,
+                    canvas,
                     position_on_texture,
                     start,
                     end,
-                    &registry,
+                    registry,
                     *texture_index,
                 )
             }
-            DrawAction::Clear(color) => clear_screen(canva, color),
-            DrawAction::Text(text, start, end) => draw_text(canva, registry, text, start, end),
-            DrawAction::Sprite(start, end, texture) => draw_sprite(canva, *start, *end, registry, *texture),
+            DrawAction::Clear(color) => clear_screen(canvas, color),
+            DrawAction::Text(text, start, end) => draw_text(canvas, registry, text, start, end),
+            DrawAction::Sprite(start, end, texture) => draw_sprite(canvas, *start, *end, registry, *texture),
         }
     }
 }
 
 pub fn ask_display(context: &mut SdlContext) {
-    context.canva().present();
+    context.canvas().present();
 }
 
 fn draw_text(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
              registry: &ResourceRegistry,
              text: &str,
-             start: &crate::domain::coord::ScreenPoint,
-             end: &crate::domain::coord::ScreenPoint) {
+             start: &ScreenPoint,
+             end: &ScreenPoint) {
     let display_zone = to_sdl_rect(start, end);
     let font = registry.get_font(FontIndex::MONTSERRAT).unwrap();
 
-    let surface = font.render(&text).blended(Color::RGBA(255, 0, 0, 255)).unwrap();
+    let surface = font.render(text).blended(Color::RGBA(255, 0, 0, 255)).unwrap();
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator
         .create_texture_from_surface(&surface)
@@ -63,8 +63,8 @@ fn clear_screen(
 fn draw_line(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     color: &crate::domain::color::Color,
-    start: &crate::domain::coord::ScreenPoint,
-    end: &crate::domain::coord::ScreenPoint,
+    start: &ScreenPoint,
+    end: &ScreenPoint,
 ) {
     canvas.set_draw_color(to_sdl_color(color));
     canvas
@@ -75,8 +75,8 @@ fn draw_line(
 fn draw_textured_line(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     position_on_texture: &f32,
-    start: &crate::domain::coord::ScreenPoint,
-    end: &crate::domain::coord::ScreenPoint,
+    start: &ScreenPoint,
+    end: &ScreenPoint,
     registry: &ResourceRegistry,
     texture_index: TextureIndex,
 ) {
@@ -92,7 +92,7 @@ fn draw_textured_line(
     );
     canvas
         .copy(
-            &texture.data(),
+            texture.data(),
             Some(rect_texture),
             Some(to_sdl_rect(start, end)),
         )
@@ -116,8 +116,8 @@ fn draw_sprite(
 fn draw_rectangle(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     color: &crate::domain::color::Color,
-    start: &crate::domain::coord::ScreenPoint,
-    end: &crate::domain::coord::ScreenPoint,
+    start: &ScreenPoint,
+    end: &ScreenPoint,
 ) {
     canvas.set_draw_color(to_sdl_color(color));
     canvas
@@ -129,20 +129,20 @@ fn to_sdl_color(color: &crate::domain::color::Color) -> Color {
     Color::RGB(color.red(), color.green(), color.blue())
 }
 
-fn to_sdl_point(point: &crate::domain::coord::ScreenPoint) -> sdl2::rect::Point {
+fn to_sdl_point(point: &ScreenPoint) -> sdl2::rect::Point {
     sdl2::rect::Point::new(point.x(), point.y())
 }
 
 fn to_sdl_rect(
-    start: &crate::domain::coord::ScreenPoint,
-    end: &crate::domain::coord::ScreenPoint,
+    start: &ScreenPoint,
+    end: &ScreenPoint,
 ) -> Rect {
     let width: u32 = (end.x() - start.x())
         .try_into()
-        .expect("Unable to draw a rectable");
+        .expect("Unable to draw a rectangle");
     let height: u32 = (end.y() - start.y())
         .try_into()
-        .expect("Unable to draw a rectable");
+        .expect("Unable to draw a rectangle");
 
     Rect::new(start.x(), start.y(), width, height)
 }

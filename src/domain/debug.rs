@@ -52,3 +52,9 @@ impl DebugInfo {
         }
     }
 }
+
+impl Default for DebugInfo {
+    fn default() -> Self {
+        DebugInfo::new()
+    }
+}

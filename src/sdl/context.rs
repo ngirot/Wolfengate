@@ -5,7 +5,7 @@ use sdl2::{
 };
 
 pub struct SdlContext {
-    canva: WindowCanvas,
+    canvas: WindowCanvas,
     event_pump: EventPump,
 }
 
@@ -38,13 +38,13 @@ impl SdlContext {
         sdl_context.mouse().set_relative_mouse_mode(true);
 
         Ok(SdlContext {
-            canva: canvas,
+            canvas,
             event_pump,
         })
     }
 
-    pub fn canva(&mut self) -> &mut WindowCanvas {
-        &mut self.canva
+    pub fn canvas(&mut self) -> &mut WindowCanvas {
+        &mut self.canvas
     }
 
     pub fn event_pump(&mut self) -> &mut EventPump {
@@ -52,7 +52,7 @@ impl SdlContext {
     }
 
     pub fn toggle_fullscreen(&mut self) {
-        let state = self.canva().window().fullscreen_state();
+        let state = self.canvas().window().fullscreen_state();
         if state == FullscreenType::True {
             Self::change_window_full_screen_state(self, FullscreenType::Off);
         } else {
@@ -62,7 +62,7 @@ impl SdlContext {
 
     fn change_window_full_screen_state(sdl_context: &mut SdlContext, new_type: FullscreenType) {
         sdl_context
-            .canva
+            .canvas
             .window_mut()
             .set_fullscreen(new_type)
             .expect("Unable to change Fullscreen/windowed mode");

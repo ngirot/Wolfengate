@@ -15,11 +15,11 @@ impl Map {
         let mut height: i16 = 0;
         let mut width: i16 = 0;
 
-        for line in paving.split("\n") {
-            height = height + 1;
+        for line in paving.split('\n') {
+            height += 1;
             let mut chars: Vec<Tile> = vec![];
             for char in line.chars() {
-                let tile = Self::to_tile(char)?;
+                let tile = Self::char_to_tile(char)?;
                 chars.push(tile)
             }
 
@@ -29,7 +29,7 @@ impl Map {
             }
 
             if current_width != width {
-                return Result::Err(String::from(
+                return Err(String::from(
                     "Level is not valid: number of column is not consistent in every lines",
                 ));
             }
@@ -39,7 +39,7 @@ impl Map {
 
         p.reverse();
 
-        Result::Ok(Map {
+        Ok(Map {
             paving: p,
             height,
             width,
@@ -56,11 +56,11 @@ impl Map {
         Some(x)
     }
 
-    fn to_tile(c: char) -> Result<Tile, String> {
+    fn char_to_tile(c: char) -> Result<Tile, String> {
         match c {
-            '#' => Result::Ok(Tile::Wall),
-            ' ' => Result::Ok(Tile::Nothing),
-            _ => Result::Err(String::from("Unknown char is used in the map")),
+            '#' => Ok(Tile::Wall),
+            ' ' => Ok(Tile::Nothing),
+            _ => Err(String::from("Unknown char is used in the map")),
         }
     }
 }
