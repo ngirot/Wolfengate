@@ -1,5 +1,6 @@
 use super::{color::Color, coord::ScreenPoint, index::TextureIndex};
 
+#[derive(Clone)]
 pub enum DrawAction {
     Rectangle(ScreenPoint, ScreenPoint, Color),
     Line(ScreenPoint, ScreenPoint, Color),

@@ -24,15 +24,23 @@ pub struct Level {
     enemies: Vec<Enemy>,
 }
 
+struct DrawActionZIndex {
+    action: DrawAction,
+    z_index: f32,
+}
+
 impl Level {
-    pub fn new(screen_width: u16, screen_height: u16, map: Map, player: Player) -> Self {
+    pub fn new(screen_width: u16, screen_height: u16, map: Map, player: Player, enemy: Option<Enemy>) -> Self {
+        let enemies = enemy.
+            map_or_else(Vec::new, |p| vec![p]);
+
         Self {
             screen_height,
             screen_width,
             view_angle: PI / 2.0, // 45° fov
             map,
             player,
-            enemies: vec![Enemy::new(Position::new(5.0, 5.0))],
+            enemies,
         }
     }
 
@@ -46,6 +54,7 @@ impl Level {
 
     pub fn generate_actions(&self) -> Vec<DrawAction> {
         let mut actions: Vec<DrawAction> = vec![];
+        let mut actions_ordered: Vec<DrawActionZIndex> = vec![];
 
         actions.extend(build_clear_actions());
 
@@ -54,7 +63,7 @@ impl Level {
             self.screen_height,
         ));
 
-        actions.extend(build_walls(
+        actions_ordered.extend(build_walls(
             self.screen_width,
             self.screen_height,
             self.view_angle,
@@ -63,7 +72,7 @@ impl Level {
             &self.map,
         ));
 
-        actions.extend(build_enemies(
+        actions_ordered.extend(build_enemies(
             self.screen_height,
             self.screen_width,
             self.view_angle,
@@ -71,6 +80,9 @@ impl Level {
             &self.player.orientation(),
             &self.enemies,
         ));
+
+        actions_ordered.sort_by(|a, b| a.z_index.total_cmp(&b.z_index).reverse());
+        actions.extend(actions_ordered.iter().map(|ordered| ordered.action.clone()));
 
         actions
     }
@@ -110,6 +122,12 @@ impl Level {
     }
 }
 
+impl DrawActionZIndex {
+    fn new(action: DrawAction, z_index: f32) -> Self {
+        Self { action, z_index }
+    }
+}
+
 fn build_clear_actions() -> Vec<DrawAction> {
     vec![DrawAction::Clear(Color::new(0, 0, 0))]
 }
@@ -140,7 +158,7 @@ fn build_walls(
     position: &Position,
     angle: f32,
     map: &Map,
-) -> Vec<DrawAction> {
+) -> Vec<DrawActionZIndex> {
     let mut actions = vec![];
 
     let min = angle + (view_angle / 2.0);
@@ -164,17 +182,18 @@ fn build_walls(
             (screen_length as f32 / 2.0 + wall_height / 2.0) as i32,
         );
 
-        actions.push(DrawAction::TexturedLine(
+        let action = DrawAction::TexturedLine(
             start,
             end,
             projected_point.tile_type(),
             projected_point.offset_in_bloc(),
-        ));
+        );
+        actions.push(DrawActionZIndex::new(action, projected_point.distance()));
     }
     actions
 }
 
-fn build_enemies(height: u16, width: u16, view_angle: f32, view_position: Position, orientation: &f32, enemies: &Vec<Enemy>) -> Vec<DrawAction> {
+fn build_enemies(height: u16, width: u16, view_angle: f32, view_position: Position, orientation: &f32, enemies: &Vec<Enemy>) -> Vec<DrawActionZIndex> {
     let mut actions = vec![];
     for enemy in enemies {
         let view_vector = Vector::new(view_position, Position::new(view_position.x() + orientation.cos(), view_position.y() + orientation.sin()));
@@ -191,7 +210,8 @@ fn build_enemies(height: u16, width: u16, view_angle: f32, view_position: Positi
         let start = ScreenPoint::new((x - sprite_height / 2.0) as i32, (height as f32 / 2.0 - sprite_height / 2.0) as i32);
         let end = ScreenPoint::new((x + sprite_height / 2.0) as i32, (height as f32 / 2.0 + sprite_height / 2.0) as i32);
 
-        actions.push(DrawAction::Sprite(start, end, TextureIndex::ENEMY))
+        let action = DrawAction::Sprite(start, end, TextureIndex::ENEMY);
+        actions.push(DrawActionZIndex::new(action, distance))
     }
     actions
 }
@@ -207,7 +227,7 @@ mod level_test {
     use spectral::prelude::*;
 
     use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
-    use crate::domain::actor::Player;
+    use crate::domain::actor::{Enemy, Player};
     use crate::domain::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
 
@@ -216,7 +236,7 @@ mod level_test {
     #[test]
     fn actions_should_start_with_a_clear() {
         let player = Player::new(Position::new(0.0, 0.0), 0.0);
-        let level = Level::new(0, 0, Map::new("#").unwrap(), player);
+        let level = Level::new(0, 0, Map::new("#").unwrap(), player, None);
 
         let actions = level.generate_actions();
 
@@ -228,7 +248,7 @@ mod level_test {
     #[test]
     fn actions_should_draw_ceiling() {
         let player = Player::new(Position::new(0.0, 0.0), 0.0);
-        let level = Level::new(100, 200, Map::new("#").unwrap(), player);
+        let level = Level::new(100, 200, Map::new("#").unwrap(), player, None);
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -247,7 +267,7 @@ mod level_test {
     #[test]
     fn actions_should_draw_floor() {
         let player = Player::new(Position::new(0.0, 0.0), 0.0);
-        let level = Level::new(100, 200, Map::new("#").unwrap(), player);
+        let level = Level::new(100, 200, Map::new("#").unwrap(), player, None);
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -267,7 +287,7 @@ mod level_test {
     fn apply_force_should_constraint_moves() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 0.0);
-        let mut level = Level::new(100, 100, map, player);
+        let mut level = Level::new(100, 100, map, player, None);
 
         level.apply_forces(Force::new(0.0, 10.0, 0.0));
         assert_that(&level.player.position().x()).is_less_than(2.0 - WALL_MINIMUM_DISTANCE);
@@ -277,7 +297,7 @@ mod level_test {
     fn apply_force_should_apply_not_constrained_moves() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 0.0);
-        let mut level = Level::new(100, 100, map, player);
+        let mut level = Level::new(100, 100, map, player, None);
 
         level.apply_forces(Force::new(0.0, 0.2, 0.0));
 
@@ -285,10 +305,48 @@ mod level_test {
     }
 
     #[test]
+    fn enemy_should_be_in_the_list_after_the_wall_behind_him() {
+        let map = Map::new("#  #").unwrap();
+        let player = Player::new(Position::new(1.5, 0.5), 0.0);
+        let enemy = Enemy::new(Position::new(2.0, 0.5));
+        let level = Level::new(100, 100, map, player, Some(enemy));
+
+        let actions = level.generate_actions();
+
+        let position_sprite = actions.iter().position(|action| matches!(action, DrawAction::Sprite(_, _, _)));
+        let position_wall = actions.iter()
+            .enumerate()
+            .filter(|(_, action)| matches!(action, DrawAction::TexturedLine(_, _, _,_)))
+            .map(|(index, _)| index)
+            .max();
+
+        assert_that(&position_sprite).is_greater_than(position_wall);
+    }
+
+    #[test]
+    fn enemy_should_be_in_the_list_before_the_wall_before_him() {
+        let map = Map::new("# #   ").unwrap();
+        let player = Player::new(Position::new(1.5, 0.5), 0.0);
+        let enemy = Enemy::new(Position::new(4.5, 0.5));
+        let level = Level::new(100, 100, map, player, Some(enemy));
+
+        let actions = level.generate_actions();
+
+        let position_sprite = actions.iter().position(|action| matches!(action, DrawAction::Sprite(_, _, _)));
+        let position_wall = actions.iter()
+            .enumerate()
+            .filter(|(_, action)| matches!(action, DrawAction::TexturedLine(_, _, _,_)))
+            .map(|(index, _)| index)
+            .min();
+
+        assert_that(&position_sprite).is_less_than(position_wall);
+    }
+
+    #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_top() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), PI / 4.0);
-        let mut level = Level::new(100, 100, map, player);
+        let mut level = Level::new(100, 100, map, player, None);
 
         level.apply_forces(Force::new(0.0, 0.2, 0.0));
 
@@ -300,7 +358,7 @@ mod level_test {
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_bottom() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), -PI / 4.0);
-        let mut level = Level::new(100, 100, map, player);
+        let mut level = Level::new(100, 100, map, player, None);
 
         level.apply_forces(Force::new(0.0, 0.2, 0.0));
 
@@ -312,7 +370,7 @@ mod level_test {
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_right() {
         let map = Map::new("#\n \n#").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), PI / 4.0);
-        let mut level = Level::new(100, 100, map, player);
+        let mut level = Level::new(100, 100, map, player, None);
 
         level.apply_forces(Force::new(PI / 2.0, 0.2, 0.0));
 
@@ -324,7 +382,7 @@ mod level_test {
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_left() {
         let map = Map::new("#\n \n#").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 3.0 * PI / 4.0);
-        let mut level = Level::new(100, 100, map, player);
+        let mut level = Level::new(100, 100, map, player, None);
 
         level.apply_forces(Force::new(PI / 2.0, 0.2, 0.0));
 

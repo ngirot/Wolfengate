@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use sdl2::ttf;
 
-use wolfengate::domain::actor::Player;
+use wolfengate::domain::actor::{Enemy, Player};
 use wolfengate::domain::coord::Position;
 use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::InputForce;
@@ -51,7 +51,8 @@ fn main() -> Result<(), String> {
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
     let player = Player::new(position, PI / 2.0);
-    let mut level = Level::new(width, height, map, player);
+    let enemy = Enemy::new(Position::new(5.0, 5.0));
+    let mut level = Level::new(width, height, map, player, Some(enemy));
     let mut debug_info = DebugInfo::new();
 
     let mut sdl_context = SdlContext::new(width, height)?;
