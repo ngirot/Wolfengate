@@ -50,7 +50,7 @@ fn main() -> Result<(), String> {
     let input_force = InputForce::new(0.004, 0.005);
     let player = Player::new(position, PI / 2.0);
     let enemy = Enemy::new(Position::new(5.0, 5.0));
-    let view= ViewScreen::new(500, 800, PI / 2.0);
+    let view= ViewScreen::new(500, 800);
     let mut level = Level::new(view, map, player, Some(enemy));
     let mut debug_info = DebugInfo::new();
 

@@ -159,7 +159,7 @@ fn build_walls(
 
         let screen_length: i32 = view.height();
 
-        let wall_height = height_ratio(view.height()) / projected_point.distance();
+        let wall_height = object_height(view, projected_point.distance());
         let start = ScreenPoint::new(
             i,
             (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
@@ -193,7 +193,7 @@ fn build_enemies(view: ViewScreen, view_position: Position, orientation: &f32, e
         let x = view.width() as f32 / 2.0 + angle * step * angle_sign;
 
         let distance = view_position.distance(&enemy.position());
-        let sprite_height = height_ratio(view.height()) / distance;
+        let sprite_height = object_height(view, distance);
         let start = ScreenPoint::new((x - sprite_height / 2.0) as i32, (view.height() as f32 / 2.0 - sprite_height / 2.0) as i32);
         let end = ScreenPoint::new((x + sprite_height / 2.0) as i32, (view.height() as f32 / 2.0 + sprite_height / 2.0) as i32);
 
@@ -203,8 +203,8 @@ fn build_enemies(view: ViewScreen, view_position: Position, orientation: &f32, e
     actions
 }
 
-fn height_ratio(screen_height: i32) -> f32 {
-    screen_height as f32 * 0.8
+fn object_height(view: ViewScreen, distance: f32) -> f32 {
+    (view.height() as f32 * view.ratio()) / distance
 }
 
 #[cfg(test)]
@@ -224,7 +224,7 @@ mod level_test {
     #[test]
     fn actions_should_start_with_a_clear() {
         let player = Player::new(Position::new(0.0, 0.0), 0.0);
-        let view = ViewScreen::new(0, 0, PI / 2.0);
+        let view = ViewScreen::new(0, 0);
         let level = Level::new(view, Map::new("#").unwrap(), player, None);
 
         let actions = level.generate_actions();
@@ -237,7 +237,7 @@ mod level_test {
     #[test]
     fn actions_should_draw_ceiling() {
         let player = Player::new(Position::new(0.0, 0.0), 0.0);
-        let view = ViewScreen::new(200, 100, PI / 2.0);
+        let view = ViewScreen::new(200, 100);
         let level = Level::new(view, Map::new("#").unwrap(), player, None);
         let mut found = false;
 
@@ -258,7 +258,7 @@ mod level_test {
     #[test]
     fn actions_should_draw_floor() {
         let player = Player::new(Position::new(0.0, 0.0), 0.0);
-        let view = ViewScreen::new(200, 100, PI / 2.0);
+        let view = ViewScreen::new(200, 100);
 
         let level = Level::new(view, Map::new("#").unwrap(), player, None);
         let mut found = false;
@@ -280,7 +280,7 @@ mod level_test {
     fn apply_force_should_constraint_moves() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 0.0);
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
@@ -292,7 +292,7 @@ mod level_test {
     fn apply_force_should_apply_not_constrained_moves() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 0.0);
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
@@ -306,7 +306,7 @@ mod level_test {
         let map = Map::new("#  #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 0.0);
         let enemy = Enemy::new(Position::new(2.0, 0.5));
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let level = Level::new(view, map, player, Some(enemy));
 
@@ -327,7 +327,7 @@ mod level_test {
         let map = Map::new("# #   ").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 0.0);
         let enemy = Enemy::new(Position::new(4.5, 0.5));
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let level = Level::new(view, map, player, Some(enemy));
 
@@ -347,7 +347,7 @@ mod level_test {
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_top() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), PI / 4.0);
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
@@ -361,7 +361,7 @@ mod level_test {
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_bottom() {
         let map = Map::new("# #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), -PI / 4.0);
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
@@ -375,7 +375,7 @@ mod level_test {
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_right() {
         let map = Map::new("#\n \n#").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), PI / 4.0);
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
@@ -389,7 +389,7 @@ mod level_test {
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_left() {
         let map = Map::new("#\n \n#").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), 3.0 * PI / 4.0);
-        let view = ViewScreen::new(100, 100, PI / 2.0);
+        let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
