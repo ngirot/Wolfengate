@@ -8,5 +8,6 @@ pub mod map;
 pub mod index;
 pub mod force;
 pub mod debug;
+pub mod view;
 
 mod distance;

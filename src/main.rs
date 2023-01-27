@@ -11,6 +11,7 @@ use wolfengate::domain::index::{FontIndex, TextureIndex};
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level::Level;
 use wolfengate::domain::map::Map;
+use wolfengate::domain::view::ViewScreen;
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer;
 use wolfengate::sdl::drawer::ask_display;
@@ -25,9 +26,6 @@ fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo, regis
 }
 
 fn main() -> Result<(), String> {
-    let width = 800;
-    let height = 500;
-
     let map = Map::new(
         "\
         ##############\n\
@@ -52,10 +50,11 @@ fn main() -> Result<(), String> {
     let input_force = InputForce::new(0.004, 0.005);
     let player = Player::new(position, PI / 2.0);
     let enemy = Enemy::new(Position::new(5.0, 5.0));
-    let mut level = Level::new(width, height, map, player, Some(enemy));
+    let view= ViewScreen::new(500, 800, PI / 2.0);
+    let mut level = Level::new(view, map, player, Some(enemy));
     let mut debug_info = DebugInfo::new();
 
-    let mut sdl_context = SdlContext::new(width, height)?;
+    let mut sdl_context = SdlContext::new(view)?;
     let texture_creator = sdl_context.canvas().texture_creator();
     let ttf_creator = ttf::init().unwrap();
     let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator);
