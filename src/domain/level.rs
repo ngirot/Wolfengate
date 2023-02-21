@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use crate::domain::actor::{Enemy, Player};
-use crate::domain::coord::Vector;
+use crate::domain::coord::{signed_angle, Vector};
 use crate::domain::force::Force;
 use crate::domain::index::TextureIndex;
 use crate::domain::view::ViewScreen;
@@ -41,12 +41,13 @@ impl Level {
         }
     }
 
-    pub fn apply_forces(&mut self, force: Force) {
+    pub fn apply_forces(&mut self, force: Force, microseconds_elapsed: u128) {
         let relative_force = force.for_relative_view(self.player.orientation());
-        let no_limit = self.player.apply_force(relative_force);
-        let constrained = self.constrains(*self.player.position(), relative_force.orientation(), *no_limit.position());
+        let no_limit = self.player.apply_force(relative_force, microseconds_elapsed);
+        let constrained = self.constrains(*self.player.position(), *no_limit.position());
 
-        self.player = Player::new(constrained, no_limit.orientation())
+        self.player = Player::new(constrained, no_limit.orientation(), self.player.stats())
+            .with_inertia(no_limit.inertia())
     }
 
     pub fn generate_actions(&self) -> Vec<DrawAction> {
@@ -77,7 +78,14 @@ impl Level {
         actions
     }
 
-    fn constrains(&self, start: Position, angle: f32, end: Position) -> Position {
+    fn constrains(&self, start: Position, end: Position) -> Position {
+        let angle_opt = signed_angle(start, end);
+        if angle_opt.is_none() {
+            return end;
+        }
+
+        let angle = angle_opt.unwrap();
+
         let angle_x = if angle.cos() >= 0.0 { 0.0 } else { PI };
         let angle_y = if angle.sin() >= 0.0 { PI / 2.0 } else { 3.0 * PI / 2.0 };
 
@@ -212,18 +220,22 @@ mod level_test {
     use spectral::prelude::*;
 
     use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
-    use crate::domain::actor::{Enemy, Player};
+    use crate::domain::actor::{Enemy, Player, PlayerStats};
     use crate::domain::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
     use crate::domain::view::ViewScreen;
 
+    use super::Level;
+
     const TOLERANCE: f32 = WALL_MINIMUM_DISTANCE + 0.01;
 
-    use super::Level;
+    fn default_stats() -> PlayerStats {
+        PlayerStats::new(1000000000.0, 1.0, 100000.0)
+    }
 
     #[test]
     fn actions_should_start_with_a_clear() {
-        let player = Player::new(Position::new(0.0, 0.0), 0.0);
+        let player = Player::new(Position::new(0.0, 0.0), 0.0, default_stats());
         let view = ViewScreen::new(0, 0);
         let level = Level::new(view, Map::new("#").unwrap(), player, None);
 
@@ -236,7 +248,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_ceiling() {
-        let player = Player::new(Position::new(0.0, 0.0), 0.0);
+        let player = Player::new(Position::new(0.0, 0.0), 0.0, default_stats());
         let view = ViewScreen::new(200, 100);
         let level = Level::new(view, Map::new("#").unwrap(), player, None);
         let mut found = false;
@@ -256,7 +268,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_floor() {
-        let player = Player::new(Position::new(0.0, 0.0), 0.0);
+        let player = Player::new(Position::new(0.0, 0.0), 0.0, default_stats());
         let view = ViewScreen::new(200, 100);
 
         let level = Level::new(view, Map::new("#").unwrap(), player, None);
@@ -278,24 +290,24 @@ mod level_test {
     #[test]
     fn apply_force_should_constraint_moves() {
         let map = Map::new("# #").unwrap();
-        let player = Player::new(Position::new(1.5, 0.5), 0.0);
+        let player = Player::new(Position::new(1.5, 0.5), 0.0, default_stats());
         let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(0.0, 10.0, 0.0));
+        level.apply_forces(Force::new(0.0, 10.0, 0.0), 1000000);
         assert_that(&level.player.position().x()).is_less_than_or_equal_to(2.0);
     }
 
     #[test]
     fn apply_force_should_apply_not_constrained_moves() {
         let map = Map::new("# #").unwrap();
-        let player = Player::new(Position::new(1.5, 0.5), 0.0);
+        let player = Player::new(Position::new(1.8, 0.5), 0.0, default_stats());
         let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(0.0, 0.2, 0.0));
+        level.apply_forces(Force::new(0.0, 0.2, 0.0), 1000000);
 
         assert_that(&level.player.position().x()).is_greater_than(1.5);
     }
@@ -303,7 +315,7 @@ mod level_test {
     #[test]
     fn enemy_should_be_in_the_list_after_the_wall_behind_him() {
         let map = Map::new("#  #").unwrap();
-        let player = Player::new(Position::new(1.5, 0.5), 0.0);
+        let player = Player::new(Position::new(1.5, 0.5), 0.0, default_stats());
         let enemy = Enemy::new(Position::new(2.0, 0.5));
         let view = ViewScreen::new(100, 100);
 
@@ -324,7 +336,7 @@ mod level_test {
     #[test]
     fn enemy_should_be_in_the_list_before_the_wall_before_him() {
         let map = Map::new("# #   ").unwrap();
-        let player = Player::new(Position::new(1.5, 0.5), 0.0);
+        let player = Player::new(Position::new(1.5, 0.5), 0.0, default_stats());
         let enemy = Enemy::new(Position::new(4.5, 0.5));
         let view = ViewScreen::new(100, 100);
 
@@ -345,12 +357,12 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_top() {
         let map = Map::new("# #").unwrap();
-        let player = Player::new(Position::new(1.5, 0.5), 0.0);
+        let player = Player::new(Position::new(1.5, 0.5), 0.0, default_stats());
         let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(PI / 16.0, 1.0, 0.0));
+        level.apply_forces(Force::new(PI / 16.0, 1.0, 0.0), 10000000);
 
         assert_that(&level.player.position().x()).is_close_to(2.0, TOLERANCE);
         assert_that(&level.player.position().y()).is_greater_than(0.5);
@@ -359,12 +371,12 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_bottom() {
         let map = Map::new("# #").unwrap();
-        let player = Player::new(Position::new(1.5, 0.5), PI);
+        let player = Player::new(Position::new(1.5, 0.5), PI, default_stats());
         let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(PI / 16.0, 1.0, 0.0));
+        level.apply_forces(Force::new(PI / 16.0, 1.0, 0.0), 1000000);
 
         assert_that(&level.player.position().x()).is_close_to(1.0, TOLERANCE);
         assert_that(&level.player.position().y()).is_less_than(0.5);
@@ -373,12 +385,12 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_right() {
         let map = Map::new("#\n \n#").unwrap();
-        let player = Player::new(Position::new(0.5, 1.5), PI / 2.0);
+        let player = Player::new(Position::new(0.5, 1.5), PI / 2.0, default_stats());
         let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(-PI / 16.0, 1.0, 0.0));
+        level.apply_forces(Force::new(-PI / 16.0, 1.0, 0.0), 1000000);
 
         assert_that(&level.player.position().x()).is_greater_than(0.5);
         assert_that(&level.player.position().y()).is_close_to(2.0, TOLERANCE);
@@ -387,12 +399,12 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_left() {
         let map = Map::new("#\n \n#").unwrap();
-        let player = Player::new(Position::new(0.5, 1.5), -PI / 2.0);
+        let player = Player::new(Position::new(0.5, 1.5), -PI / 2.0, default_stats());
         let view = ViewScreen::new(100, 100);
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(-PI / 16.0, 1.0, 0.0));
+        level.apply_forces(Force::new(-PI / 16.0, 1.0, 0.0), 1000000);
 
         assert_that(&level.player.position().x()).is_less_than(0.5);
         assert_that(&level.player.position().y()).is_close_to(1.0, TOLERANCE);

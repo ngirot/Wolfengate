@@ -3,10 +3,10 @@ use std::time::Instant;
 
 use sdl2::ttf;
 
-use wolfengate::domain::actor::{Enemy, Player};
+use wolfengate::domain::actor::{Enemy, Player, PlayerStats};
 use wolfengate::domain::coord::Position;
 use wolfengate::domain::debug::DebugInfo;
-use wolfengate::domain::force::InputForce;
+use wolfengate::domain::force::{Force, InputForce};
 use wolfengate::domain::index::{FontIndex, TextureIndex};
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level::Level;
@@ -48,9 +48,10 @@ fn main() -> Result<(), String> {
 
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
-    let player = Player::new(position, PI / 2.0);
+    let player_stats = PlayerStats::new(1.0 / 100000.0, 1.0 / 50000000.0, 0.005);
+    let player = Player::new(position, PI / 2.0, player_stats);
     let enemy = Enemy::new(Position::new(5.0, 5.0));
-    let view= ViewScreen::new(500, 800);
+    let view = ViewScreen::new(500, 800);
     let mut level = Level::new(view, map, player, Some(enemy));
     let mut debug_info = DebugInfo::new();
 
@@ -67,18 +68,22 @@ fn main() -> Result<(), String> {
     'running: loop {
         let elapsed = start.elapsed().as_micros();
         start = Instant::now();
+        let mut current_force = Force::new(0.0, 0.0, 0.0);
         for input in poll_input(&mut sdl_context) {
             match input {
                 Input::Quit => break 'running,
-                Input::Forward => level.apply_forces(input_force.forward(elapsed)),
-                Input::Backward => level.apply_forces(input_force.backward(elapsed)),
-                Input::StrafeLeft => level.apply_forces(input_force.strafe_left(elapsed)),
-                Input::StrafeRight => level.apply_forces(input_force.state_right(elapsed)),
-                Input::Rotate(x) => level.apply_forces(input_force.rotate(x)),
+                Input::Forward => current_force = current_force.add(input_force.forward()),
+                Input::Backward => current_force = current_force.add(input_force.backward()),
+                Input::StrafeLeft => current_force = current_force.add(input_force.strafe_left()),
+                Input::StrafeRight => current_force = current_force.add(input_force.state_right()),
+                Input::Rotate(x) => current_force = current_force.add(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
                 Input::ShowFps => { debug_info = debug_info.toggle_fps() }
             }
         }
+
+
+        level.apply_forces(current_force, elapsed);
 
         // Render
         render(&mut sdl_context, &level, &debug_info, &registry);

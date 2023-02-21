@@ -24,6 +24,14 @@ pub struct Vector {
     end: Position,
 }
 
+pub fn signed_angle(p1: Position, p2: Position) -> Option<f32> {
+    let points_vector = Vector::new(p1, p2);
+    let abcissa_vector = Vector::new(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
+
+    points_vector.angle(abcissa_vector)
+        .map(|angle| angle * points_vector.angle_sign(abcissa_vector))
+}
+
 impl ScreenPoint {
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
@@ -172,6 +180,47 @@ impl Vector {
             start: Position::new(0.0, 0.0),
             end: Position::new(self.end.x() - self.start.x(), self.end.y() - self.start.y()),
         }
+    }
+}
+
+#[cfg(test)]
+mod fn_test {
+    use std::f32::consts::PI;
+
+    use spectral::prelude::*;
+
+    use crate::domain::coord::{Position, signed_angle};
+
+    #[test]
+    fn should_compute_positive_angle_with_two_points() {
+        let start = Position::new(0.0, 0.0);
+        let end = Position::new(1.0, 1.0);
+        let angle = signed_angle(start, end);
+
+        assert_that(&angle)
+            .is_some()
+            .is_equal_to(PI / 4.0);
+    }
+
+    #[test]
+    fn should_compute_positive_negative_angle_with_two_points() {
+        let start = Position::new(0.0, 0.0);
+        let end = Position::new(1.0, -1.0);
+        let angle = signed_angle(start, end);
+
+        assert_that(&angle)
+            .is_some()
+            .is_equal_to(-PI / 4.0);
+    }
+
+    #[test]
+    fn should_not_compute_angle_of_a_point() {
+        let start = Position::new(-1.0, 7.0);
+        let end = Position::new(-1.0, 7.0);
+        let angle = signed_angle(start, end);
+
+        assert_that(&angle)
+            .is_none();
     }
 }
 
