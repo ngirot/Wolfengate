@@ -77,7 +77,7 @@ impl Player {
 
         let current_inertia_with_reduction = Force::new(self.inertia().orientation(), self.inertia().power() - reduction, self.inertia().rotation());
 
-        let mut full_inertia = current_inertia_with_reduction.add(force.power_multipyer(acceleration));
+        let mut full_inertia = current_inertia_with_reduction.add(force.power_multiplier(acceleration));
 
         if full_inertia.power() > maximum_speed {
             full_inertia = Force::new(full_inertia.orientation(), maximum_speed, full_inertia.rotation());

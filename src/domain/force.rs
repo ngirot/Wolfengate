@@ -30,7 +30,7 @@ impl Force {
         self.rotation
     }
 
-    pub fn power_multipyer(&self, factor: f32) -> Self {
+    pub fn power_multiplier(&self, factor: f32) -> Self {
         Self {
             power: self.power * factor,
             rotation: self.rotation,
@@ -193,7 +193,7 @@ mod input_force_test {
     fn should_increase_force_by_factor() {
         let force = Force::new(0.0, 10.0, 0.0);
 
-        let reduced = force.power_multipyer(2.0);
+        let reduced = force.power_multiplier(2.0);
 
         assert_that(&reduced.power()).is_equal_to(20.0);
     }
@@ -202,7 +202,7 @@ mod input_force_test {
     fn should_reduce_force_by_factor() {
         let force = Force::new(0.0, 10.0, 0.0);
 
-        let reduced = force.power_multipyer(0.5);
+        let reduced = force.power_multiplier(0.5);
 
         assert_that(&reduced.power()).is_equal_to(5.0);
     }

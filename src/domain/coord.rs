@@ -26,10 +26,10 @@ pub struct Vector {
 
 pub fn signed_angle(p1: Position, p2: Position) -> Option<f32> {
     let points_vector = Vector::new(p1, p2);
-    let abcissa_vector = Vector::new(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
+    let abscissa_vector = Vector::new(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
 
-    points_vector.angle(abcissa_vector)
-        .map(|angle| angle * points_vector.angle_sign(abcissa_vector))
+    points_vector.angle(abscissa_vector)
+        .map(|angle| angle * points_vector.angle_sign(abscissa_vector))
 }
 
 impl ScreenPoint {
