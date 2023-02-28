@@ -1,4 +1,4 @@
-use crate::domain::force::Force;
+use crate::domain::actor::SpeedStats;
 
 #[derive(Copy, Clone)]
 pub struct ScreenPoint {
@@ -22,6 +22,23 @@ pub struct Position {
 pub struct Vector {
     start: Position,
     end: Position,
+}
+
+#[derive(Copy, Clone)]
+pub struct Acceleration {
+    orientation: f32,
+    units_per_seconds_square: f32,
+}
+
+#[derive(Copy, Clone)]
+pub struct Speed {
+    orientation: f32,
+    units_per_seconds: f32,
+}
+
+pub struct Move {
+    orientation: f32,
+    distance: f32,
 }
 
 pub fn signed_angle(p1: Position, p2: Position) -> Option<f32> {
@@ -85,9 +102,9 @@ impl Position {
         Vector::new(*self, *position).length()
     }
 
-    pub fn apply_force(&self, force: Force) -> Position {
-        let factor = force.power();
-        let new_angle = force.orientation();
+    pub fn apply_force(&self, moves: Move) -> Position {
+        let factor = moves.distance();
+        let new_angle = moves.orientation();
 
         Position::new(
             self.x + new_angle.cos() * factor,
@@ -183,6 +200,79 @@ impl Vector {
     }
 }
 
+impl Speed {
+    pub fn new(orientation: f32, units_per_seconds: f32) -> Self {
+        Self {
+            orientation,
+            units_per_seconds,
+        }
+    }
+
+    pub fn to_move(&self, microseconds_elapsed: u128) -> Move {
+        Move::new(self.orientation, microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds as f32)
+    }
+
+    pub fn reduce(&self, reduction: SpeedStats) -> Self {
+        Self {
+            orientation: self.orientation,
+            units_per_seconds: self.units_per_seconds - reduction.units_per_seconds(),
+        }
+    }
+
+    pub fn add(&self, speed: Speed) -> Speed {
+        let x1 = self.units_per_seconds() * self.orientation().cos();
+        let y1 = self.units_per_seconds() * self.orientation().sin();
+
+        let x2 = speed.units_per_seconds() * speed.orientation().cos();
+        let y2 = speed.units_per_seconds() * speed.orientation().sin();
+
+        let x3 = x1 + x2;
+        let y3 = y1 + y2;
+
+        Self {
+            orientation: y3.atan2(x3),
+            units_per_seconds: ((x3 * x3) + (y3 * y3)).sqrt(),
+        }
+    }
+
+    pub fn orientation(&self) -> f32 {
+        self.orientation
+    }
+
+    pub fn units_per_seconds(&self) -> f32 {
+        self.units_per_seconds
+    }
+}
+
+impl Acceleration {
+    pub fn new(orientation: f32, units_per_seconds_square: f32) -> Self {
+        Self {
+            orientation,
+            units_per_seconds_square,
+        }
+    }
+
+    pub fn to_speed(&self, microseconds_elapsed: u128) -> Speed {
+        Speed::new(self.orientation, microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds_square)
+    }
+}
+
+impl Move {
+    pub fn new(orientation: f32, distance: f32) -> Self {
+        Self {
+            orientation,
+            distance,
+        }
+    }
+
+    pub fn orientation(&self) -> f32 {
+        self.orientation
+    }
+    pub fn distance(&self) -> f32 {
+        self.distance
+    }
+}
+
 #[cfg(test)]
 mod fn_test {
     use std::f32::consts::PI;
@@ -230,7 +320,7 @@ mod coord_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::force::Force;
+    use crate::domain::coord::Move;
 
     use super::Position;
 
@@ -373,7 +463,7 @@ mod coord_test {
     #[test]
     fn apply_simple_x_force() {
         let position = Position::new(5.0, 10.0);
-        let force = Force::new(0.0, 4.0, 0.0);
+        let force = Move::new(0.0, 4.0);
 
         let applied = position.apply_force(force);
 
@@ -384,7 +474,7 @@ mod coord_test {
     #[test]
     fn apply_simple_y_force() {
         let position = Position::new(5.0, 10.0);
-        let force = Force::new(PI / 2.0, 4.0, 0.0);
+        let force = Move::new(PI / 2.0, 4.0);
 
         let applied = position.apply_force(force);
 
@@ -395,7 +485,7 @@ mod coord_test {
     #[test]
     fn apply_force_with_angle() {
         let position = Position::new(3.1, 6.4);
-        let force = Force::new(1.2, 3.2, 0.0);
+        let force = Move::new(1.2, 3.2);
 
         let applied = position.apply_force(force);
 

@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use sdl2::ttf;
 
-use wolfengate::domain::actor::{Enemy, Player, PlayerStats};
+use wolfengate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
 use wolfengate::domain::coord::Position;
 use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::{Force, InputForce};
@@ -48,7 +48,10 @@ fn main() -> Result<(), String> {
 
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
-    let player_stats = PlayerStats::new(1.0 / 100000.0, 1.0 / 50000000.0, 0.005);
+    let acceleration = AccelerationStats::new(30.0);
+    let deceleration = AccelerationStats::new(40.0);
+    let max_speed = SpeedStats::new(6.0);
+    let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);
     let player = Player::new(position, PI / 2.0, player_stats);
     let enemy = Enemy::new(Position::new(5.0, 5.0));
     let view = ViewScreen::new(500, 800);

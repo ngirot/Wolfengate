@@ -220,7 +220,7 @@ mod level_test {
     use spectral::prelude::*;
 
     use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
-    use crate::domain::actor::{Enemy, Player, PlayerStats};
+    use crate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
     use crate::domain::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
     use crate::domain::view::ViewScreen;
@@ -230,7 +230,10 @@ mod level_test {
     const TOLERANCE: f32 = WALL_MINIMUM_DISTANCE + 0.01;
 
     fn default_stats() -> PlayerStats {
-        PlayerStats::new(1000000000.0, 1.0, 100000.0)
+        let acceleration = AccelerationStats::new(1000000000.0);
+        let deceleration = AccelerationStats::new(1.0);
+        let max_speed = SpeedStats::new(100000.0);
+        PlayerStats::new(acceleration, deceleration, max_speed)
     }
 
     #[test]
