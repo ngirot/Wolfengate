@@ -235,6 +235,13 @@ impl Speed {
         }
     }
 
+    pub fn rotate(&self, rotation: f32) -> Self {
+        Self {
+            orientation: self.orientation + rotation,
+            units_per_seconds: self.units_per_seconds,
+        }
+    }
+
     pub fn orientation(&self) -> f32 {
         self.orientation
     }

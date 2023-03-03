@@ -48,7 +48,7 @@ fn main() -> Result<(), String> {
 
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
-    let acceleration = AccelerationStats::new(30.0);
+    let acceleration = AccelerationStats::new(70.0);
     let deceleration = AccelerationStats::new(40.0);
     let max_speed = SpeedStats::new(6.0);
     let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);

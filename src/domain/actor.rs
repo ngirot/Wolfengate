@@ -86,7 +86,9 @@ impl Player {
         let reduction = self.stats.deceleration.to_speed_stats(microseconds_elapsed);
         let maximum_speed = self.stats.max_speed;
 
-        let mut full_inertia = self.inertia();
+        let mut full_inertia = self.inertia()
+            .rotate(force.rotation());
+
         if force.power() > 0.0 {
             full_inertia = full_inertia.add(acceleration.to_speed(microseconds_elapsed));
         } else {
@@ -101,7 +103,8 @@ impl Player {
             full_inertia = Speed::new(full_inertia.orientation(), 0.0);
         }
 
-        let moves = full_inertia.to_move(microseconds_elapsed);
+        let moves = full_inertia
+            .to_move(microseconds_elapsed);
         let new_position = self.position.apply_force(moves);
         Self {
             position: new_position,
@@ -244,5 +247,23 @@ mod actor_test {
         );
         let after_move = player.apply_force(Force::new(0.0, 0.0, 1.2), 1000000);
         assert_that(&after_move.orientation).is_equal_to(2.5);
+    }
+
+    #[test]
+    fn should_keep_inertia_in_the_same_direction_as_player_orientation() {
+        let acceleration = AccelerationStats::new(2.0);
+        let deceleration = AccelerationStats::new(1.0);
+        let max_speed = SpeedStats::new(5.0);
+
+        let player = Player::new(
+            Position::new(1.0, 2.0),
+            0.0,
+            PlayerStats::new(acceleration, deceleration, max_speed),
+        ).with_inertia(Speed::new(0.0, 3.0));
+        let after_move = player.apply_force(Force::new(0.0, 0.0, PI / 2.0), 1000000);
+        println!("({},{})", player.position.x(), player.position().y());
+        println!("({},{})", after_move.position.x(), after_move.position().y());
+        assert_that(&after_move.position.x()).is_close_to(1.0, 0.001);
+        assert_that(&after_move.position.y()).is_equal_to(4.0);
     }
 }
