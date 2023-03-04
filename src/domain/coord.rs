@@ -57,7 +57,8 @@ pub fn signed_angle(p1: Position, p2: Position) -> Option<Angle> {
     let points_vector = Vector::new(p1, p2);
     let abscissa_vector = Vector::new(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
 
-    points_vector.angle(abscissa_vector)
+    points_vector
+        .angle(abscissa_vector)
         .map(|angle| angle.sign(points_vector.angle_sign_is_negative(abscissa_vector)))
 }
 
@@ -190,7 +191,8 @@ impl Vector {
         let self_origin = self.to_origin().end;
         let other_origin = vector.to_origin().end;
 
-        let z_in_cross_product = self_origin.x() * other_origin.y() - self_origin.y() * other_origin.x();
+        let z_in_cross_product =
+            self_origin.x() * other_origin.y() - self_origin.y() * other_origin.x();
         z_in_cross_product >= 0.0
     }
 
@@ -218,7 +220,10 @@ impl Speed {
     }
 
     pub fn to_move(&self, microseconds_elapsed: u128) -> Move {
-        Move::new(self.orientation, microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds as f32)
+        Move::new(
+            self.orientation,
+            microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds as f32,
+        )
     }
 
     pub fn reduce(&self, reduction: SpeedStats) -> Self {
@@ -269,7 +274,10 @@ impl Acceleration {
     }
 
     pub fn to_speed(&self, microseconds_elapsed: u128) -> Speed {
-        Speed::new(self.orientation, microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds_square)
+        Speed::new(
+            self.orientation,
+            microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds_square,
+        )
     }
 }
 
@@ -291,13 +299,11 @@ impl Move {
 
 impl Angle {
     const fn init(radiant: f32) -> Self {
-        Self {
-            radiant
-        }
+        Self { radiant }
     }
     pub fn new(radiant: f32) -> Self {
         Self {
-            radiant: radiant % (2.0 * PI)
+            radiant: radiant % (2.0 * PI),
         }
     }
 
@@ -333,18 +339,31 @@ impl Angle {
         result
     }
 
-    pub fn position_in_discreet_cone(&self, cone_angle: Angle, number_of_angle: i32, angle_negative: bool) -> f32 {
+    pub fn position_in_discreet_cone(
+        &self,
+        cone_angle: Angle,
+        number_of_angle: i32,
+        angle_negative: bool,
+    ) -> f32 {
         let step = number_of_angle as f32 / cone_angle.radiant as f32;
-        let angle_sign = if angle_negative {-1.0} else {1.0};
+        let angle_sign = if angle_negative { -1.0 } else { 1.0 };
         number_of_angle as f32 / 2.0 + self.radiant * step * angle_sign
     }
 
     pub fn align_to_x(&self) -> Self {
-        if self.cos() >= 0.0 { ANGLE_RIGHT } else { ANGLE_LEFT }
+        if self.cos() >= 0.0 {
+            ANGLE_RIGHT
+        } else {
+            ANGLE_LEFT
+        }
     }
 
     pub fn align_to_y(&self) -> Self {
-        if self.sin() >= 0.0 { ANGLE_UP } else { ANGLE_DOWN }
+        if self.sin() >= 0.0 {
+            ANGLE_UP
+        } else {
+            ANGLE_DOWN
+        }
     }
 
     pub fn sign(&self, negative_angle: bool) -> Self {
@@ -366,31 +385,24 @@ mod fn_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::coord::{Position, signed_angle};
+    use crate::domain::coord::{signed_angle, Position};
 
     #[test]
     fn should_compute_positive_angle_with_two_points() {
         let start = Position::new(0.0, 0.0);
         let end = Position::new(1.0, 1.0);
-        let angle = signed_angle(start, end)
-            .map(|angle| angle.to_radiant());
+        let angle = signed_angle(start, end).map(|angle| angle.to_radiant());
 
-        assert_that(&angle)
-            .is_some()
-            .is_equal_to(PI / 4.0);
+        assert_that(&angle).is_some().is_equal_to(PI / 4.0);
     }
 
     #[test]
     fn should_compute_positive_negative_angle_with_two_points() {
         let start = Position::new(0.0, 0.0);
         let end = Position::new(1.0, -1.0);
-        let angle = signed_angle(start, end)
-            .map(|angle| angle.to_radiant());
+        let angle = signed_angle(start, end).map(|angle| angle.to_radiant());
 
-
-        assert_that(&angle)
-            .is_some()
-            .is_equal_to(&(-PI / 4.0));
+        assert_that(&angle).is_some().is_equal_to(&(-PI / 4.0));
     }
 
     #[test]
@@ -399,8 +411,7 @@ mod fn_test {
         let end = Position::new(-1.0, 7.0);
         let angle = signed_angle(start, end);
 
-        assert_that(&angle)
-            .is_none();
+        assert_that(&angle).is_none();
     }
 }
 
@@ -408,7 +419,7 @@ mod fn_test {
 mod coord_test {
     use spectral::prelude::*;
 
-    use crate::domain::coord::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP, Move};
+    use crate::domain::coord::{Angle, Move, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
 
     use super::Position;
 
@@ -653,12 +664,9 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(0.0, 0.0), Position::new(3.2, 4.2));
         let vector2 = Vector::new(Position::new(0.0, 0.0), Position::new(5.6, 6.4));
 
-        let angle = vector1.angle(vector2)
-            .map(|angle| angle.to_radiant());
+        let angle = vector1.angle(vector2).map(|angle| angle.to_radiant());
 
-        assert_that(&angle)
-            .is_some()
-            .is_close_to(0.068, 0.001);
+        assert_that(&angle).is_some().is_close_to(0.068, 0.001);
     }
 
     #[test]
@@ -666,12 +674,9 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(2.2, 4.3), Position::new(5.7, 2.5));
         let vector2 = Vector::new(Position::new(2.2, 4.3), Position::new(8.4, 1.9));
 
-        let angle = vector1.angle(vector2)
-            .map(|angle| angle.to_radiant());
+        let angle = vector1.angle(vector2).map(|angle| angle.to_radiant());
 
-        assert_that(&angle)
-            .is_some()
-            .is_close_to(0.106, 0.001);
+        assert_that(&angle).is_some().is_close_to(0.106, 0.001);
     }
 
     #[test]
@@ -679,12 +684,9 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(1.2, 2.3), Position::new(4.8, 7.1));
         let vector2 = Vector::new(Position::new(4.3, 6.4), Position::new(9.3, 8.7));
 
-        let angle = vector1.angle(vector2)
-            .map(|angle| angle.to_radiant());
+        let angle = vector1.angle(vector2).map(|angle| angle.to_radiant());
 
-        assert_that(&angle)
-            .is_some()
-            .is_close_to(0.496, 0.001);
+        assert_that(&angle).is_some().is_close_to(0.496, 0.001);
     }
 
     #[test]

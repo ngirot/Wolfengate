@@ -1,4 +1,4 @@
-use crate::domain::coord::{Acceleration, Angle, ANGLE_RIGHT, Speed};
+use crate::domain::coord::{Acceleration, Angle, Speed, ANGLE_RIGHT};
 use crate::domain::force::Force;
 
 use super::coord::Position;
@@ -82,12 +82,14 @@ impl Player {
     }
 
     fn move_direction(&self, force: Force, microseconds_elapsed: u128) -> Player {
-        let acceleration = self.stats.acceleration().to_acceleration(force.orientation());
+        let acceleration = self
+            .stats
+            .acceleration()
+            .to_acceleration(force.orientation());
         let reduction = self.stats.deceleration.to_speed_stats(microseconds_elapsed);
         let maximum_speed = self.stats.max_speed;
 
-        let mut full_inertia = self.inertia()
-            .rotate(force.rotation());
+        let mut full_inertia = self.inertia().rotate(force.rotation());
 
         if force.power() > 0.0 {
             full_inertia = full_inertia.add(acceleration.to_speed(microseconds_elapsed));
@@ -103,8 +105,7 @@ impl Player {
             full_inertia = Speed::new(full_inertia.orientation(), 0.0);
         }
 
-        let moves = full_inertia
-            .to_move(microseconds_elapsed);
+        let moves = full_inertia.to_move(microseconds_elapsed);
         let new_position = self.position.apply_force(moves);
         Self {
             position: new_position,
@@ -116,7 +117,11 @@ impl Player {
 }
 
 impl PlayerStats {
-    pub fn new(acceleration: AccelerationStats, deceleration: AccelerationStats, max_speed: SpeedStats) -> Self {
+    pub fn new(
+        acceleration: AccelerationStats,
+        deceleration: AccelerationStats,
+        max_speed: SpeedStats,
+    ) -> Self {
         Self {
             acceleration,
             deceleration,
@@ -165,9 +170,7 @@ impl AccelerationStats {
 
 impl SpeedStats {
     pub fn new(units_per_seconds: f32) -> Self {
-        Self {
-            units_per_seconds
-        }
+        Self { units_per_seconds }
     }
 
     pub fn units_per_seconds(&self) -> f32 {
@@ -180,7 +183,7 @@ mod actor_test {
     use spectral::prelude::*;
 
     use crate::domain::actor::{AccelerationStats, PlayerStats, SpeedStats};
-    use crate::domain::coord::{Angle, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP, Position, Speed};
+    use crate::domain::coord::{Angle, Position, Speed, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::force::Force;
 
     use super::Player;
@@ -211,7 +214,8 @@ mod actor_test {
             Position::new(1.0, 2.0),
             ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
-        ).with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+        )
+        .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT), 1000000);
         assert_that(&after_move.position().x()).is_equal_to(3.0);
         assert_that(&after_move.position().y()).is_equal_to(2.0);
@@ -227,7 +231,8 @@ mod actor_test {
             Position::new(1.0, 5.0),
             ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
-        ).with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+        )
+        .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_LEFT, 1.0, ANGLE_RIGHT), 1000000);
         assert_that(&after_move.position().x()).is_equal_to(2.0);
         assert_that(&after_move.position().y()).is_equal_to(5.0);
@@ -258,10 +263,15 @@ mod actor_test {
             Position::new(1.0, 2.0),
             ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
-        ).with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+        )
+        .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_UP), 1000000);
         println!("({},{})", player.position.x(), player.position().y());
-        println!("({},{})", after_move.position.x(), after_move.position().y());
+        println!(
+            "({},{})",
+            after_move.position.x(),
+            after_move.position().y()
+        );
         assert_that(&after_move.position.x()).is_close_to(1.0, 0.001);
         assert_that(&after_move.position.y()).is_equal_to(4.0);
     }

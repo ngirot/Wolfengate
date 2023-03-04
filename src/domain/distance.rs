@@ -41,10 +41,10 @@ pub fn distance(position: Position, angle: Angle, map: &Map) -> ProjectedPoint {
     let distance_total = position.distance(&next_position);
     match bloc_tile {
         None => ProjectedPoint::new(distance_total, position_on_texture, TextureIndex::VOID),
-        Some(Tile::Wall) => ProjectedPoint::new(distance_total, position_on_texture, TextureIndex::WALL),
-        _ => {
-            distance(next_position, angle, map).with_distance_added(distance_total)
+        Some(Tile::Wall) => {
+            ProjectedPoint::new(distance_total, position_on_texture, TextureIndex::WALL)
         }
+        _ => distance(next_position, angle, map).with_distance_added(distance_total),
     }
 }
 
@@ -88,9 +88,9 @@ mod distance_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::{coord::Position, map::Map};
     use crate::domain::coord::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::index::TextureIndex;
+    use crate::domain::{coord::Position, map::Map};
 
     use super::distance;
 
@@ -104,7 +104,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, ANGLE_UP, &map);
 
@@ -121,7 +121,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 1.3);
         let distance = distance(center, ANGLE_UP, &map);
 
@@ -138,7 +138,7 @@ mod distance_test {
             # # #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, ANGLE_DOWN, &map);
 
@@ -155,7 +155,7 @@ mod distance_test {
             # # #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 3.2);
         let distance = distance(center, ANGLE_DOWN, &map);
 
@@ -172,7 +172,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, ANGLE_LEFT, &map);
 
@@ -189,7 +189,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(3.1, 2.5);
         let distance = distance(center, ANGLE_LEFT, &map);
 
@@ -206,7 +206,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, ANGLE_RIGHT, &map);
 
@@ -223,7 +223,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(1.1, 2.5);
         let distance = distance(center, ANGLE_RIGHT, &map);
 
@@ -240,7 +240,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, Angle::new(0.7), &map);
 
@@ -257,7 +257,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, Angle::new(PI - 0.7), &map);
 
@@ -274,7 +274,7 @@ mod distance_test {
             #  ##\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, Angle::new(-0.7), &map);
 
@@ -291,7 +291,7 @@ mod distance_test {
             ##  #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, Angle::new(PI + 0.7), &map);
 
@@ -306,7 +306,7 @@ mod distance_test {
             #    \n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(1.5, 1.5);
         let distance = distance(center, ANGLE_RIGHT, &map);
 
@@ -324,7 +324,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, ANGLE_UP, &map);
 
@@ -341,7 +341,7 @@ mod distance_test {
             #   #\n\
             #####",
         )
-            .unwrap();
+        .unwrap();
         let center = Position::new(2.5, 2.5);
         let distance = distance(center, Angle::new(PI / 2.0 + 0.23), &map);
 

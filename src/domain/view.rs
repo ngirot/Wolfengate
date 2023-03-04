@@ -10,7 +10,12 @@ pub struct ViewScreen {
 
 impl ViewScreen {
     pub fn new(height: u16, width: u16) -> Self {
-        Self { height, width, angle: ANGLE_UP, ratio: 0.8 }
+        Self {
+            height,
+            width,
+            angle: ANGLE_UP,
+            ratio: 0.8,
+        }
     }
 
     pub fn height(&self) -> i32 {

@@ -3,7 +3,7 @@ use std::time::Instant;
 use sdl2::ttf;
 
 use wolfengate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
-use wolfengate::domain::coord::{ANGLE_RIGHT, ANGLE_UP, Position};
+use wolfengate::domain::coord::{Position, ANGLE_RIGHT, ANGLE_UP};
 use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::{Force, InputForce};
 use wolfengate::domain::index::{FontIndex, TextureIndex};
@@ -17,7 +17,12 @@ use wolfengate::sdl::drawer::ask_display;
 use wolfengate::sdl::input::poll_input;
 use wolfengate::sdl::texture::ResourceRegistry;
 
-fn render(context: &mut SdlContext, level: &Level, debug_info: &DebugInfo, registry: &ResourceRegistry) {
+fn render(
+    context: &mut SdlContext,
+    level: &Level,
+    debug_info: &DebugInfo,
+    registry: &ResourceRegistry,
+) {
     let actions = level.generate_actions();
     drawer::draw(context, registry, actions);
     drawer::draw(context, registry, debug_info.generate_actions());
@@ -43,7 +48,7 @@ fn main() -> Result<(), String> {
         #        #   #\n\
         ##############",
     )
-        .unwrap();
+    .unwrap();
 
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
@@ -64,7 +69,10 @@ fn main() -> Result<(), String> {
     registry.load_texture(TextureIndex::WALL, String::from("wall.png"));
     registry.load_texture(TextureIndex::VOID, String::from("transparency.png"));
     registry.load_texture(TextureIndex::ENEMY, String::from("enemy.png"));
-    registry.load_font(FontIndex::MONTSERRAT, String::from("MontserratAlternates-Medium.otf"));
+    registry.load_font(
+        FontIndex::MONTSERRAT,
+        String::from("MontserratAlternates-Medium.otf"),
+    );
 
     let mut start = Instant::now();
     'running: loop {
@@ -80,10 +88,9 @@ fn main() -> Result<(), String> {
                 Input::StrafeRight => current_force = current_force.add(input_force.state_right()),
                 Input::Rotate(x) => current_force = current_force.add(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
-                Input::ShowFps => { debug_info = debug_info.toggle_fps() }
+                Input::ShowFps => debug_info = debug_info.toggle_fps(),
             }
         }
-
 
         level.apply_forces(current_force, elapsed);
 

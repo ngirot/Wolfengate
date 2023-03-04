@@ -1,9 +1,9 @@
+use crate::domain::view::ViewScreen;
 use sdl2::{
     render::WindowCanvas,
     video::{DisplayMode, FullscreenType},
     EventPump,
 };
-use crate::domain::view::ViewScreen;
 
 pub struct SdlContext {
     canvas: WindowCanvas,
@@ -17,7 +17,11 @@ impl SdlContext {
         let video_subsystem = sdl_context.video()?;
 
         let mut window = video_subsystem
-            .window("Wolfengate engine", view.width() as u32, view.height() as u32)
+            .window(
+                "Wolfengate engine",
+                view.width() as u32,
+                view.height() as u32,
+            )
             .position_centered()
             .build()
             .expect("could not initialize video subsystem");
@@ -38,10 +42,7 @@ impl SdlContext {
 
         sdl_context.mouse().set_relative_mouse_mode(true);
 
-        Ok(SdlContext {
-            canvas,
-            event_pump,
-        })
+        Ok(SdlContext { canvas, event_pump })
     }
 
     pub fn canvas(&mut self) -> &mut WindowCanvas {

@@ -43,9 +43,7 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
             Event::KeyDown {
                 keycode: Some(Keycode::H),
                 ..
-            } => {
-                inputs.push(Input::ShowFps)
-            }
+            } => inputs.push(Input::ShowFps),
             Event::KeyDown {
                 keycode: Some(Keycode::Return),
                 ..

@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 
-use sdl2::{image::LoadTexture, render::{Texture, TextureCreator}, video::WindowContext};
 use sdl2::ttf::{Font, Sdl2TtfContext};
+use sdl2::{
+    image::LoadTexture,
+    render::{Texture, TextureCreator},
+    video::WindowContext,
+};
 
 use crate::domain::index::{FontIndex, TextureIndex};
 
@@ -20,7 +24,10 @@ pub struct LoadedTexture<'a> {
 }
 
 impl<'s> ResourceRegistry<'s> {
-    pub fn new(texture_creator: &'s TextureCreator<WindowContext>, ttf_creator: &'s Sdl2TtfContext) -> ResourceRegistry<'s> {
+    pub fn new(
+        texture_creator: &'s TextureCreator<WindowContext>,
+        ttf_creator: &'s Sdl2TtfContext,
+    ) -> ResourceRegistry<'s> {
         ResourceRegistry {
             texture_creator,
             ttf_context: ttf_creator,

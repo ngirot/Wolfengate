@@ -1,5 +1,5 @@
 use crate::domain::actor::{Enemy, Player};
-use crate::domain::coord::{Angle, signed_angle, Vector};
+use crate::domain::coord::{signed_angle, Angle, Vector};
 use crate::domain::force::Force;
 use crate::domain::index::TextureIndex;
 use crate::domain::view::ViewScreen;
@@ -28,8 +28,7 @@ struct DrawActionZIndex {
 
 impl Level {
     pub fn new(view: ViewScreen, map: Map, player: Player, enemy: Option<Enemy>) -> Self {
-        let enemies = enemy.
-            map_or_else(Vec::new, |p| vec![p]);
+        let enemies = enemy.map_or_else(Vec::new, |p| vec![p]);
 
         Self {
             view,
@@ -41,7 +40,9 @@ impl Level {
 
     pub fn apply_forces(&mut self, force: Force, microseconds_elapsed: u128) {
         let relative_force = force.for_relative_view(self.player.orientation());
-        let no_limit = self.player.apply_force(relative_force, microseconds_elapsed);
+        let no_limit = self
+            .player
+            .apply_force(relative_force, microseconds_elapsed);
         let constrained = self.constrains(*self.player.position(), *no_limit.position());
 
         self.player = Player::new(constrained, no_limit.orientation(), self.player.stats())
@@ -109,10 +110,8 @@ impl Level {
         }
     }
 
-
     fn distance(&self, start: Position, angle: Angle) -> f32 {
-        distance(start, angle, &self.map)
-            .distance()
+        distance(start, angle, &self.map).distance()
     }
 }
 
@@ -181,10 +180,21 @@ fn build_walls(
     actions
 }
 
-fn build_enemies(view: ViewScreen, view_position: Position, orientation: &Angle, enemies: &Vec<Enemy>) -> Vec<DrawActionZIndex> {
+fn build_enemies(
+    view: ViewScreen,
+    view_position: Position,
+    orientation: &Angle,
+    enemies: &Vec<Enemy>,
+) -> Vec<DrawActionZIndex> {
     let mut actions = vec![];
     for enemy in enemies {
-        let view_vector = Vector::new(view_position, Position::new(view_position.x() + orientation.cos(), view_position.y() + orientation.sin()));
+        let view_vector = Vector::new(
+            view_position,
+            Position::new(
+                view_position.x() + orientation.cos(),
+                view_position.y() + orientation.sin(),
+            ),
+        );
         let enemy_vector = Vector::new(view_position, enemy.position());
 
         let angle = view_vector.angle(enemy_vector).unwrap();
@@ -194,8 +204,14 @@ fn build_enemies(view: ViewScreen, view_position: Position, orientation: &Angle,
 
         let distance = view_position.distance(&enemy.position());
         let sprite_height = object_height(view, distance);
-        let start = ScreenPoint::new((x - sprite_height / 2.0) as i32, (view.height() as f32 / 2.0 - sprite_height / 2.0) as i32);
-        let end = ScreenPoint::new((x + sprite_height / 2.0) as i32, (view.height() as f32 / 2.0 + sprite_height / 2.0) as i32);
+        let start = ScreenPoint::new(
+            (x - sprite_height / 2.0) as i32,
+            (view.height() as f32 / 2.0 - sprite_height / 2.0) as i32,
+        );
+        let end = ScreenPoint::new(
+            (x + sprite_height / 2.0) as i32,
+            (view.height() as f32 / 2.0 + sprite_height / 2.0) as i32,
+        );
 
         let action = DrawAction::Sprite(start, end, TextureIndex::ENEMY);
         actions.push(DrawActionZIndex::new(action, distance))
@@ -213,12 +229,12 @@ mod level_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
     use crate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
     use crate::domain::coord::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
     use crate::domain::view::ViewScreen;
+    use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
 
     use super::Level;
 
@@ -321,10 +337,13 @@ mod level_test {
 
         let actions = level.generate_actions();
 
-        let position_sprite = actions.iter().position(|action| matches!(action, DrawAction::Sprite(_, _, _)));
-        let position_wall = actions.iter()
+        let position_sprite = actions
+            .iter()
+            .position(|action| matches!(action, DrawAction::Sprite(_, _, _)));
+        let position_wall = actions
+            .iter()
             .enumerate()
-            .filter(|(_, action)| matches!(action, DrawAction::TexturedLine(_, _, _,_)))
+            .filter(|(_, action)| matches!(action, DrawAction::TexturedLine(_, _, _, _)))
             .map(|(index, _)| index)
             .max();
 
@@ -342,10 +361,13 @@ mod level_test {
 
         let actions = level.generate_actions();
 
-        let position_sprite = actions.iter().position(|action| matches!(action, DrawAction::Sprite(_, _, _)));
-        let position_wall = actions.iter()
+        let position_sprite = actions
+            .iter()
+            .position(|action| matches!(action, DrawAction::Sprite(_, _, _)));
+        let position_wall = actions
+            .iter()
             .enumerate()
-            .filter(|(_, action)| matches!(action, DrawAction::TexturedLine(_, _, _,_)))
+            .filter(|(_, action)| matches!(action, DrawAction::TexturedLine(_, _, _, _)))
             .map(|(index, _)| index)
             .min();
 
@@ -360,7 +382,10 @@ mod level_test {
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_RIGHT), 10000000);
+        level.apply_forces(
+            Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_RIGHT),
+            10000000,
+        );
 
         assert_that(&level.player.position().x()).is_close_to(2.0, TOLERANCE);
         assert_that(&level.player.position().y()).is_greater_than(0.5);
@@ -388,7 +413,10 @@ mod level_test {
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT), 1000000);
+        level.apply_forces(
+            Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT),
+            1000000,
+        );
 
         assert_that(&level.player.position().x()).is_greater_than(0.5);
         assert_that(&level.player.position().y()).is_close_to(2.0, TOLERANCE);
@@ -402,7 +430,10 @@ mod level_test {
 
         let mut level = Level::new(view, map, player, None);
 
-        level.apply_forces(Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT), 1000000);
+        level.apply_forces(
+            Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT),
+            1000000,
+        );
 
         assert_that(&level.player.position().x()).is_less_than(0.5);
         assert_that(&level.player.position().y()).is_close_to(1.0, TOLERANCE);

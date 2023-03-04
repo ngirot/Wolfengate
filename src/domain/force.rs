@@ -15,7 +15,11 @@ pub struct InputForce {
 
 impl Force {
     pub fn new(orientation: Angle, power: f32, rotation: Angle) -> Self {
-        Force { orientation, power, rotation }
+        Force {
+            orientation,
+            power,
+            rotation,
+        }
     }
 
     pub fn orientation(&self) -> Angle {
@@ -106,8 +110,8 @@ impl InputForce {
 mod input_force_test {
     use std::f32::consts::PI;
 
-    use spectral::prelude::*;
     use crate::domain::coord::{Angle, ANGLE_RIGHT};
+    use spectral::prelude::*;
 
     use crate::domain::force::{Force, InputForce};
 

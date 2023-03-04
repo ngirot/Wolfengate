@@ -12,13 +12,22 @@ pub struct DebugInfo {
 
 impl DebugInfo {
     pub fn new() -> Self {
-        Self { elapsed_time_in_microseconds: 0, frame_displayed: 0, last_fps: 0, display_fps: false }
+        Self {
+            elapsed_time_in_microseconds: 0,
+            frame_displayed: 0,
+            last_fps: 0,
+            display_fps: false,
+        }
     }
 
     pub fn generate_actions(&self) -> Vec<DrawAction> {
         if self.display_fps && self.last_fps != 0 {
             let fps = format!("{} fps", self.last_fps);
-            vec![DrawAction::Text(fps, ScreenPoint::new(MARGIN, 0), ScreenPoint::new(100, 50))]
+            vec![DrawAction::Text(
+                fps,
+                ScreenPoint::new(MARGIN, 0),
+                ScreenPoint::new(100, 50),
+            )]
         } else {
             vec![]
         }
@@ -44,7 +53,8 @@ impl DebugInfo {
             }
         } else {
             Self {
-                elapsed_time_in_microseconds: self.elapsed_time_in_microseconds + elapsed_time_in_microseconds,
+                elapsed_time_in_microseconds: self.elapsed_time_in_microseconds
+                    + elapsed_time_in_microseconds,
                 frame_displayed: self.frame_displayed + 1,
                 last_fps: self.last_fps,
                 display_fps: self.display_fps,
