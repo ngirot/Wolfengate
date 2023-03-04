@@ -3,13 +3,14 @@ use std::time::Instant;
 use sdl2::ttf;
 
 use wolfengate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
-use wolfengate::domain::coord::{Position, ANGLE_RIGHT, ANGLE_UP};
+use wolfengate::domain::coord::Position;
 use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::{Force, InputForce};
 use wolfengate::domain::index::{FontIndex, TextureIndex};
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level::Level;
 use wolfengate::domain::map::Map;
+use wolfengate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
 use wolfengate::domain::view::ViewScreen;
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer;

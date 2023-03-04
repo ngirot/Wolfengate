@@ -1,4 +1,4 @@
-use crate::domain::coord::{Angle, ANGLE_UP};
+use crate::domain::maths::{Angle, ANGLE_UP};
 
 #[derive(Copy, Clone)]
 pub struct ViewScreen {

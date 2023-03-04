@@ -1,5 +1,5 @@
-use crate::domain::coord::Angle;
 use crate::domain::index::TextureIndex;
+use crate::domain::maths::Angle;
 
 use super::{
     coord::{MapPoint, Position},
@@ -88,8 +88,8 @@ mod distance_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::coord::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::index::TextureIndex;
+    use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::{coord::Position, map::Map};
 
     use super::distance;

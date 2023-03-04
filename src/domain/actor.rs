@@ -1,5 +1,6 @@
-use crate::domain::coord::{Acceleration, Angle, Speed, ANGLE_RIGHT};
 use crate::domain::force::Force;
+use crate::domain::maths::{Angle, ANGLE_RIGHT};
+use crate::domain::physics::{Acceleration, Speed};
 
 use super::coord::Position;
 
@@ -183,8 +184,10 @@ mod actor_test {
     use spectral::prelude::*;
 
     use crate::domain::actor::{AccelerationStats, PlayerStats, SpeedStats};
-    use crate::domain::coord::{Angle, Position, Speed, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
+    use crate::domain::coord::Position;
     use crate::domain::force::Force;
+    use crate::domain::maths::{Angle, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
+    use crate::domain::physics::Speed;
 
     use super::Player;
 

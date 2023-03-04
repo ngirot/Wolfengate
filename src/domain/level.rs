@@ -1,7 +1,7 @@
 use crate::domain::actor::{Enemy, Player};
-use crate::domain::coord::{signed_angle, Angle, Vector};
 use crate::domain::force::Force;
 use crate::domain::index::TextureIndex;
+use crate::domain::maths::{signed_angle, Angle, Vector};
 use crate::domain::view::ViewScreen;
 
 use super::{
@@ -230,9 +230,9 @@ mod level_test {
     use spectral::prelude::*;
 
     use crate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
-    use crate::domain::coord::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
+    use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::view::ViewScreen;
     use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
 

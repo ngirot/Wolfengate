@@ -1,4 +1,4 @@
-use crate::domain::coord::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
+use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
 
 #[derive(Copy, Clone)]
 pub struct Force {
@@ -110,10 +110,10 @@ impl InputForce {
 mod input_force_test {
     use std::f32::consts::PI;
 
-    use crate::domain::coord::{Angle, ANGLE_RIGHT};
     use spectral::prelude::*;
 
     use crate::domain::force::{Force, InputForce};
+    use crate::domain::maths::{Angle, ANGLE_RIGHT};
 
     #[test]
     fn move_force_should_not_have_a_rotation() {

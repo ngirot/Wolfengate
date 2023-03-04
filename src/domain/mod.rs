@@ -8,6 +8,8 @@ pub mod index;
 pub mod input;
 pub mod level;
 pub mod map;
+pub mod maths;
+pub mod physics;
 pub mod view;
 
 mod distance;
