@@ -1,10 +1,9 @@
-use std::f32::consts::PI;
 use std::time::Instant;
 
 use sdl2::ttf;
 
 use wolfengate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
-use wolfengate::domain::coord::Position;
+use wolfengate::domain::coord::{ANGLE_RIGHT, ANGLE_UP, Position};
 use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::{Force, InputForce};
 use wolfengate::domain::index::{FontIndex, TextureIndex};
@@ -52,7 +51,7 @@ fn main() -> Result<(), String> {
     let deceleration = AccelerationStats::new(40.0);
     let max_speed = SpeedStats::new(6.0);
     let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);
-    let player = Player::new(position, PI / 2.0, player_stats);
+    let player = Player::new(position, ANGLE_UP, player_stats);
     let enemy = Enemy::new(Position::new(5.0, 5.0));
     let view = ViewScreen::new(500, 800);
     let mut level = Level::new(view, map, player, Some(enemy));
@@ -71,7 +70,7 @@ fn main() -> Result<(), String> {
     'running: loop {
         let elapsed = start.elapsed().as_micros();
         start = Instant::now();
-        let mut current_force = Force::new(0.0, 0.0, 0.0);
+        let mut current_force = Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT);
         for input in poll_input(&mut sdl_context) {
             match input {
                 Input::Quit => break 'running,

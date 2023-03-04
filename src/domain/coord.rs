@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::domain::actor::SpeedStats;
 
 #[derive(Copy, Clone)]
@@ -26,27 +28,37 @@ pub struct Vector {
 
 #[derive(Copy, Clone)]
 pub struct Acceleration {
-    orientation: f32,
+    orientation: Angle,
     units_per_seconds_square: f32,
 }
 
 #[derive(Copy, Clone)]
 pub struct Speed {
-    orientation: f32,
+    orientation: Angle,
     units_per_seconds: f32,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct Angle {
+    radiant: f32,
+}
+
+pub const ANGLE_RIGHT: Angle = Angle::init(0.0);
+pub const ANGLE_UP: Angle = Angle::init(PI / 2.0);
+pub const ANGLE_DOWN: Angle = Angle::init(3.0 * PI / 2.0);
+pub const ANGLE_LEFT: Angle = Angle::init(PI);
+
 pub struct Move {
-    orientation: f32,
+    orientation: Angle,
     distance: f32,
 }
 
-pub fn signed_angle(p1: Position, p2: Position) -> Option<f32> {
+pub fn signed_angle(p1: Position, p2: Position) -> Option<Angle> {
     let points_vector = Vector::new(p1, p2);
     let abscissa_vector = Vector::new(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
 
     points_vector.angle(abscissa_vector)
-        .map(|angle| angle * points_vector.angle_sign(abscissa_vector))
+        .map(|angle| angle.sign(points_vector.angle_sign_is_negative(abscissa_vector)))
 }
 
 impl ScreenPoint {
@@ -122,7 +134,7 @@ impl Position {
         MapPoint::new(x, y)
     }
 
-    pub fn projection_x(&self, angle: f32) -> Position {
+    pub fn projection_x(&self, angle: Angle) -> Position {
         let direction = angle.cos().signum();
         let next_x = Self::round(self.x(), direction);
 
@@ -130,7 +142,7 @@ impl Position {
             .with_y(self.y() + angle.tan() * (next_x - self.x()))
     }
 
-    pub fn projection_y(&self, angle: f32) -> Position {
+    pub fn projection_y(&self, angle: Angle) -> Position {
         let direction = angle.sin().signum();
         let next_y = Self::round(self.y(), direction);
 
@@ -158,12 +170,13 @@ impl Vector {
         Self { start, end }
     }
 
-    pub fn angle(&self, vector: Vector) -> Option<f32> {
+    pub fn angle(&self, vector: Vector) -> Option<Angle> {
         let len = self.length() * vector.length();
         if len == 0.0 {
             return None;
         }
-        Some((self.scalar(vector) / len).acos())
+        let radiant = (self.scalar(vector) / len).acos();
+        Some(Angle::new(radiant))
     }
 
     pub fn scalar(&self, vector: Vector) -> f32 {
@@ -173,16 +186,12 @@ impl Vector {
         self_origin.end.x() * other_origin.end.x() + self_origin.end.y() * other_origin.end.y()
     }
 
-    pub fn angle_sign(&self, vector: Vector) -> f32 {
+    pub fn angle_sign_is_negative(&self, vector: Vector) -> bool {
         let self_origin = self.to_origin().end;
         let other_origin = vector.to_origin().end;
 
         let z_in_cross_product = self_origin.x() * other_origin.y() - self_origin.y() * other_origin.x();
-        if z_in_cross_product < 0.0 {
-            1.0
-        } else {
-            -1.0
-        }
+        z_in_cross_product >= 0.0
     }
 
     pub fn length(&self) -> f32 {
@@ -201,7 +210,7 @@ impl Vector {
 }
 
 impl Speed {
-    pub fn new(orientation: f32, units_per_seconds: f32) -> Self {
+    pub fn new(orientation: Angle, units_per_seconds: f32) -> Self {
         Self {
             orientation,
             units_per_seconds,
@@ -230,19 +239,19 @@ impl Speed {
         let y3 = y1 + y2;
 
         Self {
-            orientation: y3.atan2(x3),
+            orientation: Angle::new(y3.atan2(x3)),
             units_per_seconds: ((x3 * x3) + (y3 * y3)).sqrt(),
         }
     }
 
-    pub fn rotate(&self, rotation: f32) -> Self {
+    pub fn rotate(&self, rotation: Angle) -> Self {
         Self {
-            orientation: self.orientation + rotation,
+            orientation: self.orientation.add(rotation),
             units_per_seconds: self.units_per_seconds,
         }
     }
 
-    pub fn orientation(&self) -> f32 {
+    pub fn orientation(&self) -> Angle {
         self.orientation
     }
 
@@ -252,7 +261,7 @@ impl Speed {
 }
 
 impl Acceleration {
-    pub fn new(orientation: f32, units_per_seconds_square: f32) -> Self {
+    pub fn new(orientation: Angle, units_per_seconds_square: f32) -> Self {
         Self {
             orientation,
             units_per_seconds_square,
@@ -265,18 +274,89 @@ impl Acceleration {
 }
 
 impl Move {
-    pub fn new(orientation: f32, distance: f32) -> Self {
+    pub fn new(orientation: Angle, distance: f32) -> Self {
         Self {
             orientation,
             distance,
         }
     }
 
-    pub fn orientation(&self) -> f32 {
+    pub fn orientation(&self) -> Angle {
         self.orientation
     }
     pub fn distance(&self) -> f32 {
         self.distance
+    }
+}
+
+impl Angle {
+    const fn init(radiant: f32) -> Self {
+        Self {
+            radiant
+        }
+    }
+    pub fn new(radiant: f32) -> Self {
+        Self {
+            radiant: radiant % (2.0 * PI)
+        }
+    }
+
+    pub fn add(&self, other: Angle) -> Self {
+        Self {
+            radiant: self.radiant + other.radiant,
+        }
+    }
+
+    pub fn cos(&self) -> f32 {
+        self.radiant.cos()
+    }
+
+    pub fn sin(&self) -> f32 {
+        self.radiant.sin()
+    }
+
+    pub fn tan(&self) -> f32 {
+        self.radiant.tan()
+    }
+
+    pub fn discreet_cone(&self, cone_angle: Angle, number_of_angle: i32) -> Vec<Self> {
+        let min = self.radiant + (cone_angle.radiant / 2.0);
+        let step = cone_angle.radiant / number_of_angle as f32;
+
+        let mut result = vec![];
+
+        for i in 0..number_of_angle {
+            let current_angle = min - step * i as f32;
+            result.push(Angle::new(current_angle));
+        }
+
+        result
+    }
+
+    pub fn position_in_discreet_cone(&self, cone_angle: Angle, number_of_angle: i32, angle_negative: bool) -> f32 {
+        let step = number_of_angle as f32 / cone_angle.radiant as f32;
+        let angle_sign = if angle_negative {-1.0} else {1.0};
+        number_of_angle as f32 / 2.0 + self.radiant * step * angle_sign
+    }
+
+    pub fn align_to_x(&self) -> Self {
+        if self.cos() >= 0.0 { ANGLE_RIGHT } else { ANGLE_LEFT }
+    }
+
+    pub fn align_to_y(&self) -> Self {
+        if self.sin() >= 0.0 { ANGLE_UP } else { ANGLE_DOWN }
+    }
+
+    pub fn sign(&self, negative_angle: bool) -> Self {
+        if negative_angle {
+            Angle::new(-self.radiant)
+        } else {
+            Angle::new(self.radiant)
+        }
+    }
+
+    pub fn to_radiant(&self) -> f32 {
+        self.radiant
     }
 }
 
@@ -292,7 +372,8 @@ mod fn_test {
     fn should_compute_positive_angle_with_two_points() {
         let start = Position::new(0.0, 0.0);
         let end = Position::new(1.0, 1.0);
-        let angle = signed_angle(start, end);
+        let angle = signed_angle(start, end)
+            .map(|angle| angle.to_radiant());
 
         assert_that(&angle)
             .is_some()
@@ -303,11 +384,13 @@ mod fn_test {
     fn should_compute_positive_negative_angle_with_two_points() {
         let start = Position::new(0.0, 0.0);
         let end = Position::new(1.0, -1.0);
-        let angle = signed_angle(start, end);
+        let angle = signed_angle(start, end)
+            .map(|angle| angle.to_radiant());
+
 
         assert_that(&angle)
             .is_some()
-            .is_equal_to(-PI / 4.0);
+            .is_equal_to(&(-PI / 4.0));
     }
 
     #[test]
@@ -323,11 +406,9 @@ mod fn_test {
 
 #[cfg(test)]
 mod coord_test {
-    use std::f32::consts::PI;
-
     use spectral::prelude::*;
 
-    use crate::domain::coord::Move;
+    use crate::domain::coord::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP, Move};
 
     use super::Position;
 
@@ -374,7 +455,7 @@ mod coord_test {
     #[test]
     fn position_already_on_x_should_be_projected_to_the_next_int_on_the_right() {
         let position = Position::new(3.0, 2.5);
-        let projected = position.projection_x(0.01);
+        let projected = position.projection_x(Angle::new(0.01));
 
         assert_that(&projected.x()).is_equal_to(4.0);
     }
@@ -382,7 +463,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_x_should_round_on_the_right() {
         let position = Position::new(3.2, 2.5);
-        let projected = position.projection_x(0.0);
+        let projected = position.projection_x(ANGLE_RIGHT);
 
         assert_that(&projected.x()).is_equal_to(4.0);
     }
@@ -390,7 +471,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_x_should_compute_y_on_the_right() {
         let position = Position::new(3.2, 2.5);
-        let projected = position.projection_x(0.15);
+        let projected = position.projection_x(Angle::new(0.15));
 
         assert_that(&projected.y()).is_close_to(2.620, 0.001);
     }
@@ -398,7 +479,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_x_should_compute_y_on_the_left() {
         let position = Position::new(3.2, 2.5);
-        let projected = position.projection_x(PI + 0.15);
+        let projected = position.projection_x(ANGLE_LEFT.add(Angle::new(0.15)));
 
         assert_that(&projected.y()).is_close_to(2.469, 0.001);
     }
@@ -406,7 +487,7 @@ mod coord_test {
     #[test]
     fn position_already_on_x_should_be_projected_to_the_next_on_int_the_left() {
         let position = Position::new(3.0, 2.5);
-        let projected = position.projection_x(PI);
+        let projected = position.projection_x(ANGLE_LEFT);
 
         assert_that(&projected.x()).is_equal_to(2.0);
     }
@@ -414,7 +495,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_x_should_round_on_the_left() {
         let position = Position::new(3.2, 2.5);
-        let projected = position.projection_x(PI - 0.01);
+        let projected = position.projection_x(ANGLE_LEFT.add(Angle::new(-0.01)));
 
         assert_that(&projected.x()).is_equal_to(3.0);
     }
@@ -422,7 +503,7 @@ mod coord_test {
     #[test]
     fn position_already_on_y_should_be_projected_to_the_next_int_on_the_top() {
         let position = Position::new(3.2, 2.0);
-        let projected = position.projection_y(PI / 2.0);
+        let projected = position.projection_y(ANGLE_UP);
 
         assert_that(&projected.y()).is_equal_to(3.0);
     }
@@ -430,7 +511,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_y_should_round_on_the_top() {
         let position = Position::new(3.5, 2.6);
-        let projected = position.projection_y(PI / 2.0);
+        let projected = position.projection_y(ANGLE_UP);
 
         assert_that(&projected.y()).is_equal_to(3.0);
     }
@@ -438,7 +519,7 @@ mod coord_test {
     #[test]
     fn position_already_on_y_should_be_projected_to_the_next_on_int_the_bottom() {
         let position = Position::new(3.5, 2.0);
-        let projected = position.projection_y(-PI / 2.0);
+        let projected = position.projection_y(ANGLE_DOWN);
 
         assert_that(&projected.y()).is_equal_to(1.0);
     }
@@ -446,7 +527,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_y_should_round_on_the_bottom() {
         let position = Position::new(3.5, 2.6);
-        let projected = position.projection_y(-PI / 2.0);
+        let projected = position.projection_y(ANGLE_DOWN);
 
         assert_that(&projected.y()).is_equal_to(2.0);
     }
@@ -454,7 +535,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_y_should_compute_x_on_the_right() {
         let position = Position::new(3.2, 2.5);
-        let projected = position.projection_y(PI / 2.0 - 0.15);
+        let projected = position.projection_y(ANGLE_UP.add(Angle::new(-0.15)));
 
         assert_that(&projected.x()).is_close_to(3.275, 0.001);
     }
@@ -462,7 +543,7 @@ mod coord_test {
     #[test]
     fn projected_position_on_y_should_compute_x_on_the_left() {
         let position = Position::new(3.2, 2.5);
-        let projected = position.projection_y((-PI / 2.0) - 0.15);
+        let projected = position.projection_y(ANGLE_DOWN.add(Angle::new(-0.15)));
 
         assert_that(&projected.x()).is_close_to(3.124, 0.001);
     }
@@ -470,7 +551,7 @@ mod coord_test {
     #[test]
     fn apply_simple_x_force() {
         let position = Position::new(5.0, 10.0);
-        let force = Move::new(0.0, 4.0);
+        let force = Move::new(ANGLE_RIGHT, 4.0);
 
         let applied = position.apply_force(force);
 
@@ -481,7 +562,7 @@ mod coord_test {
     #[test]
     fn apply_simple_y_force() {
         let position = Position::new(5.0, 10.0);
-        let force = Move::new(PI / 2.0, 4.0);
+        let force = Move::new(ANGLE_UP, 4.0);
 
         let applied = position.apply_force(force);
 
@@ -492,7 +573,7 @@ mod coord_test {
     #[test]
     fn apply_force_with_angle() {
         let position = Position::new(3.1, 6.4);
-        let force = Move::new(1.2, 3.2);
+        let force = Move::new(Angle::new(1.2), 3.2);
 
         let applied = position.apply_force(force);
 
@@ -572,7 +653,8 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(0.0, 0.0), Position::new(3.2, 4.2));
         let vector2 = Vector::new(Position::new(0.0, 0.0), Position::new(5.6, 6.4));
 
-        let angle = vector1.angle(vector2);
+        let angle = vector1.angle(vector2)
+            .map(|angle| angle.to_radiant());
 
         assert_that(&angle)
             .is_some()
@@ -584,7 +666,8 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(2.2, 4.3), Position::new(5.7, 2.5));
         let vector2 = Vector::new(Position::new(2.2, 4.3), Position::new(8.4, 1.9));
 
-        let angle = vector1.angle(vector2);
+        let angle = vector1.angle(vector2)
+            .map(|angle| angle.to_radiant());
 
         assert_that(&angle)
             .is_some()
@@ -596,7 +679,8 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(1.2, 2.3), Position::new(4.8, 7.1));
         let vector2 = Vector::new(Position::new(4.3, 6.4), Position::new(9.3, 8.7));
 
-        let angle = vector1.angle(vector2);
+        let angle = vector1.angle(vector2)
+            .map(|angle| angle.to_radiant());
 
         assert_that(&angle)
             .is_some()
@@ -630,10 +714,10 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(1.0, 1.0), Position::new(2.0, 2.0));
         let vector2 = Vector::new(Position::new(-1.0, 4.0), Position::new(6.0, 3.0));
 
-        let sign1 = vector1.angle_sign(vector2);
-        let sign2 = vector2.angle_sign(vector1);
+        let sign1 = vector1.angle_sign_is_negative(vector2);
+        let sign2 = vector2.angle_sign_is_negative(vector1);
 
-        assert_that(&sign1).is_equal_to(sign2 * -1.0);
+        assert_that(&sign1).is_equal_to(!sign2);
     }
 
     #[test]
@@ -641,8 +725,8 @@ mod vector_test {
         let vector1 = Vector::new(Position::new(1.0, 1.0), Position::new(2.0, 2.0));
         let vector2 = Vector::new(Position::new(-1.0, 4.0), Position::new(6.0, 3.0));
 
-        let sign = vector1.angle_sign(vector2);
+        let sign = vector1.angle_sign_is_negative(vector2);
 
-        assert_that(&sign).is_equal_to(1.0);
+        assert_that(&sign).is_false();
     }
 }

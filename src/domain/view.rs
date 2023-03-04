@@ -1,16 +1,16 @@
-use std::f32::consts::PI;
+use crate::domain::coord::{Angle, ANGLE_UP};
 
 #[derive(Copy, Clone)]
 pub struct ViewScreen {
     height: u16,
     width: u16,
-    angle: f32,
+    angle: Angle,
     ratio: f32,
 }
 
 impl ViewScreen {
     pub fn new(height: u16, width: u16) -> Self {
-        Self { height, width, angle: PI / 2.0, ratio: 0.8 }
+        Self { height, width, angle: ANGLE_UP, ratio: 0.8 }
     }
 
     pub fn height(&self) -> i32 {
@@ -21,7 +21,7 @@ impl ViewScreen {
         self.width as i32
     }
 
-    pub fn angle(&self) -> f32 {
+    pub fn angle(&self) -> Angle {
         self.angle
     }
 

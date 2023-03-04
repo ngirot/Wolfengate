@@ -1,4 +1,4 @@
-use crate::domain::coord::{Acceleration, Speed};
+use crate::domain::coord::{Acceleration, Angle, ANGLE_RIGHT, Speed};
 use crate::domain::force::Force;
 
 use super::coord::Position;
@@ -7,7 +7,7 @@ use super::coord::Position;
 pub struct Player {
     position: Position,
     inertia: Speed,
-    orientation: f32,
+    orientation: Angle,
     stats: PlayerStats,
 }
 
@@ -33,10 +33,10 @@ pub struct Enemy {
 }
 
 impl Player {
-    pub fn new(position: Position, orientation: f32, stats: PlayerStats) -> Self {
+    pub fn new(position: Position, orientation: Angle, stats: PlayerStats) -> Self {
         Self {
             position,
-            inertia: Speed::new(0.0, 0.0),
+            inertia: Speed::new(ANGLE_RIGHT, 0.0),
             orientation,
             stats,
         }
@@ -46,7 +46,7 @@ impl Player {
         &self.position
     }
 
-    pub fn orientation(&self) -> f32 {
+    pub fn orientation(&self) -> Angle {
         self.orientation
     }
 
@@ -69,10 +69,10 @@ impl Player {
 
     pub fn apply_force(&self, force: Force, microseconds_elapsed: u128) -> Self {
         self.move_direction(force, microseconds_elapsed)
-            .rotate(force.rotation() + self.orientation)
+            .rotate(force.rotation().add(self.orientation))
     }
 
-    fn rotate(&self, angle: f32) -> Self {
+    fn rotate(&self, angle: Angle) -> Self {
         Self {
             position: self.position,
             inertia: self.inertia,
@@ -154,7 +154,7 @@ impl AccelerationStats {
         }
     }
 
-    pub fn to_acceleration(&self, orientation: f32) -> Acceleration {
+    pub fn to_acceleration(&self, orientation: Angle) -> Acceleration {
         Acceleration::new(orientation, self.units_per_seconds_square)
     }
 
@@ -177,11 +177,10 @@ impl SpeedStats {
 
 #[cfg(test)]
 mod actor_test {
-    use std::f32::consts::PI;
     use spectral::prelude::*;
 
     use crate::domain::actor::{AccelerationStats, PlayerStats, SpeedStats};
-    use crate::domain::coord::{Position, Speed};
+    use crate::domain::coord::{Angle, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP, Position, Speed};
     use crate::domain::force::Force;
 
     use super::Player;
@@ -194,10 +193,10 @@ mod actor_test {
 
         let player = Player::new(
             Position::new(1.0, 2.0),
-            0.0,
+            ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
         );
-        let after_move = player.apply_force(Force::new(0.0, 1.0, 0.0), 1000000);
+        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 1.0, ANGLE_RIGHT), 1000000);
         assert_that(&after_move.position().x()).is_equal_to(3.0);
         assert_that(&after_move.position().y()).is_equal_to(2.0);
     }
@@ -210,10 +209,10 @@ mod actor_test {
 
         let player = Player::new(
             Position::new(1.0, 2.0),
-            0.0,
+            ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
-        ).with_inertia(Speed::new(0.0, 3.0));
-        let after_move = player.apply_force(Force::new(0.0, 0.0, 0.0), 1000000);
+        ).with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT), 1000000);
         assert_that(&after_move.position().x()).is_equal_to(3.0);
         assert_that(&after_move.position().y()).is_equal_to(2.0);
     }
@@ -226,10 +225,10 @@ mod actor_test {
 
         let player = Player::new(
             Position::new(1.0, 5.0),
-            0.0,
+            ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
-        ).with_inertia(Speed::new(0.0, 3.0));
-        let after_move = player.apply_force(Force::new(PI, 1.0, 0.0), 1000000);
+        ).with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+        let after_move = player.apply_force(Force::new(ANGLE_LEFT, 1.0, ANGLE_RIGHT), 1000000);
         assert_that(&after_move.position().x()).is_equal_to(2.0);
         assert_that(&after_move.position().y()).is_equal_to(5.0);
     }
@@ -242,11 +241,11 @@ mod actor_test {
 
         let player = Player::new(
             Position::new(1.0, 2.0),
-            1.3,
+            Angle::new(1.3),
             PlayerStats::new(acceleration, deceleration, max_speed),
         );
-        let after_move = player.apply_force(Force::new(0.0, 0.0, 1.2), 1000000);
-        assert_that(&after_move.orientation).is_equal_to(2.5);
+        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, Angle::new(1.2)), 1000000);
+        assert_that(&after_move.orientation.to_radiant()).is_equal_to(2.5);
     }
 
     #[test]
@@ -257,10 +256,10 @@ mod actor_test {
 
         let player = Player::new(
             Position::new(1.0, 2.0),
-            0.0,
+            ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
-        ).with_inertia(Speed::new(0.0, 3.0));
-        let after_move = player.apply_force(Force::new(0.0, 0.0, PI / 2.0), 1000000);
+        ).with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_UP), 1000000);
         println!("({},{})", player.position.x(), player.position().y());
         println!("({},{})", after_move.position.x(), after_move.position().y());
         assert_that(&after_move.position.x()).is_close_to(1.0, 0.001);
