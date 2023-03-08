@@ -8,5 +8,10 @@ Url: https://www.fontsquirrel.com/fonts/montserrat / https://github.com/JulietaU
 Author: Julieta Ulanovsky
 License: SIL Open Font License 1.1
 
+- door.png
+Url: https://opengameart.org/content/double-door-school
+Author: biglew [Lewis W. Veasey]
+License: CC0 [https://creativecommons.org/publicdomain/zero/1.0/]
+
 - enemy.png
 Generated with Dall-E (https://labs.openai.com/)

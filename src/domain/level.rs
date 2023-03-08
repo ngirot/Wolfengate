@@ -88,8 +88,8 @@ impl Level {
         let angle_x = angle.align_to_x();
         let angle_y = angle.align_to_y();
 
-        let distance_x = self.distance(start, angle_x) - WALL_MINIMUM_DISTANCE;
-        let distance_y = self.distance(start, angle_y) - WALL_MINIMUM_DISTANCE;
+        let distance_x = self.distance(start, angle_x, true) - WALL_MINIMUM_DISTANCE;
+        let distance_y = self.distance(start, angle_y, true) - WALL_MINIMUM_DISTANCE;
 
         let mov_x = (end.x() - start.x()).abs();
         let mov_y = (end.y() - start.y()).abs();
@@ -110,8 +110,8 @@ impl Level {
         }
     }
 
-    fn distance(&self, start: Position, angle: Angle) -> f32 {
-        distance(start, angle, &self.map).distance()
+    fn distance(&self, start: Position, angle: Angle, for_move: bool) -> f32 {
+        distance(start, angle, &self.map, for_move).distance()
     }
 }
 
@@ -155,7 +155,7 @@ fn build_walls(
     let cone_angles = angle.discreet_cone(view.angle(), view.width());
 
     for (i, current_angle) in cone_angles.iter().enumerate() {
-        let projected_point = distance(*position, *current_angle, map);
+        let projected_point = distance(*position, *current_angle, map, false);
 
         let screen_length: i32 = view.height();
 

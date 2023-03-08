@@ -6,6 +6,7 @@ pub struct Map {
 
 pub enum Tile {
     Wall,
+    Door,
     Nothing,
 }
 
@@ -60,6 +61,7 @@ impl Map {
         match c {
             '#' => Ok(Tile::Wall),
             ' ' => Ok(Tile::Nothing),
+            'D' => Ok(Tile::Door),
             _ => Err(String::from("Unknown char is used in the map")),
         }
     }

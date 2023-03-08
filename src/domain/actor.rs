@@ -269,12 +269,7 @@ mod actor_test {
         )
         .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_UP), 1000000);
-        println!("({},{})", player.position.x(), player.position().y());
-        println!(
-            "({},{})",
-            after_move.position.x(),
-            after_move.position().y()
-        );
+
         assert_that(&after_move.position.x()).is_close_to(1.0, 0.001);
         assert_that(&after_move.position.y()).is_equal_to(4.0);
     }

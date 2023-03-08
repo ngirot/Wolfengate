@@ -3,6 +3,7 @@ pub enum TextureIndex {
     WALL,
     VOID,
     ENEMY,
+    DOOR,
 }
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]

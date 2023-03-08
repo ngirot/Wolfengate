@@ -39,11 +39,11 @@ fn main() -> Result<(), String> {
         #  #     #   #\n\
         #  ####  # ###\n\
         #     #      #\n\
-        #### #########\n\
+        #### ######D##\n\
         #            #\n\
         #            #\n\
         #        #   #\n\
-        #        #   #\n\
+        #        D   #\n\
         #        #    \n\
         #        #   #\n\
         #        #   #\n\
@@ -70,6 +70,7 @@ fn main() -> Result<(), String> {
     registry.load_texture(TextureIndex::WALL, String::from("wall.png"));
     registry.load_texture(TextureIndex::VOID, String::from("transparency.png"));
     registry.load_texture(TextureIndex::ENEMY, String::from("enemy.png"));
+    registry.load_texture(TextureIndex::DOOR, String::from("door.png"));
     registry.load_font(
         FontIndex::MONTSERRAT,
         String::from("MontserratAlternates-Medium.otf"),
