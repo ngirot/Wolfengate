@@ -6,14 +6,18 @@ use super::{
     map::{Map, Tile},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct ProjectedPoint {
     distance: f32,
     offset_in_bloc: f32,
     tile_type: TextureIndex,
 }
 
-pub fn distance(position: Position, angle: Angle, map: &Map, for_move: bool) -> ProjectedPoint {
+pub fn distance(position: Position, angle: Angle, map: &Map) -> Vec<ProjectedPoint> {
+    distance_concat(position, angle, map, vec![])
+}
+
+pub fn distance_concat(position: Position, angle: Angle, map: &Map, previous: Vec<ProjectedPoint>) -> Vec<ProjectedPoint> {
     let direction_x = angle.cos().signum();
     let direction_y = angle.sin().signum();
 
@@ -42,26 +46,44 @@ pub fn distance(position: Position, angle: Angle, map: &Map, for_move: bool) -> 
     let bloc_tile = map.paving_at(bloc.x(), bloc.y());
 
     let distance_total = position.distance(&next_position);
-    match bloc_tile {
-        None => ProjectedPoint::new(distance_total, position_on_texture, TextureIndex::VOID),
+    let recursive = match bloc_tile {
+        None =>
+            vec![ProjectedPoint::invisible(distance_total, position_on_texture)],
         Some(Tile::Wall) =>
-            ProjectedPoint::new(distance_total, position_on_texture, TextureIndex::WALL),
-        Some(Tile::Door) => {
-            if for_move {
-                ProjectedPoint::new(distance_total, position_on_texture, TextureIndex::DOOR)
-            } else {
-                let o = door(next_position, angle, door_up);
-                o.map_or_else(
-                    || distance(next_position, angle, map, for_move).with_distance_added(distance_total),
-                    |d| ProjectedPoint::new(distance_total + d.distance(), d.offset_in_bloc(), d.tile_type()),
-                )
-            }
+            vec![ProjectedPoint::visible(distance_total, position_on_texture, TextureIndex::WALL)],
+        Some(Tile::Glass) => {
+            let distances_glass_tile = distance_on_door(angle, map, next_position, position_on_texture, door_up, distance_total, TextureIndex::GLASS);
+            let distances_behind = distance(next_position, angle, map).iter().map(|projected| projected.with_distance_added(distance_total)).collect();
+            [distances_glass_tile, distances_behind].concat()
         }
-        _ => distance(next_position, angle, map, for_move).with_distance_added(distance_total),
-    }
+        Some(Tile::Door) => {
+            let distances_door_tile = distance_on_door(angle, map, next_position, position_on_texture, door_up, distance_total, TextureIndex::DOOR);
+            let distances_behind = distance(next_position, angle, map).iter().map(|projected| projected.with_distance_added(distance_total)).collect();
+            [distances_door_tile, distances_behind].concat()
+        }
+        _ =>
+            distance(next_position, angle, map)
+                .iter()
+                .map(|projected| projected.with_distance_added(distance_total))
+                .collect(),
+    };
+
+    [previous, recursive].concat()
 }
 
-pub fn door(next_position: Position, angle: Angle, door_up: bool) -> Option<ProjectedPoint> {
+fn distance_on_door(angle: Angle, map: &Map, next_position: Position, position_on_texture: f32, door_up: bool, distance_total: f32, texture: TextureIndex) -> Vec<ProjectedPoint> {
+    let invisible_wall = vec![ProjectedPoint::invisible(distance_total, position_on_texture)];
+
+    let actual_door = inner_door_projection(next_position, angle, door_up, texture)
+        .map_or_else(
+            || distance(next_position, angle, map).iter().map(|projected| projected.with_distance_added(distance_total)).collect(),
+            |d| vec![ProjectedPoint::visible(distance_total + d.distance(), d.offset_in_bloc(), d.tile_type())],
+        );
+
+    [invisible_wall, actual_door].concat()
+}
+
+fn inner_door_projection(next_position: Position, angle: Angle, door_up: bool, texture: TextureIndex) -> Option<ProjectedPoint> {
     let opening_percentage = 0.0;
 
     if door_up {
@@ -79,7 +101,7 @@ pub fn door(next_position: Position, angle: Angle, door_up: bool) -> Option<Proj
 
         let position_on_texture = decimal_part(new_position.x());
 
-        Some(ProjectedPoint::new(distance, position_on_texture - opening_percentage, TextureIndex::DOOR))
+        Some(ProjectedPoint::visible(distance, position_on_texture - opening_percentage, texture))
     } else {
         let a = angle.tan();
         let door_y = next_position.y() + (a / (2.0 * angle.cos().signum()));
@@ -95,13 +117,21 @@ pub fn door(next_position: Position, angle: Angle, door_up: bool) -> Option<Proj
 
         let position_on_texture = decimal_part(new_position.y());
 
-        Some(ProjectedPoint::new(distance, position_on_texture - opening_percentage, TextureIndex::DOOR))
+        Some(ProjectedPoint::visible(distance, position_on_texture - opening_percentage, texture))
     }
 }
 
 impl ProjectedPoint {
-    pub fn new(distance: f32, offset_in_bloc: f32, tile_type: TextureIndex) -> Self {
-        ProjectedPoint {
+    pub fn invisible(distance: f32, offset_in_bloc: f32) -> Self {
+        Self {
+            distance,
+            offset_in_bloc,
+            tile_type: TextureIndex::VOID,
+        }
+    }
+
+    pub fn visible(distance: f32, offset_in_bloc: f32, tile_type: TextureIndex) -> Self {
+        Self {
             distance,
             offset_in_bloc,
             tile_type,
@@ -135,14 +165,23 @@ fn decimal_part(number: f32) -> f32 {
 
 #[cfg(test)]
 mod distance_test {
-    use spectral::prelude::*;
     use std::f32::consts::PI;
 
+    use spectral::prelude::*;
+
     use crate::domain::{coord::Position, map::Map};
+    use crate::domain::distance::ProjectedPoint;
     use crate::domain::index::TextureIndex;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
 
     use super::distance;
+
+    fn distance_single_wall(position: Position, angle: Angle, map: &Map) -> ProjectedPoint {
+        let points = distance(position, angle, &map);
+        assert_that(&points).has_length(1);
+
+        *points.get(0).unwrap()
+    }
 
     #[test]
     fn should_find_distance_one_tile_ahead() {
@@ -156,7 +195,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, ANGLE_UP, &map, false);
+        let distance = distance_single_wall(center, ANGLE_UP, &map);
 
         assert_that(&distance.distance()).is_close_to(0.5, 0.1)
     }
@@ -173,7 +212,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 1.3);
-        let distance = distance(center, ANGLE_UP, &map, false);
+        let distance = distance_single_wall(center, ANGLE_UP, &map);
 
         assert_that(&distance.distance()).is_close_to(1.7, 0.1)
     }
@@ -190,7 +229,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, ANGLE_DOWN, &map, false);
+        let distance = distance_single_wall(center, ANGLE_DOWN, &map);
 
         assert_that(&distance.distance()).is_close_to(0.5, 0.1)
     }
@@ -207,7 +246,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 3.2);
-        let distance = distance(center, ANGLE_DOWN, &map, false);
+        let distance = distance_single_wall(center, ANGLE_DOWN, &map);
 
         assert_that(&distance.distance()).is_close_to(1.2, 0.1)
     }
@@ -224,7 +263,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, ANGLE_LEFT, &map, false);
+        let distance = distance_single_wall(center, ANGLE_LEFT, &map);
 
         assert_that(&distance.distance()).is_close_to(0.5, 0.1)
     }
@@ -241,7 +280,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(3.1, 2.5);
-        let distance = distance(center, ANGLE_LEFT, &map, false);
+        let distance = distance_single_wall(center, ANGLE_LEFT, &map);
 
         assert_that(&distance.distance()).is_close_to(1.1, 0.1)
     }
@@ -258,7 +297,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, ANGLE_RIGHT, &map, false);
+        let distance = distance_single_wall(center, ANGLE_RIGHT, &map);
 
         assert_that(&distance.distance()).is_close_to(0.5, 0.1)
     }
@@ -275,7 +314,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(1.1, 2.5);
-        let distance = distance(center, ANGLE_RIGHT, &map, false);
+        let distance = distance_single_wall(center, ANGLE_RIGHT, &map);
 
         assert_that(&distance.distance()).is_close_to(1.9, 0.1)
     }
@@ -292,7 +331,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, Angle::new(0.7), &map, false);
+        let distance = distance_single_wall(center, Angle::new(0.7), &map);
 
         assert_that(&distance.distance()).is_close_to(0.7, 0.1)
     }
@@ -309,7 +348,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, Angle::new(PI - 0.7), &map, false);
+        let distance = distance_single_wall(center, Angle::new(PI - 0.7), &map);
 
         assert_that(&distance.distance()).is_close_to(0.7, 0.1)
     }
@@ -326,7 +365,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, Angle::new(-0.7), &map, false);
+        let distance = distance_single_wall(center, Angle::new(-0.7), &map);
 
         assert_that(&distance.distance()).is_close_to(0.7, 0.1)
     }
@@ -343,7 +382,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, Angle::new(PI + 0.7), &map, false);
+        let distance = distance_single_wall(center, Angle::new(PI + 0.7), &map);
 
         assert_that(&distance.distance()).is_close_to(0.7, 0.1)
     }
@@ -358,7 +397,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(1.5, 1.5);
-        let distance = distance(center, ANGLE_RIGHT, &map, false);
+        let distance = distance_single_wall(center, ANGLE_RIGHT, &map);
 
         assert_that(&distance.offset_in_bloc()).is_close_to(0.5, 0.001);
         assert_that(&distance.tile_type()).is_equal_to(TextureIndex::VOID);
@@ -376,7 +415,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, ANGLE_UP, &map, false);
+        let distance = distance_single_wall(center, ANGLE_UP, &map);
 
         assert_that(&distance.offset_in_bloc()).is_close_to(0.5, 0.001)
     }
@@ -393,7 +432,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, Angle::new(PI / 2.0 + 0.23), &map, false);
+        let distance = distance_single_wall(center, Angle::new(PI / 2.0 + 0.23), &map);
 
         assert_that(&distance.offset_in_bloc()).is_close_to(0.617, 0.001)
     }
@@ -409,9 +448,10 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, ANGLE_UP, &map, false);
+        let distances = distance(center, ANGLE_UP, &map);
 
-        assert_that(&distance.distance()).is_close_to(1.0, 0.001)
+        assert_that(&distances).has_length(3);
+        assert_that(&distances.get(1).unwrap().distance()).is_close_to(1.0, 0.001)
     }
 
     #[test]
@@ -425,9 +465,10 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distance = distance(center, ANGLE_DOWN, &map, false);
+        let distances = distance(center, ANGLE_DOWN, &map);
 
-        assert_that(&distance.distance()).is_close_to(2.0, 0.001)
+        assert_that(&distances).has_length(3);
+        assert_that(&distances.get(1).unwrap().distance()).is_close_to(2.0, 0.001)
     }
 
     #[test]
@@ -440,9 +481,11 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.0, 1.1);
-        let distance = distance(center, ANGLE_LEFT, &map, false);
 
-        assert_that(&distance.distance()).is_close_to(1.5, 0.001)
+        let distances = distance(center, ANGLE_LEFT, &map);
+
+        assert_that(&distances).has_length(3);
+        assert_that(&distances.get(1).unwrap().distance()).is_close_to(1.5, 0.001)
     }
 
     #[test]
@@ -455,13 +498,14 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.0, 1.1);
-        let distance = distance(center, ANGLE_RIGHT, &map, false);
+        let distances = distance(center, ANGLE_RIGHT, &map);
 
-        assert_that(&distance.distance()).is_close_to(1.5, 0.001)
+        assert_that(&distances).has_length(3);
+        assert_that(&distances.get(1).unwrap().distance()).is_close_to(1.5, 0.001)
     }
 
     #[test]
-    fn door_should_be_visible_as_a_wall_when_calling_for_a_move() {
+    fn looking_at_a_closed_door_should_not_allow_moves_through_square() {
         let map = Map::new(
             "\
             ####\n\
@@ -470,13 +514,32 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.0, 1.1);
-        let distance = distance(center, ANGLE_RIGHT, &map, true);
+        let distances = distance(center, ANGLE_RIGHT, &map);
 
-        assert_that(&distance.distance()).is_close_to(1.0, 0.001)
+        assert_that(&distances).has_length(3);
+        let projected = distances.get(0).unwrap();
+        assert_that(&projected.distance()).is_close_to(1.0, 0.001);
+        assert_that(&projected.tile_type).is_equal_to(TextureIndex::VOID);
     }
 
     #[test]
-    fn should_not_change_distance_whenlooking_at_wall_at_side_of_the_door() {
+    fn looking_at_a_door_should_draw_wall_behind() {
+        let map = Map::new(
+            "\
+            #####\n\
+            #  D#\n\
+            #####",
+        )
+            .unwrap();
+        let center = Position::new(2.0, 1.1);
+        let distances = distance(center, ANGLE_RIGHT, &map);
+
+        assert_that(&distances).has_length(3);
+        assert_that(&distances.get(2).unwrap().distance()).is_close_to(2.0, 0.001)
+    }
+
+    #[test]
+    fn should_not_change_distance_when_looking_at_wall_at_side_of_the_door() {
         let door_map = Map::new(
             "\
             ##D##\n\
@@ -494,9 +557,10 @@ mod distance_test {
             .unwrap();
 
         let center = Position::new(2.9, 1.9);
-        let distance_door = distance(center, Angle::new(PI - 0.2), &door_map, false);
-        let distance_no_door = distance(center, Angle::new(PI - 0.2), &no_door_map, false);
+        let distances_door = distance(center, Angle::new(PI - 0.2), &door_map);
+        let distance_no_door = distance_single_wall(center, Angle::new(PI - 0.2), &no_door_map);
 
-        assert_that(&distance_door.distance()).is_equal_to(&distance_no_door.distance());
+        assert_that(&distances_door).has_length(3);
+        assert_that(&distances_door.get(1).unwrap().distance()).is_equal_to(&distance_no_door.distance());
     }
 }

@@ -88,8 +88,8 @@ impl Level {
         let angle_x = angle.align_to_x();
         let angle_y = angle.align_to_y();
 
-        let distance_x = self.distance(start, angle_x, true) - WALL_MINIMUM_DISTANCE;
-        let distance_y = self.distance(start, angle_y, true) - WALL_MINIMUM_DISTANCE;
+        let distance_x = self.distance(start, angle_x) - WALL_MINIMUM_DISTANCE;
+        let distance_y = self.distance(start, angle_y) - WALL_MINIMUM_DISTANCE;
 
         let mov_x = (end.x() - start.x()).abs();
         let mov_y = (end.y() - start.y()).abs();
@@ -110,8 +110,9 @@ impl Level {
         }
     }
 
-    fn distance(&self, start: Position, angle: Angle, for_move: bool) -> f32 {
-        distance(start, angle, &self.map, for_move).distance()
+    fn distance(&self, start: Position, angle: Angle) -> f32 {
+        let all = distance(start, angle, &self.map);
+        all[0].distance()
     }
 }
 
@@ -155,27 +156,29 @@ fn build_walls(
     let cone_angles = angle.discreet_cone(view.angle(), view.width());
 
     for (i, current_angle) in cone_angles.iter().enumerate() {
-        let projected_point = distance(*position, *current_angle, map, false);
+        let projected_points = distance(*position, *current_angle, map);
 
-        let screen_length: i32 = view.height();
+        for projected_point in projected_points {
+            let screen_length: i32 = view.height();
 
-        let wall_height = object_height(view, projected_point.distance());
-        let start = ScreenPoint::new(
-            i as i32,
-            (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
-        );
-        let end = ScreenPoint::new(
-            i as i32,
-            (screen_length as f32 / 2.0 + wall_height / 2.0) as i32,
-        );
+            let wall_height = object_height(view, projected_point.distance());
+            let start = ScreenPoint::new(
+                i as i32,
+                (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
+            );
+            let end = ScreenPoint::new(
+                i as i32,
+                (screen_length as f32 / 2.0 + wall_height / 2.0) as i32,
+            );
 
-        let action = DrawAction::TexturedLine(
-            start,
-            end,
-            projected_point.tile_type(),
-            projected_point.offset_in_bloc(),
-        );
-        actions.push(DrawActionZIndex::new(action, projected_point.distance()));
+            let action = DrawAction::TexturedLine(
+                start,
+                end,
+                projected_point.tile_type(),
+                projected_point.offset_in_bloc(),
+            );
+            actions.push(DrawActionZIndex::new(action, projected_point.distance()));
+        }
     }
     actions
 }

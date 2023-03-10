@@ -13,5 +13,10 @@ Url: https://opengameart.org/content/double-door-school
 Author: biglew [Lewis W. Veasey]
 License: CC0 [https://creativecommons.org/publicdomain/zero/1.0/]
 
+- glass.png
+Url: https://opengameart.org/content/shiny-window-pane
+Author: Fupi
+License: CC0 [https://creativecommons.org/publicdomain/zero/1.0/]
+
 - enemy.png
 Generated with Dall-E (https://labs.openai.com/)

@@ -7,6 +7,7 @@ pub struct Map {
 pub enum Tile {
     Wall,
     Door,
+    Glass,
     Nothing,
 }
 
@@ -62,6 +63,7 @@ impl Map {
             '#' => Ok(Tile::Wall),
             ' ' => Ok(Tile::Nothing),
             'D' => Ok(Tile::Door),
+            'G' => Ok(Tile::Glass),
             _ => Err(String::from("Unknown char is used in the map")),
         }
     }
