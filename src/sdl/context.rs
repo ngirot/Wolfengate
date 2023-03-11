@@ -42,7 +42,7 @@ impl SdlContext {
 
         sdl_context.mouse().set_relative_mouse_mode(true);
 
-        Ok(SdlContext { canvas, event_pump })
+        Ok(Self { canvas, event_pump })
     }
 
     pub fn canvas(&mut self) -> &mut WindowCanvas {

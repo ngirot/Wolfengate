@@ -15,7 +15,7 @@ pub struct InputForce {
 
 impl Force {
     pub fn new(orientation: Angle, power: f32, rotation: Angle) -> Self {
-        Force {
+        Self {
             orientation,
             power,
             rotation,

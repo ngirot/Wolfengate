@@ -28,7 +28,7 @@ impl<'s> ResourceRegistry<'s> {
         texture_creator: &'s TextureCreator<WindowContext>,
         ttf_creator: &'s Sdl2TtfContext,
     ) -> ResourceRegistry<'s> {
-        ResourceRegistry {
+        Self {
             texture_creator,
             ttf_context: ttf_creator,
             texture_registry: HashMap::new(),

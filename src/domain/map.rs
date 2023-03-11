@@ -41,7 +41,7 @@ impl Map {
 
         p.reverse();
 
-        Ok(Map {
+        Ok(Self {
             paving: p,
             height,
             width,
