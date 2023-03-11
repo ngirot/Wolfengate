@@ -83,12 +83,13 @@ impl Player {
     }
 
     fn move_direction(&self, force: Force, microseconds_elapsed: u128) -> Player {
-        let acceleration = self
-            .stats
+        let acceleration = self.stats
             .acceleration()
             .to_acceleration(force.orientation());
+
         let reduction = self.stats.deceleration.to_speed_stats(microseconds_elapsed);
         let maximum_speed = self.stats.max_speed;
+        let minimum_speed = SpeedStats::new(0.0);
 
         let mut full_inertia = self.inertia().rotate(force.rotation());
 
@@ -98,15 +99,12 @@ impl Player {
             full_inertia = full_inertia.reduce(reduction);
         }
 
-        if full_inertia.units_per_seconds() > maximum_speed.units_per_seconds() {
-            full_inertia = Speed::new(full_inertia.orientation(), maximum_speed.units_per_seconds);
-        }
-
-        if full_inertia.units_per_seconds() < 0.0 {
-            full_inertia = Speed::new(full_inertia.orientation(), 0.0);
-        }
+        full_inertia = full_inertia
+            .with_max_speed(maximum_speed)
+            .with_min_speed(minimum_speed);
 
         let moves = full_inertia.to_move(microseconds_elapsed);
+
         let new_position = self.position.apply_force(moves);
         Self {
             position: new_position,
@@ -218,7 +216,7 @@ mod actor_test {
             ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
         )
-        .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+            .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT), 1000000);
         assert_that(&after_move.position().x()).is_equal_to(3.0);
         assert_that(&after_move.position().y()).is_equal_to(2.0);
@@ -235,7 +233,7 @@ mod actor_test {
             ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
         )
-        .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+            .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_LEFT, 1.0, ANGLE_RIGHT), 1000000);
         assert_that(&after_move.position().x()).is_equal_to(2.0);
         assert_that(&after_move.position().y()).is_equal_to(5.0);
@@ -267,7 +265,7 @@ mod actor_test {
             ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
         )
-        .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
+            .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_UP), 1000000);
 
         assert_that(&after_move.position.x()).is_close_to(1.0, 0.001);

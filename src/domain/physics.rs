@@ -35,6 +35,28 @@ impl Speed {
         }
     }
 
+    pub fn with_min_speed(&self, min_speed: SpeedStats) -> Self {
+        if self.units_per_seconds <= min_speed.units_per_seconds() {
+            Self {
+                units_per_seconds: min_speed.units_per_seconds(),
+                orientation: self.orientation,
+            }
+        } else {
+            *self
+        }
+    }
+
+    pub fn with_max_speed(&self, max_speed: SpeedStats) -> Self {
+        if self.units_per_seconds >= max_speed.units_per_seconds() {
+            Self {
+                units_per_seconds: max_speed.units_per_seconds(),
+                orientation: self.orientation,
+            }
+        } else {
+            *self
+        }
+    }
+
     pub fn add(&self, speed: Speed) -> Speed {
         let x1 = self.units_per_seconds() * self.orientation().cos();
         let y1 = self.units_per_seconds() * self.orientation().sin();
@@ -80,5 +102,54 @@ impl Acceleration {
             self.orientation,
             microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds_square,
         )
+    }
+}
+
+#[cfg(test)]
+mod fn_speed_stats {
+    use spectral::prelude::*;
+
+    use crate::domain::actor::SpeedStats;
+    use crate::domain::maths::ANGLE_RIGHT;
+    use crate::domain::physics::Speed;
+
+    #[test]
+    fn should_reduce_speed_if_bigger_than_max() {
+        let current = Speed::new(ANGLE_RIGHT, 100.0);
+        let max = SpeedStats::new(50.0);
+
+        let result = current.with_max_speed(max);
+
+        assert_that(&result.units_per_seconds()).is_equal_to(50.0);
+    }
+
+    #[test]
+    fn should_keep_speed_if_lower_than_max() {
+        let current = Speed::new(ANGLE_RIGHT, 100.0);
+        let max = SpeedStats::new(150.0);
+
+        let result = current.with_max_speed(max);
+
+        assert_that(&result.units_per_seconds()).is_equal_to(100.0);
+    }
+
+    #[test]
+    fn should_increase_speed_if_lower_than_min() {
+        let current = Speed::new(ANGLE_RIGHT, -10.0);
+        let max = SpeedStats::new(0.0);
+
+        let result = current.with_min_speed(max);
+
+        assert_that(&result.units_per_seconds()).is_equal_to(0.0);
+    }
+
+    #[test]
+    fn should_keep_speed_if_bigger_than_min() {
+        let current = Speed::new(ANGLE_RIGHT, 10.0);
+        let max = SpeedStats::new(5.0);
+
+        let result = current.with_min_speed(max);
+
+        assert_that(&result.units_per_seconds()).is_equal_to(10.0);
     }
 }
