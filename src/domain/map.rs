@@ -53,9 +53,7 @@ impl Map {
             return None;
         }
 
-        let v: &Vec<Tile> = self.paving.get(y as usize).unwrap();
-        let x: &Tile = v.get(x as usize).unwrap();
-        Some(x)
+        Some(&self.paving[y as usize][x as usize])
     }
 
     fn char_to_tile(c: char) -> Result<Tile, String> {
@@ -71,8 +69,9 @@ impl Map {
 
 #[cfg(test)]
 mod map_test {
-    use crate::domain::map::{Map, Tile};
     use spectral::prelude::*;
+
+    use crate::domain::map::{Map, Tile};
 
     #[test]
     fn should_read_paving_information() {

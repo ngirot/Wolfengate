@@ -180,7 +180,7 @@ mod distance_test {
         let points = distance(position, angle, &map);
         assert_that(&points).has_length(1);
 
-        *points.get(0).unwrap()
+        points[0]
     }
 
     #[test]
@@ -451,7 +451,7 @@ mod distance_test {
         let distances = distance(center, ANGLE_UP, &map);
 
         assert_that(&distances).has_length(3);
-        assert_that(&distances.get(1).unwrap().distance()).is_close_to(1.0, 0.001)
+        assert_that(&distances[1].distance()).is_close_to(1.0, 0.001)
     }
 
     #[test]
@@ -468,7 +468,7 @@ mod distance_test {
         let distances = distance(center, ANGLE_DOWN, &map);
 
         assert_that(&distances).has_length(3);
-        assert_that(&distances.get(1).unwrap().distance()).is_close_to(2.0, 0.001)
+        assert_that(&distances[1].distance()).is_close_to(2.0, 0.001)
     }
 
     #[test]
@@ -485,7 +485,7 @@ mod distance_test {
         let distances = distance(center, ANGLE_LEFT, &map);
 
         assert_that(&distances).has_length(3);
-        assert_that(&distances.get(1).unwrap().distance()).is_close_to(1.5, 0.001)
+        assert_that(&distances[1].distance()).is_close_to(1.5, 0.001)
     }
 
     #[test]
@@ -501,7 +501,7 @@ mod distance_test {
         let distances = distance(center, ANGLE_RIGHT, &map);
 
         assert_that(&distances).has_length(3);
-        assert_that(&distances.get(1).unwrap().distance()).is_close_to(1.5, 0.001)
+        assert_that(&distances[1].distance()).is_close_to(1.5, 0.001)
     }
 
     #[test]
@@ -517,7 +517,7 @@ mod distance_test {
         let distances = distance(center, ANGLE_RIGHT, &map);
 
         assert_that(&distances).has_length(3);
-        let projected = distances.get(0).unwrap();
+        let projected = distances[0];
         assert_that(&projected.distance()).is_close_to(1.0, 0.001);
         assert_that(&projected.tile_type).is_equal_to(TextureIndex::VOID);
     }
@@ -535,7 +535,7 @@ mod distance_test {
         let distances = distance(center, ANGLE_RIGHT, &map);
 
         assert_that(&distances).has_length(3);
-        assert_that(&distances.get(2).unwrap().distance()).is_close_to(2.0, 0.001)
+        assert_that(&distances[2].distance()).is_close_to(2.0, 0.001)
     }
 
     #[test]
@@ -561,6 +561,6 @@ mod distance_test {
         let distance_no_door = distance_single_wall(center, Angle::new(PI - 0.2), &no_door_map);
 
         assert_that(&distances_door).has_length(3);
-        assert_that(&distances_door.get(1).unwrap().distance()).is_equal_to(&distance_no_door.distance());
+        assert_that(&distances_door[1].distance()).is_equal_to(&distance_no_door.distance());
     }
 }
