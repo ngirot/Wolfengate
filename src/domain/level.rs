@@ -262,7 +262,7 @@ mod level_test {
 
         let actions = level.generate_actions();
 
-        assert_that(&actions.len()).is_greater_than(0);
+        assert_that!(actions.len()).is_greater_than(0);
 
         assert!(matches!(actions[0], DrawAction::Clear { .. }));
     }
@@ -284,7 +284,7 @@ mod level_test {
             }
         }
 
-        assert_that(&found).is_true();
+        assert_that!(found).is_true();
     }
 
     #[test]
@@ -305,7 +305,7 @@ mod level_test {
             }
         }
 
-        assert_that(&found).is_true();
+        assert_that!(found).is_true();
     }
 
     #[test]
@@ -317,7 +317,7 @@ mod level_test {
         let mut level = Level::new(view, map, player, None);
 
         level.apply_forces(Force::new(ANGLE_RIGHT, 10.0, ANGLE_RIGHT), 1000000);
-        assert_that(&level.player.position().x()).is_less_than_or_equal_to(2.0);
+        assert_that!(level.player.position().x()).is_less_than_or_equal_to(2.0);
     }
 
     #[test]
@@ -330,7 +330,7 @@ mod level_test {
 
         level.apply_forces(Force::new(ANGLE_RIGHT, 0.2, ANGLE_RIGHT), 1000000);
 
-        assert_that(&level.player.position().x()).is_greater_than(1.5);
+        assert_that!(level.player.position().x()).is_greater_than(1.5);
     }
 
     #[test]
@@ -354,7 +354,7 @@ mod level_test {
             .map(|(index, _)| index)
             .max();
 
-        assert_that(&position_sprite).is_greater_than(position_wall);
+        assert_that!(position_sprite).is_greater_than(position_wall);
     }
 
     #[test]
@@ -378,7 +378,7 @@ mod level_test {
             .map(|(index, _)| index)
             .min();
 
-        assert_that(&position_sprite).is_less_than(position_wall);
+        assert_that!(position_sprite).is_less_than(position_wall);
     }
 
     #[test]
@@ -394,8 +394,8 @@ mod level_test {
             10000000,
         );
 
-        assert_that(&level.player.position().x()).is_close_to(2.0, TOLERANCE);
-        assert_that(&level.player.position().y()).is_greater_than(0.5);
+        assert_that!(level.player.position().x()).is_close_to(2.0, TOLERANCE);
+        assert_that!(level.player.position().y()).is_greater_than(0.5);
     }
 
     #[test]
@@ -408,8 +408,8 @@ mod level_test {
 
         level.apply_forces(Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_RIGHT), 1000000);
 
-        assert_that(&level.player.position().x()).is_close_to(1.0, TOLERANCE);
-        assert_that(&level.player.position().y()).is_less_than(0.5);
+        assert_that!(level.player.position().x()).is_close_to(1.0, TOLERANCE);
+        assert_that!(level.player.position().y()).is_less_than(0.5);
     }
 
     #[test]
@@ -425,8 +425,8 @@ mod level_test {
             1000000,
         );
 
-        assert_that(&level.player.position().x()).is_greater_than(0.5);
-        assert_that(&level.player.position().y()).is_close_to(2.0, TOLERANCE);
+        assert_that!(level.player.position().x()).is_greater_than(0.5);
+        assert_that!(level.player.position().y()).is_close_to(2.0, TOLERANCE);
     }
 
     #[test]
@@ -442,7 +442,7 @@ mod level_test {
             1000000,
         );
 
-        assert_that(&level.player.position().x()).is_less_than(0.5);
-        assert_that(&level.player.position().y()).is_close_to(1.0, TOLERANCE);
+        assert_that!(level.player.position().x()).is_less_than(0.5);
+        assert_that!(level.player.position().y()).is_close_to(1.0, TOLERANCE);
     }
 }

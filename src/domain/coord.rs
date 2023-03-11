@@ -136,7 +136,7 @@ mod coord_test {
 
         let distance = position.distance(&position);
 
-        assert_that(&distance).is_close_to(0.0, 0.00001);
+        assert_that!(distance).is_close_to(0.0, 0.00001);
     }
 
     #[test]
@@ -146,7 +146,7 @@ mod coord_test {
 
         let distance = position1.distance(&position2);
 
-        assert_that(&distance).is_close_to(8.352, 0.001);
+        assert_that!(distance).is_close_to(8.352, 0.001);
     }
 
     #[test]
@@ -157,7 +157,7 @@ mod coord_test {
         let distance1 = position1.distance(&position2);
         let distance2 = position2.distance(&position1);
 
-        assert_that(&distance1).is_close_to(distance2, 0.0000001);
+        assert_that!(distance1).is_close_to(distance2, 0.0000001);
     }
 
     #[test]
@@ -167,7 +167,7 @@ mod coord_test {
 
         let distance = position1.distance(&position2);
 
-        assert_that(&distance).is_close_to(13.819, 0.001);
+        assert_that!(distance).is_close_to(13.819, 0.001);
     }
 
     #[test]
@@ -175,7 +175,7 @@ mod coord_test {
         let position = Position::new(3.0, 2.5);
         let projected = position.projection_x(Angle::new(0.01));
 
-        assert_that(&projected.x()).is_equal_to(4.0);
+        assert_that!(projected.x()).is_equal_to(4.0);
     }
 
     #[test]
@@ -183,7 +183,7 @@ mod coord_test {
         let position = Position::new(3.2, 2.5);
         let projected = position.projection_x(ANGLE_RIGHT);
 
-        assert_that(&projected.x()).is_equal_to(4.0);
+        assert_that!(projected.x()).is_equal_to(4.0);
     }
 
     #[test]
@@ -191,7 +191,7 @@ mod coord_test {
         let position = Position::new(3.2, 2.5);
         let projected = position.projection_x(Angle::new(0.15));
 
-        assert_that(&projected.y()).is_close_to(2.620, 0.001);
+        assert_that!(projected.y()).is_close_to(2.620, 0.001);
     }
 
     #[test]
@@ -199,7 +199,7 @@ mod coord_test {
         let position = Position::new(3.2, 2.5);
         let projected = position.projection_x(ANGLE_LEFT.add(Angle::new(0.15)));
 
-        assert_that(&projected.y()).is_close_to(2.469, 0.001);
+        assert_that!(projected.y()).is_close_to(2.469, 0.001);
     }
 
     #[test]
@@ -207,7 +207,7 @@ mod coord_test {
         let position = Position::new(3.0, 2.5);
         let projected = position.projection_x(ANGLE_LEFT);
 
-        assert_that(&projected.x()).is_equal_to(2.0);
+        assert_that!(projected.x()).is_equal_to(2.0);
     }
 
     #[test]
@@ -215,7 +215,7 @@ mod coord_test {
         let position = Position::new(3.2, 2.5);
         let projected = position.projection_x(ANGLE_LEFT.add(Angle::new(-0.01)));
 
-        assert_that(&projected.x()).is_equal_to(3.0);
+        assert_that!(projected.x()).is_equal_to(3.0);
     }
 
     #[test]
@@ -223,7 +223,7 @@ mod coord_test {
         let position = Position::new(3.2, 2.0);
         let projected = position.projection_y(ANGLE_UP);
 
-        assert_that(&projected.y()).is_equal_to(3.0);
+        assert_that!(projected.y()).is_equal_to(3.0);
     }
 
     #[test]
@@ -231,7 +231,7 @@ mod coord_test {
         let position = Position::new(3.5, 2.6);
         let projected = position.projection_y(ANGLE_UP);
 
-        assert_that(&projected.y()).is_equal_to(3.0);
+        assert_that!(projected.y()).is_equal_to(3.0);
     }
 
     #[test]
@@ -239,7 +239,7 @@ mod coord_test {
         let position = Position::new(3.5, 2.0);
         let projected = position.projection_y(ANGLE_DOWN);
 
-        assert_that(&projected.y()).is_equal_to(1.0);
+        assert_that!(projected.y()).is_equal_to(1.0);
     }
 
     #[test]
@@ -247,7 +247,7 @@ mod coord_test {
         let position = Position::new(3.5, 2.6);
         let projected = position.projection_y(ANGLE_DOWN);
 
-        assert_that(&projected.y()).is_equal_to(2.0);
+        assert_that!(projected.y()).is_equal_to(2.0);
     }
 
     #[test]
@@ -255,7 +255,7 @@ mod coord_test {
         let position = Position::new(3.2, 2.5);
         let projected = position.projection_y(ANGLE_UP.add(Angle::new(-0.15)));
 
-        assert_that(&projected.x()).is_close_to(3.275, 0.001);
+        assert_that!(projected.x()).is_close_to(3.275, 0.001);
     }
 
     #[test]
@@ -263,7 +263,7 @@ mod coord_test {
         let position = Position::new(3.2, 2.5);
         let projected = position.projection_y(ANGLE_DOWN.add(Angle::new(-0.15)));
 
-        assert_that(&projected.x()).is_close_to(3.124, 0.001);
+        assert_that!(projected.x()).is_close_to(3.124, 0.001);
     }
 
     #[test]
@@ -273,8 +273,8 @@ mod coord_test {
 
         let applied = position.apply_force(force);
 
-        assert_that(&applied.x()).is_close_to(9.0, 0.0);
-        assert_that(&applied.y()).is_close_to(10.0, 0.0);
+        assert_that!(applied.x()).is_close_to(9.0, 0.0);
+        assert_that!(applied.y()).is_close_to(10.0, 0.0);
     }
 
     #[test]
@@ -284,8 +284,8 @@ mod coord_test {
 
         let applied = position.apply_force(force);
 
-        assert_that(&applied.x()).is_close_to(5.0, 0.0);
-        assert_that(&applied.y()).is_close_to(14.0, 0.0);
+        assert_that!(applied.x()).is_close_to(5.0, 0.0);
+        assert_that!(applied.y()).is_close_to(14.0, 0.0);
     }
 
     #[test]
@@ -295,7 +295,7 @@ mod coord_test {
 
         let applied = position.apply_force(force);
 
-        assert_that(&applied.x()).is_close_to(4.259, 0.001);
-        assert_that(&applied.y()).is_close_to(9.382, 0.001);
+        assert_that!(applied.x()).is_close_to(4.259, 0.001);
+        assert_that!(applied.y()).is_close_to(9.382, 0.001);
     }
 }

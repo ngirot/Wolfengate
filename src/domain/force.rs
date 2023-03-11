@@ -119,7 +119,7 @@ mod input_force_test {
     fn move_force_should_not_have_a_rotation() {
         let stats = InputForce::new(1.2, 2.3);
         let force = stats.movement_to_force(Angle::new(1.2));
-        assert_that(&force.rotation().to_radiant()).is_equal_to(0.0);
+        assert_that!(force.rotation().to_radiant()).is_equal_to(0.0);
     }
 
     #[test]
@@ -127,7 +127,7 @@ mod input_force_test {
         let stats = InputForce::new(1.2, 2.3);
         let force = stats.movement_to_force(Angle::new(1.2));
 
-        assert_that(&force.orientation().to_radiant()).is_equal_to(1.2);
+        assert_that!(force.orientation().to_radiant()).is_equal_to(1.2);
     }
 
     #[test]
@@ -135,7 +135,7 @@ mod input_force_test {
         let stats = InputForce::new(1.2, 2.3);
         let force = stats.movement_to_force(Angle::new(1.2));
 
-        assert_that(&force.power()).is_equal_to(1.2);
+        assert_that!(force.power()).is_equal_to(1.2);
     }
 
     #[test]
@@ -143,7 +143,7 @@ mod input_force_test {
         let stats = InputForce::new(2.4, 2.7);
         let force = stats.rotation_to_force(4);
 
-        assert_that(&force.rotation().to_radiant()).is_close_to(-4.516, 0.001);
+        assert_that!(force.rotation().to_radiant()).is_close_to(-4.516, 0.001);
     }
 
     #[test]
@@ -151,7 +151,7 @@ mod input_force_test {
         let stats = InputForce::new(2.4, 6.3);
         let force = stats.rotation_to_force(12);
 
-        assert_that(&force.orientation().to_radiant()).is_equal_to(0.0);
+        assert_that!(force.orientation().to_radiant()).is_equal_to(0.0);
     }
 
     #[test]
@@ -159,7 +159,7 @@ mod input_force_test {
         let stats = InputForce::new(2.4, 6.3);
         let force = stats.rotation_to_force(12);
 
-        assert_that(&force.power()).is_equal_to(0.0);
+        assert_that!(force.power()).is_equal_to(0.0);
     }
 
     #[test]
@@ -169,8 +169,8 @@ mod input_force_test {
 
         let added = force1.add(force2);
 
-        assert_that(&added.orientation().to_radiant()).is_close_to(0.982, 0.001);
-        assert_that(&added.power()).is_close_to(1.803, 0.001);
+        assert_that!(added.orientation().to_radiant()).is_close_to(0.982, 0.001);
+        assert_that!(added.power()).is_close_to(1.803, 0.001);
     }
 
     #[test]
@@ -180,7 +180,7 @@ mod input_force_test {
 
         let added = force1.add(force2);
 
-        assert_that(&added.rotation().to_radiant()).is_equal_to(-2.0);
+        assert_that!(added.rotation().to_radiant()).is_equal_to(-2.0);
     }
 
     #[test]
@@ -189,9 +189,9 @@ mod input_force_test {
 
         let added = force.add(force);
 
-        assert_that(&added.power()).is_equal_to(0.0);
-        assert_that(&added.orientation().to_radiant()).is_equal_to(0.0);
-        assert_that(&added.rotation().to_radiant()).is_equal_to(0.0);
+        assert_that!(added.power()).is_equal_to(0.0);
+        assert_that!(added.orientation().to_radiant()).is_equal_to(0.0);
+        assert_that!(added.rotation().to_radiant()).is_equal_to(0.0);
     }
 
     #[test]
@@ -200,7 +200,7 @@ mod input_force_test {
 
         let reduced = force.power_multiplier(2.0);
 
-        assert_that(&reduced.power()).is_equal_to(20.0);
+        assert_that!(reduced.power()).is_equal_to(20.0);
     }
 
     #[test]
@@ -209,6 +209,6 @@ mod input_force_test {
 
         let reduced = force.power_multiplier(0.5);
 
-        assert_that(&reduced.power()).is_equal_to(5.0);
+        assert_that!(reduced.power()).is_equal_to(5.0);
     }
 }

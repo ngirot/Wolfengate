@@ -120,7 +120,7 @@ mod fn_speed_stats {
 
         let result = current.with_max_speed(max);
 
-        assert_that(&result.units_per_seconds()).is_equal_to(50.0);
+        assert_that!(result.units_per_seconds()).is_equal_to(50.0);
     }
 
     #[test]
@@ -130,7 +130,7 @@ mod fn_speed_stats {
 
         let result = current.with_max_speed(max);
 
-        assert_that(&result.units_per_seconds()).is_equal_to(100.0);
+        assert_that!(result.units_per_seconds()).is_equal_to(100.0);
     }
 
     #[test]
@@ -140,7 +140,7 @@ mod fn_speed_stats {
 
         let result = current.with_min_speed(max);
 
-        assert_that(&result.units_per_seconds()).is_equal_to(0.0);
+        assert_that!(result.units_per_seconds()).is_equal_to(0.0);
     }
 
     #[test]
@@ -150,6 +150,6 @@ mod fn_speed_stats {
 
         let result = current.with_min_speed(max);
 
-        assert_that(&result.units_per_seconds()).is_equal_to(10.0);
+        assert_that!(result.units_per_seconds()).is_equal_to(10.0);
     }
 }

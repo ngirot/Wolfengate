@@ -126,12 +126,12 @@ mod map_test {
     #[test]
     fn should_not_validate_a_map_with_inconsistent_column_number() {
         let map = Map::new("   \n  ");
-        assert_that(&map.err()).is_some();
+        assert_that!(map.err()).is_some();
     }
 
     #[test]
     fn should_not_validate_a_map_with_unknown_char() {
         let map = Map::new("#k\n #");
-        assert_that(&map.err()).is_some();
+        assert_that!(map.err()).is_some();
     }
 }

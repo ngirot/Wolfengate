@@ -190,7 +190,7 @@ mod fn_test {
         let end = Position::new(1.0, 1.0);
         let angle = signed_angle(start, end).map(|angle| angle.to_radiant());
 
-        assert_that(&angle).is_some().is_equal_to(PI / 4.0);
+        assert_that!(angle).is_some().is_equal_to(PI / 4.0);
     }
 
     #[test]
@@ -199,7 +199,7 @@ mod fn_test {
         let end = Position::new(1.0, -1.0);
         let angle = signed_angle(start, end).map(|angle| angle.to_radiant());
 
-        assert_that(&angle).is_some().is_equal_to(&(-PI / 4.0));
+        assert_that!(angle).is_some().is_equal_to(&(-PI / 4.0));
     }
 
     #[test]
@@ -208,7 +208,7 @@ mod fn_test {
         let end = Position::new(-1.0, 7.0);
         let angle = signed_angle(start, end);
 
-        assert_that(&angle).is_none();
+        assert_that!(angle).is_none();
     }
 }
 
@@ -225,7 +225,7 @@ mod vector_test {
 
         let length = vector.length();
 
-        assert_that(&length).is_close_to(2.907, 0.001);
+        assert_that!(length).is_close_to(2.907, 0.001);
     }
 
     #[test]
@@ -236,7 +236,7 @@ mod vector_test {
         let length_1 = Vector::new(point_1, point_2).length();
         let length_2 = Vector::new(point_2, point_1).length();
 
-        assert_that(&length_1).is_equal_to(length_2);
+        assert_that!(length_1).is_equal_to(length_2);
     }
 
     #[test]
@@ -246,7 +246,7 @@ mod vector_test {
 
         let length = vector.length();
 
-        assert_that(&length).is_equal_to(0.0);
+        assert_that!(length).is_equal_to(0.0);
     }
 
     #[test]
@@ -256,7 +256,7 @@ mod vector_test {
 
         let scalar = vector1.scalar(vector2);
 
-        assert_that(&scalar).is_close_to(44.8, 0.001);
+        assert_that!(scalar).is_close_to(44.8, 0.001);
     }
 
     #[test]
@@ -266,7 +266,7 @@ mod vector_test {
 
         let scalar = vector1.scalar(vector2);
 
-        assert_that(&scalar).is_close_to(26.02, 0.001);
+        assert_that!(scalar).is_close_to(26.02, 0.001);
     }
 
     #[test]
@@ -276,7 +276,7 @@ mod vector_test {
 
         let scalar = vector1.scalar(vector2);
 
-        assert_that(&scalar).is_close_to(29.04, 0.001);
+        assert_that!(scalar).is_close_to(29.04, 0.001);
     }
 
     #[test]
@@ -286,7 +286,7 @@ mod vector_test {
 
         let angle = vector1.angle(vector2).map(|angle| angle.to_radiant());
 
-        assert_that(&angle).is_some().is_close_to(0.068, 0.001);
+        assert_that!(angle).is_some().is_close_to(0.068, 0.001);
     }
 
     #[test]
@@ -296,7 +296,7 @@ mod vector_test {
 
         let angle = vector1.angle(vector2).map(|angle| angle.to_radiant());
 
-        assert_that(&angle).is_some().is_close_to(0.106, 0.001);
+        assert_that!(angle).is_some().is_close_to(0.106, 0.001);
     }
 
     #[test]
@@ -306,7 +306,7 @@ mod vector_test {
 
         let angle = vector1.angle(vector2).map(|angle| angle.to_radiant());
 
-        assert_that(&angle).is_some().is_close_to(0.496, 0.001);
+        assert_that!(angle).is_some().is_close_to(0.496, 0.001);
     }
 
     #[test]
@@ -317,7 +317,7 @@ mod vector_test {
 
         let angle = vector1.angle(vector2);
 
-        assert_that(&angle).is_none();
+        assert_that!(angle).is_none();
     }
 
     #[test]
@@ -328,7 +328,7 @@ mod vector_test {
 
         let angle = vector1.angle(vector2);
 
-        assert_that(&angle).is_none();
+        assert_that!(angle).is_none();
     }
 
     #[test]
@@ -339,7 +339,7 @@ mod vector_test {
         let sign1 = vector1.angle_sign_is_negative(vector2);
         let sign2 = vector2.angle_sign_is_negative(vector1);
 
-        assert_that(&sign1).is_equal_to(!sign2);
+        assert_that!(sign1).is_equal_to(!sign2);
     }
 
     #[test]
@@ -349,6 +349,6 @@ mod vector_test {
 
         let sign = vector1.angle_sign_is_negative(vector2);
 
-        assert_that(&sign).is_false();
+        assert_that!(sign).is_false();
     }
 }

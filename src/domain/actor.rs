@@ -201,8 +201,8 @@ mod actor_test {
             PlayerStats::new(acceleration, deceleration, max_speed),
         );
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 1.0, ANGLE_RIGHT), 1000000);
-        assert_that(&after_move.position().x()).is_equal_to(3.0);
-        assert_that(&after_move.position().y()).is_equal_to(2.0);
+        assert_that!(after_move.position().x()).is_equal_to(3.0);
+        assert_that!(after_move.position().y()).is_equal_to(2.0);
     }
 
     #[test]
@@ -218,8 +218,8 @@ mod actor_test {
         )
             .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT), 1000000);
-        assert_that(&after_move.position().x()).is_equal_to(3.0);
-        assert_that(&after_move.position().y()).is_equal_to(2.0);
+        assert_that!(after_move.position().x()).is_equal_to(3.0);
+        assert_that!(after_move.position().y()).is_equal_to(2.0);
     }
 
     #[test]
@@ -235,8 +235,8 @@ mod actor_test {
         )
             .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_LEFT, 1.0, ANGLE_RIGHT), 1000000);
-        assert_that(&after_move.position().x()).is_equal_to(2.0);
-        assert_that(&after_move.position().y()).is_equal_to(5.0);
+        assert_that!(after_move.position().x()).is_equal_to(2.0);
+        assert_that!(after_move.position().y()).is_equal_to(5.0);
     }
 
     #[test]
@@ -251,7 +251,7 @@ mod actor_test {
             PlayerStats::new(acceleration, deceleration, max_speed),
         );
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, Angle::new(1.2)), 1000000);
-        assert_that(&after_move.orientation.to_radiant()).is_equal_to(2.5);
+        assert_that!(after_move.orientation.to_radiant()).is_equal_to(2.5);
     }
 
     #[test]
@@ -268,7 +268,7 @@ mod actor_test {
             .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
         let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_UP), 1000000);
 
-        assert_that(&after_move.position.x()).is_close_to(1.0, 0.001);
-        assert_that(&after_move.position.y()).is_equal_to(4.0);
+        assert_that!(after_move.position.x()).is_close_to(1.0, 0.001);
+        assert_that!(after_move.position.y()).is_equal_to(4.0);
     }
 }
