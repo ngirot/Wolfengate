@@ -111,8 +111,12 @@ impl Level {
     }
 
     fn distance(&self, start: Position, angle: Angle) -> f32 {
-        let all = distance(start, angle, &self.map);
-        all[0].distance()
+        let distances = distance(start, angle, &self.map);
+        if distances.len() > 0 {
+            distances[0].distance()
+        } else {
+            0.0
+        }
     }
 }
 
