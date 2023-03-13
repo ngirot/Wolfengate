@@ -1,5 +1,6 @@
+use crate::domain::door::{CentralDoor, LateralDoor, Openable};
 use crate::domain::index::TextureIndex;
-use crate::domain::maths::{Angle, ANGLE_DOWN};
+use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part};
 
 use super::{
     coord::{MapPoint, Position},
@@ -83,41 +84,62 @@ fn distance_on_door(angle: Angle, map: &Map, next_position: Position, position_o
     [invisible_wall, actual_door].concat()
 }
 
-fn inner_door_projection(next_position: Position, angle: Angle, door_up: bool, texture: TextureIndex) -> Option<ProjectedPoint> {
+fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool, texture: TextureIndex) -> Option<ProjectedPoint> {
+    /*
+     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+     let mut opening_percentage = (now.as_millis() % 1000) as f32 / 1000.0;
+     if now.as_secs() % 2 == 0 {
+         opening_percentage = 1.0 - opening_percentage;
+     }
+    */
     let opening_percentage = 0.0;
 
     if door_up {
+        let door = CentralDoor::new(opening_percentage);
+
         let a = angle.add(ANGLE_DOWN).tan();
-        let door_x = next_position.x() - (a / (2.0 * angle.sin().signum()));
+        let door_x = current_position.x() - (a / (2.0 * angle.sin().signum()));
 
-        let new_position = next_position.with_x(door_x)
-            .with_y(next_position.y() + 0.5);
+        let new_position = current_position.with_x(door_x)
+            .with_y(current_position.y() + 0.5);
         let distance = new_position
-            .distance(&next_position);
+            .distance(&current_position);
 
-        if new_position.x() > next_position.x().ceil() - opening_percentage || new_position.x() < next_position.x().floor() {
+        let right = current_position.x().ceil();
+        let left = current_position.x().floor();
+
+        if new_position.x() > right || new_position.x() < left {
             return None;
         }
 
-        let position_on_texture = decimal_part(new_position.x());
+        let offset = decimal_part(door_x);
 
-        Some(ProjectedPoint::visible(distance, position_on_texture - opening_percentage, texture))
+        let position_on_texture = door.door_column(offset);
+
+        position_on_texture.map(
+            |pot| ProjectedPoint::visible(distance, pot, texture),
+        )
     } else {
+        let door = LateralDoor::new(opening_percentage);
         let a = angle.tan();
-        let door_y = next_position.y() + (a / (2.0 * angle.cos().signum()));
+        let door_y = current_position.y() + (a / (2.0 * angle.cos().signum()));
 
-        let new_position = next_position.with_x(next_position.x() + 0.5)
+        let new_position = current_position.with_x(current_position.x() + 0.5)
             .with_y(door_y);
         let distance = new_position
-            .distance(&next_position);
+            .distance(&current_position);
 
-        if new_position.y() > next_position.y().ceil() - opening_percentage || new_position.y() < next_position.y().floor() {
+        let right = current_position.y().ceil();
+        let left = current_position.y().floor();
+
+        if new_position.y() > right || new_position.y() < left {
             return None;
         }
 
-        let position_on_texture = decimal_part(new_position.y());
+        let offset = decimal_part(door_y);
 
-        Some(ProjectedPoint::visible(distance, position_on_texture - opening_percentage, texture))
+        door.door_column(offset)
+            .map(|pot| ProjectedPoint::visible(distance, pot, texture))
     }
 }
 
@@ -157,10 +179,6 @@ impl ProjectedPoint {
             tile_type: self.tile_type,
         }
     }
-}
-
-fn decimal_part(number: f32) -> f32 {
-    number.ceil() - number
 }
 
 #[cfg(test)]

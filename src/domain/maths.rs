@@ -18,6 +18,11 @@ pub struct Angle {
     radiant: f32,
 }
 
+pub fn decimal_part(number: f32) -> f32 {
+    let n = number.abs();
+    n.ceil() - n
+}
+
 pub fn signed_angle(p1: Position, p2: Position) -> Option<Angle> {
     let points_vector = Vector::new(p1, p2);
     let abscissa_vector = Vector::new(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
@@ -174,6 +179,28 @@ impl Angle {
         self.radiant
     }
 }
+
+/*
+#[cfg(test)]
+mod fn_decimal_part {
+    use spectral::assert_that;
+    use crate::domain::maths::decimal_part;
+
+    #[test]
+    fn should_get_decimal_part_of_a_number() {
+        let decimal = decimal_part(1.23);
+        assert_that!(decimal).is_equal_to(0.23);
+    }
+
+    #[test]
+    fn should_get_decimal_part_of_a_negative_number() {
+        let decimal = decimal_part(-1.23);
+        assert_that!(decimal).is_equal_to(0.23);
+    }
+
+}
+
+ */
 
 #[cfg(test)]
 mod fn_test {
