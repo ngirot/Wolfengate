@@ -85,13 +85,13 @@ fn distance_on_door(angle: Angle, map: &Map, next_position: Position, position_o
 }
 
 fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool, texture: TextureIndex) -> Option<ProjectedPoint> {
-    /*
+     /*
      let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
      let mut opening_percentage = (now.as_millis() % 1000) as f32 / 1000.0;
      if now.as_secs() % 2 == 0 {
          opening_percentage = 1.0 - opening_percentage;
      }
-    */
+     */
     let opening_percentage = 0.0;
 
     if door_up {
@@ -452,7 +452,7 @@ mod distance_test {
         let center = Position::new(2.5, 2.5);
         let distance = distance_single_wall(center, Angle::new(PI / 2.0 + 0.23), &map);
 
-        assert_that!(distance.offset_in_bloc()).is_close_to(0.617, 0.001)
+        assert_that!(distance.offset_in_bloc()).is_close_to(0.382, 0.001)
     }
 
     #[test]

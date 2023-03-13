@@ -20,7 +20,7 @@ pub struct Angle {
 
 pub fn decimal_part(number: f32) -> f32 {
     let n = number.abs();
-    n.ceil() - n
+    n - n.floor()
 }
 
 pub fn signed_angle(p1: Position, p2: Position) -> Option<Angle> {
@@ -180,27 +180,26 @@ impl Angle {
     }
 }
 
-/*
+
 #[cfg(test)]
 mod fn_decimal_part {
     use spectral::assert_that;
+    use spectral::prelude::*;
+
     use crate::domain::maths::decimal_part;
 
     #[test]
     fn should_get_decimal_part_of_a_number() {
         let decimal = decimal_part(1.23);
-        assert_that!(decimal).is_equal_to(0.23);
+        assert_that!(decimal).is_close_to(0.23, 0.001);
     }
 
     #[test]
     fn should_get_decimal_part_of_a_negative_number() {
         let decimal = decimal_part(-1.23);
-        assert_that!(decimal).is_equal_to(0.23);
+        assert_that!(decimal).is_close_to(0.23, 0.001);
     }
-
 }
-
- */
 
 #[cfg(test)]
 mod fn_test {
