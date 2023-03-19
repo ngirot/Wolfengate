@@ -7,7 +7,7 @@ use crate::domain::view::ViewScreen;
 use super::{
     color::Color,
     coord::{Position, ScreenPoint},
-    distance::distance,
+    projection::project,
     draw_action::DrawAction,
     map::Map,
 };
@@ -111,7 +111,7 @@ impl Level {
     }
 
     fn distance(&self, start: Position, angle: Angle) -> f32 {
-        let distances = distance(start, angle, &self.map);
+        let distances = project(start, angle, &self.map);
         if distances.len() > 0 {
             distances[0].distance()
         } else {
@@ -160,12 +160,13 @@ fn build_walls(
     let cone_angles = angle.discreet_cone(view.angle(), view.width());
 
     for (i, current_angle) in cone_angles.iter().enumerate() {
-        let projected_points = distance(*position, *current_angle, map);
+        let projected_points = project(*position, *current_angle, map);
 
         for projected_point in projected_points {
             let screen_length: i32 = view.height();
 
-            let wall_height = object_height(view, projected_point.distance());
+            let projection_distance = projected_point.distance();
+            let wall_height = object_height(view, projection_distance);
             let start = ScreenPoint::new(
                 i as i32,
                 (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
@@ -181,7 +182,7 @@ fn build_walls(
                 projected_point.tile_type(),
                 projected_point.offset_in_bloc(),
             );
-            actions.push(DrawActionZIndex::new(action, projected_point.distance()));
+            actions.push(DrawActionZIndex::new(action, projection_distance));
         }
     }
     actions

@@ -12,7 +12,7 @@ pub struct MapPoint {
     y: i16,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Position {
     x: f32,
     y: f32,

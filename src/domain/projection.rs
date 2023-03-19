@@ -9,16 +9,31 @@ use super::{
 
 #[derive(Debug, Copy, Clone)]
 pub struct ProjectedPoint {
-    distance: f32,
+    source_point: Position,
+    projected_point: Position,
     offset_in_bloc: f32,
     tile_type: TextureIndex,
 }
 
-pub fn distance(position: Position, angle: Angle, map: &Map) -> Vec<ProjectedPoint> {
-    distance_concat(position, angle, map, vec![])
+#[derive(Debug, Copy, Clone)]
+struct Projection {
+    projected_point: Position,
+    offset_in_bloc: f32,
+    tile_type: TextureIndex,
 }
 
-pub fn distance_concat(position: Position, angle: Angle, map: &Map, previous: Vec<ProjectedPoint>) -> Vec<ProjectedPoint> {
+pub fn project(position: Position, angle: Angle, map: &Map) -> Vec<ProjectedPoint> {
+    inner_projection(position, angle, map)
+        .iter()
+        .map(|projection| ProjectedPoint::new(position, *projection))
+        .collect()
+}
+
+fn inner_projection(position: Position, angle: Angle, map: &Map) -> Vec<Projection> {
+    projection_concat(position, angle, map, vec![])
+}
+
+fn projection_concat(position: Position, angle: Angle, map: &Map, previous: Vec<Projection>) -> Vec<Projection> {
     let direction_x = angle.cos().signum();
     let direction_y = angle.sin().signum();
 
@@ -46,64 +61,58 @@ pub fn distance_concat(position: Position, angle: Angle, map: &Map, previous: Ve
 
     let bloc_tile = map.paving_at(bloc.x(), bloc.y());
 
-    let distance_total = position.distance(&next_position);
     let recursive = match bloc_tile {
         None =>
-            vec![ProjectedPoint::invisible(distance_total, position_on_texture)],
+            vec![Projection::invisible(next_position, position_on_texture)],
         Some(Tile::Wall) =>
-            vec![ProjectedPoint::visible(distance_total, position_on_texture, TextureIndex::WALL)],
+            vec![Projection::visible(next_position, position_on_texture, TextureIndex::WALL)],
         Some(Tile::Glass) => {
-            let distances_glass_tile = distance_on_door(angle, map, next_position, position_on_texture, door_up, distance_total, TextureIndex::GLASS);
-            let distances_behind = distance(next_position, angle, map).iter().map(|projected| projected.with_distance_added(distance_total)).collect();
+            let distances_glass_tile = distance_on_door(angle, map, next_position, position_on_texture, door_up, TextureIndex::GLASS);
+            let distances_behind = inner_projection(next_position, angle, map);
             [distances_glass_tile, distances_behind].concat()
         }
         Some(Tile::Door) => {
-            let distances_door_tile = distance_on_door(angle, map, next_position, position_on_texture, door_up, distance_total, TextureIndex::DOOR);
-            let distances_behind = distance(next_position, angle, map).iter().map(|projected| projected.with_distance_added(distance_total)).collect();
+            let distances_door_tile = distance_on_door(angle, map, next_position, position_on_texture, door_up, TextureIndex::DOOR);
+            let distances_behind = inner_projection(next_position, angle, map);
             [distances_door_tile, distances_behind].concat()
         }
-        _ =>
-            distance(next_position, angle, map)
-                .iter()
-                .map(|projected| projected.with_distance_added(distance_total))
-                .collect(),
+        _ => inner_projection(next_position, angle, map)
     };
 
     [previous, recursive].concat()
 }
 
-fn distance_on_door(angle: Angle, map: &Map, next_position: Position, position_on_texture: f32, door_up: bool, distance_total: f32, texture: TextureIndex) -> Vec<ProjectedPoint> {
-    let invisible_wall = vec![ProjectedPoint::invisible(distance_total, position_on_texture)];
+fn distance_on_door(angle: Angle, map: &Map, next_position: Position, position_on_texture: f32, door_up: bool, texture: TextureIndex) -> Vec<Projection> {
+    let invisible_wall = vec![Projection::invisible(next_position, position_on_texture)];
 
     let actual_door = inner_door_projection(next_position, angle, door_up, texture)
         .map_or_else(
-            || distance(next_position, angle, map).iter().map(|projected| projected.with_distance_added(distance_total)).collect(),
-            |d| vec![ProjectedPoint::visible(distance_total + d.distance(), d.offset_in_bloc(), d.tile_type())],
+            || inner_projection(next_position, angle, map),
+            |d| vec![d],
         );
 
     [invisible_wall, actual_door].concat()
 }
 
-fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool, texture: TextureIndex) -> Option<ProjectedPoint> {
-     /*
-     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-     let mut opening_percentage = (now.as_millis() % 1000) as f32 / 1000.0;
-     if now.as_secs() % 2 == 0 {
-         opening_percentage = 1.0 - opening_percentage;
-     }
-     */
+fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool, texture: TextureIndex) -> Option<Projection> {
+    /*
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+    let mut opening_percentage = (now.as_millis() % 1000) as f32 / 1000.0;
+    if now.as_secs() % 2 == 0 {
+        opening_percentage = 1.0 - opening_percentage;
+    }
+    */
     let opening_percentage = 0.0;
 
     if door_up {
         let door = CentralDoor::new(opening_percentage);
 
         let a = angle.add(ANGLE_DOWN).tan();
-        let door_x = current_position.x() - (a / (2.0 * angle.sin().signum()));
+        let angle_sign = angle.sin().signum();
+        let door_x = current_position.x() - (a / (2.0 * angle_sign));
 
         let new_position = current_position.with_x(door_x)
-            .with_y(current_position.y() + 0.5);
-        let distance = new_position
-            .distance(&current_position);
+            .with_y(current_position.y() + 0.5 * angle_sign);
 
         let right = current_position.x().ceil();
         let left = current_position.x().floor();
@@ -117,17 +126,16 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let position_on_texture = door.door_column(offset);
 
         position_on_texture.map(
-            |pot| ProjectedPoint::visible(distance, pot, texture),
+            |pot| Projection::visible(new_position, pot, texture),
         )
     } else {
         let door = LateralDoor::new(opening_percentage);
         let a = angle.tan();
-        let door_y = current_position.y() + (a / (2.0 * angle.cos().signum()));
+        let angle_sign = angle.cos().signum();
+        let door_y = current_position.y() + (a / (2.0 * angle_sign));
 
-        let new_position = current_position.with_x(current_position.x() + 0.5)
+        let new_position = current_position.with_x(current_position.x() + 0.5 * angle_sign)
             .with_y(door_y);
-        let distance = new_position
-            .distance(&current_position);
 
         let right = current_position.y().ceil();
         let left = current_position.y().floor();
@@ -139,29 +147,22 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let offset = decimal_part(door_y);
 
         door.door_column(offset)
-            .map(|pot| ProjectedPoint::visible(distance, pot, texture))
+            .map(|pot| Projection::visible(new_position, pot, texture))
     }
 }
 
 impl ProjectedPoint {
-    pub fn invisible(distance: f32, offset_in_bloc: f32) -> Self {
+    fn new(source_point: Position, projection: Projection) -> Self {
         Self {
-            distance,
-            offset_in_bloc,
-            tile_type: TextureIndex::VOID,
-        }
-    }
-
-    pub fn visible(distance: f32, offset_in_bloc: f32, tile_type: TextureIndex) -> Self {
-        Self {
-            distance,
-            offset_in_bloc,
-            tile_type,
+            source_point,
+            projected_point: projection.projected_point,
+            offset_in_bloc: projection.offset_in_bloc,
+            tile_type: projection.tile_type,
         }
     }
 
     pub fn distance(&self) -> f32 {
-        self.distance
+        self.source_point.distance(&self.projected_point)
     }
 
     pub fn offset_in_bloc(&self) -> f32 {
@@ -171,12 +172,22 @@ impl ProjectedPoint {
     pub fn tile_type(&self) -> TextureIndex {
         self.tile_type
     }
+}
 
-    fn with_distance_added(&self, distance_to_add: f32) -> Self {
-        ProjectedPoint {
-            distance: self.distance + distance_to_add,
-            offset_in_bloc: self.offset_in_bloc,
-            tile_type: self.tile_type,
+impl Projection {
+    pub fn invisible(projected_point: Position, offset_in_bloc: f32) -> Self {
+        Self {
+            projected_point,
+            offset_in_bloc,
+            tile_type: TextureIndex::VOID,
+        }
+    }
+
+    pub fn visible(projected_point: Position, offset_in_bloc: f32, tile_type: TextureIndex) -> Self {
+        Self {
+            projected_point,
+            offset_in_bloc,
+            tile_type,
         }
     }
 }
@@ -188,14 +199,14 @@ mod distance_test {
     use spectral::prelude::*;
 
     use crate::domain::{coord::Position, map::Map};
-    use crate::domain::distance::ProjectedPoint;
+    use crate::domain::projection::ProjectedPoint;
     use crate::domain::index::TextureIndex;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
 
-    use super::distance;
+    use super::project;
 
     fn distance_single_wall(position: Position, angle: Angle, map: &Map) -> ProjectedPoint {
-        let points = distance(position, angle, &map);
+        let points = project(position, angle, &map);
         assert_that!(points).has_length(1);
 
         points[0]
@@ -466,7 +477,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distances = distance(center, ANGLE_UP, &map);
+        let distances = project(center, ANGLE_UP, &map);
 
         assert_that!(distances).has_length(3);
         assert_that!(distances[1].distance()).is_close_to(1.0, 0.001)
@@ -483,7 +494,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.5, 2.5);
-        let distances = distance(center, ANGLE_DOWN, &map);
+        let distances = project(center, ANGLE_DOWN, &map);
 
         assert_that!(distances).has_length(3);
         assert_that!(distances[1].distance()).is_close_to(2.0, 0.001)
@@ -500,7 +511,7 @@ mod distance_test {
             .unwrap();
         let center = Position::new(2.0, 1.1);
 
-        let distances = distance(center, ANGLE_LEFT, &map);
+        let distances = project(center, ANGLE_LEFT, &map);
 
         assert_that!(distances).has_length(3);
         assert_that!(distances[1].distance()).is_close_to(1.5, 0.001)
@@ -516,7 +527,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.0, 1.1);
-        let distances = distance(center, ANGLE_RIGHT, &map);
+        let distances = project(center, ANGLE_RIGHT, &map);
 
         assert_that!(distances).has_length(3);
         assert_that!(distances[1].distance()).is_close_to(1.5, 0.001)
@@ -532,7 +543,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.0, 1.1);
-        let distances = distance(center, ANGLE_RIGHT, &map);
+        let distances = project(center, ANGLE_RIGHT, &map);
 
         assert_that!(distances).has_length(3);
         let projected = distances[0];
@@ -550,7 +561,7 @@ mod distance_test {
         )
             .unwrap();
         let center = Position::new(2.0, 1.1);
-        let distances = distance(center, ANGLE_RIGHT, &map);
+        let distances = project(center, ANGLE_RIGHT, &map);
 
         assert_that!(distances).has_length(3);
         assert_that!(distances[2].distance()).is_close_to(2.0, 0.001)
@@ -575,7 +586,7 @@ mod distance_test {
             .unwrap();
 
         let center = Position::new(2.9, 1.9);
-        let distances_door = distance(center, Angle::new(PI - 0.2), &door_map);
+        let distances_door = project(center, Angle::new(PI - 0.2), &door_map);
         let distance_no_door = distance_single_wall(center, Angle::new(PI - 0.2), &no_door_map);
 
         assert_that!(distances_door).has_length(3);
