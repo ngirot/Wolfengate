@@ -12,5 +12,6 @@ pub mod maths;
 pub mod physics;
 pub mod view;
 pub mod door;
+pub mod actions;
 
 mod projection;

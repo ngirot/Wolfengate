@@ -58,6 +58,12 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
             } => {
                 inputs.push(Input::Quit);
             }
+            Event::KeyDown {
+                keycode: Some(Keycode::E),
+                ..
+            } => {
+                inputs.push(Input::Action);
+            }
             _ => {}
         }
     }

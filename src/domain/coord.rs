@@ -6,7 +6,7 @@ pub struct ScreenPoint {
     y: i32,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct MapPoint {
     x: i16,
     y: i16,

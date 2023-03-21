@@ -1,15 +1,16 @@
+use crate::domain::actions::Actions;
 use crate::domain::actor::{Enemy, Player};
 use crate::domain::force::Force;
 use crate::domain::index::TextureIndex;
-use crate::domain::maths::{signed_angle, Angle, Vector};
+use crate::domain::maths::{Angle, signed_angle, Vector};
 use crate::domain::view::ViewScreen;
 
 use super::{
     color::Color,
     coord::{Position, ScreenPoint},
-    projection::project,
     draw_action::DrawAction,
     map::Map,
+    projection::project,
 };
 
 const WALL_MINIMUM_DISTANCE: f32 = 0.1;
@@ -17,6 +18,7 @@ const WALL_MINIMUM_DISTANCE: f32 = 0.1;
 pub struct Level {
     view: ViewScreen,
     map: Map,
+    actions: Actions,
     player: Player,
     enemies: Vec<Enemy>,
 }
@@ -29,10 +31,12 @@ struct DrawActionZIndex {
 impl Level {
     pub fn new(view: ViewScreen, map: Map, player: Player, enemy: Option<Enemy>) -> Self {
         let enemies = enemy.map_or_else(Vec::new, |p| vec![p]);
+        let actions = Actions::new(&map);
 
         Self {
             view,
             map,
+            actions,
             player,
             enemies,
         }
@@ -49,6 +53,22 @@ impl Level {
             .with_inertia(no_limit.inertia())
     }
 
+    pub fn handle_action(&mut self) {
+        let action_projected = project(*self.player.position(), self.player.orientation(), &self.map, &self.actions);
+        if !action_projected.is_empty() {
+            let closest = action_projected[0];
+            if closest.distance() < 1.0 {
+                let map_point = closest.map_point();
+                self.actions.activate(map_point.x(), map_point.y());
+
+            }
+        }
+    }
+
+    pub fn notify_elapsed(&mut self, microseconds: u128) {
+        self.actions.notify_elapsed(microseconds);
+    }
+
     pub fn generate_actions(&self) -> Vec<DrawAction> {
         let mut actions: Vec<DrawAction> = vec![];
         let mut actions_ordered: Vec<DrawActionZIndex> = vec![];
@@ -62,6 +82,7 @@ impl Level {
             self.player.position(),
             self.player.orientation(),
             &self.map,
+            &self.actions,
         ));
 
         actions_ordered.extend(build_enemies(
@@ -111,7 +132,7 @@ impl Level {
     }
 
     fn distance(&self, start: Position, angle: Angle) -> f32 {
-        let distances = project(start, angle, &self.map);
+        let distances = project(start, angle, &self.map, &self.actions);
         if distances.len() > 0 {
             distances[0].distance()
         } else {
@@ -154,13 +175,14 @@ fn build_walls(
     position: &Position,
     angle: Angle,
     map: &Map,
+    actions: &Actions
 ) -> Vec<DrawActionZIndex> {
-    let mut actions = vec![];
+    let mut result = vec![];
 
     let cone_angles = angle.discreet_cone(view.angle(), view.width());
 
     for (i, current_angle) in cone_angles.iter().enumerate() {
-        let projected_points = project(*position, *current_angle, map);
+        let projected_points = project(*position, *current_angle, map, actions);
 
         for projected_point in projected_points {
             let screen_length: i32 = view.height();
@@ -182,10 +204,10 @@ fn build_walls(
                 projected_point.tile_type(),
                 projected_point.offset_in_bloc(),
             );
-            actions.push(DrawActionZIndex::new(action, projection_distance));
+            result.push(DrawActionZIndex::new(action, projection_distance));
         }
     }
-    actions
+    result
 }
 
 fn build_enemies(
@@ -237,12 +259,12 @@ mod level_test {
 
     use spectral::prelude::*;
 
+    use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
     use crate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
     use crate::domain::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::view::ViewScreen;
-    use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
 
     use super::Level;
 

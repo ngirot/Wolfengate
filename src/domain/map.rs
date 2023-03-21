@@ -1,10 +1,18 @@
+use crate::domain::actions::{ActionState, LinearActionState, NothingActionState};
+use crate::domain::actor::SpeedStats;
+
 pub struct Map {
     paving: Vec<Vec<Tile>>,
     width: i16,
     height: i16,
 }
 
-pub enum Tile {
+pub struct Tile {
+    pub tile_type: TileType,
+    state_generator: fn() -> Box<dyn ActionState>,
+}
+
+pub enum TileType {
     Wall,
     Door,
     Glass,
@@ -56,14 +64,40 @@ impl Map {
         Some(&self.paving[y as usize][x as usize])
     }
 
+
     fn char_to_tile(c: char) -> Result<Tile, String> {
         match c {
-            '#' => Ok(Tile::Wall),
-            ' ' => Ok(Tile::Nothing),
-            'D' => Ok(Tile::Door),
-            'G' => Ok(Tile::Glass),
+            '#' => Ok(Tile::new(TileType::Wall, || Box::new(NothingActionState::new()))),
+            ' ' => Ok(Tile::new(TileType::Nothing, || Box::new(NothingActionState::new()))),
+            'D' => Ok(Tile::new(TileType::Door, || Box::new(LinearActionState::new(SpeedStats::new(3.0))))),
+            'G' => Ok(Tile::new(TileType::Glass, || Box::new(NothingActionState::new()))),
             _ => Err(String::from("Unknown char is used in the map")),
         }
+    }
+
+    pub fn width(&self) -> i16 {
+        self.width
+    }
+
+    pub fn height(&self) -> i16 {
+        self.height
+    }
+}
+
+impl Tile {
+    pub fn new(tile_type: TileType, state_generator: fn() -> Box<dyn ActionState>) -> Self {
+        Self {
+            tile_type,
+            state_generator,
+        }
+    }
+
+    pub fn tile_type(&self) -> &TileType {
+        &self.tile_type
+    }
+
+    pub fn generate_pristine_state(&self) -> Box<dyn ActionState> {
+        (self.state_generator)()
     }
 }
 
@@ -71,28 +105,28 @@ impl Map {
 mod map_test {
     use spectral::prelude::*;
 
-    use crate::domain::map::{Map, Tile};
+    use crate::domain::map::{Map, Tile, TileType};
 
     #[test]
     fn should_read_paving_information() {
         let paving = String::from("###\n# #\n# #\n###");
         let map = Map::new(&paving).unwrap();
 
-        assert!(matches!(&map.paving_at(0, 0), Some(Tile::Wall)));
-        assert!(matches!(&map.paving_at(1, 0), Some(Tile::Wall)));
-        assert!(matches!(&map.paving_at(2, 0), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(0, 0), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(1, 0), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(2, 0), Some(Tile {tile_type: TileType::Wall, ..})));
 
-        assert!(matches!(&map.paving_at(0, 1), Some(Tile::Wall)));
-        assert!(matches!(&map.paving_at(1, 1), Some(Tile::Nothing)));
-        assert!(matches!(&map.paving_at(2, 1), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(0, 1), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(1, 1), Some(Tile {tile_type: TileType::Nothing, ..})));
+        assert!(matches!(&map.paving_at(2, 1), Some(Tile {tile_type: TileType::Wall, ..})));
 
-        assert!(matches!(&map.paving_at(0, 2), Some(Tile::Wall)));
-        assert!(matches!(&map.paving_at(1, 2), Some(Tile::Nothing)));
-        assert!(matches!(&map.paving_at(2, 2), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(0, 2), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(1, 2), Some(Tile {tile_type: TileType::Nothing, ..})));
+        assert!(matches!(&map.paving_at(2, 2), Some(Tile {tile_type: TileType::Wall, ..})));
 
-        assert!(matches!(&map.paving_at(0, 3), Some(Tile::Wall)));
-        assert!(matches!(&map.paving_at(1, 3), Some(Tile::Wall)));
-        assert!(matches!(&map.paving_at(2, 3), Some(Tile::Wall)));
+        assert!(matches!(&map.paving_at(0, 3), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(1, 3), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(2, 3), Some(Tile {tile_type: TileType::Wall, ..})));
     }
 
     #[test]
@@ -117,7 +151,7 @@ mod map_test {
     }
 
     #[test]
-    fn should_not_get_paving_information_on_tiles_with_negative_u_coordinate() {
+    fn should_not_get_paving_information_on_tiles_with_negative_y_coordinate() {
         let map = Map::new("  \n  ").unwrap();
         let tile = map.paving_at(0, -1);
         assert!(matches!(tile, None));

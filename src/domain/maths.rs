@@ -23,6 +23,18 @@ pub fn decimal_part(number: f32) -> f32 {
     n - n.floor()
 }
 
+pub fn between(min: f32, value: f32, max: f32) -> f32 {
+    if value < min {
+        return min;
+    }
+
+    if value > max {
+        return max;
+    }
+
+    value
+}
+
 pub fn signed_angle(p1: Position, p2: Position) -> Option<Angle> {
     let points_vector = Vector::new(p1, p2);
     let abscissa_vector = Vector::new(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
@@ -200,6 +212,32 @@ mod fn_decimal_part {
         assert_that!(decimal).is_close_to(0.23, 0.001);
     }
 }
+
+#[cfg(test)]
+mod fn_between {
+    use spectral::prelude::*;
+
+    use crate::domain::maths::between;
+
+    #[test]
+    fn should_keep_value_if_not_bigger_than_max_and_not_lower_than_min() {
+        let value = between(1.0, 1.5, 2.0);
+        assert_that!(value).is_equal_to(1.5);
+    }
+
+    #[test]
+    fn should_get_min_if_value_is_lower() {
+        let value = between(10.0, 5.0, 20.0);
+        assert_that!(value).is_equal_to(10.0);
+    }
+
+    #[test]
+    fn should_get_max_if_value_is_bigger() {
+        let value = between(2.0, 5.3, 5.0);
+        assert_that!(value).is_equal_to(5.0);
+    }
+}
+
 
 #[cfg(test)]
 mod fn_test {

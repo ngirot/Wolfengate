@@ -24,7 +24,7 @@ pub struct AccelerationStats {
     units_per_seconds_square: f32,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct SpeedStats {
     units_per_seconds: f32,
 }
@@ -175,6 +175,10 @@ impl SpeedStats {
     pub fn units_per_seconds(&self) -> f32 {
         self.units_per_seconds
     }
+
+    pub fn to_units(&self, microseconds_elasped: u128) -> f32 {
+        microseconds_elasped as f32 / 1000000.0 * self.units_per_seconds as f32
+    }
 }
 
 #[cfg(test)]
@@ -270,5 +274,17 @@ mod actor_test {
 
         assert_that!(after_move.position.x()).is_close_to(1.0, 0.001);
         assert_that!(after_move.position.y()).is_equal_to(4.0);
+    }
+}
+
+#[cfg(test)]
+mod speed_stats_test {
+    use spectral::prelude::*;
+    use crate::domain::actor::SpeedStats;
+
+    #[test]
+    fn to_speed_should_convert_to_units() {
+        let stats = SpeedStats::new(123.0);
+        assert_that!(stats.to_units(100000)).is_close_to(12.3, 0.01);
     }
 }

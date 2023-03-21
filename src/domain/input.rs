@@ -4,6 +4,7 @@ pub enum Input {
     StrafeLeft,
     StrafeRight,
     Rotate(i32),
+    Action,
     ToggleFullscreen,
     ShowFps,
     Quit,

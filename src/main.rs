@@ -91,10 +91,12 @@ fn main() -> Result<(), String> {
                 Input::StrafeRight => current_force = current_force.add(input_force.state_right()),
                 Input::Rotate(x) => current_force = current_force.add(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
+                Input::Action => level.handle_action(),
                 Input::ShowFps => debug_info = debug_info.toggle_fps(),
             }
         }
 
+        level.notify_elapsed(elapsed);
         level.apply_forces(current_force, elapsed);
 
         // Render
