@@ -62,9 +62,9 @@ impl Actions {
     }
 
     pub fn notify_elapsed(&mut self, microseconds: u128) {
-        for y in 0..self.height - 1 {
-            for x in 0..self.width - 1 {
-                self.paving[x as usize][y as usize] = self.paving[x as usize][y as usize].elapsed(microseconds);
+        for x in 0..self.width {
+            for y in 0..self.height {
+                self.paving[y as usize][x as usize] = self.paving[y as usize][x as usize].elapsed(microseconds);
             }
         }
     }
@@ -93,7 +93,7 @@ impl ActionState for LinearActionState {
         let increment = self.opening_speed.to_units(microseconds) * direction;
 
         let new_percentage = between(0.0, self.opening_percentage + increment, 1.0);
-
+        
         Box::new(
             Self {
                 opening_speed: self.opening_speed,
