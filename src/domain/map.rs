@@ -1,6 +1,8 @@
 use crate::domain::actions::{ActionState, LinearActionState, NothingActionState};
 use crate::domain::actor::SpeedStats;
 
+pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
+
 pub struct Map {
     paving: Vec<Vec<Tile>>,
     width: i16,
@@ -69,7 +71,7 @@ impl Map {
         match c {
             '#' => Ok(Tile::new(TileType::Wall, || Box::new(NothingActionState::new()))),
             ' ' => Ok(Tile::new(TileType::Nothing, || Box::new(NothingActionState::new()))),
-            'D' => Ok(Tile::new(TileType::Door, || Box::new(LinearActionState::new(SpeedStats::new(3.0))))),
+            'D' => Ok(Tile::new(TileType::Door, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS))))),
             'G' => Ok(Tile::new(TileType::Glass, || Box::new(NothingActionState::new()))),
             _ => Err(String::from("Unknown char is used in the map")),
         }

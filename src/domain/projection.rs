@@ -13,6 +13,7 @@ use super::{
 pub struct ProjectedPoint {
     source_point: Position,
     projected_point: Position,
+    blocking: bool,
     offset_in_bloc: f32,
     map_point: MapPoint,
     tile_type: TextureIndex,
@@ -21,6 +22,7 @@ pub struct ProjectedPoint {
 #[derive(Debug, Copy, Clone)]
 struct Projection {
     projected_point: Position,
+    blocking: bool,
     offset_in_bloc: f32,
     map_point: MapPoint,
     tile_type: TextureIndex,
@@ -67,15 +69,15 @@ fn projection_concat(position: Position, angle: Angle, map: &Map, actions: &Acti
 
     let recursive = match bloc_tile {
         None =>
-            vec![Projection::invisible(next_position, position_on_texture, bloc)],
-        Some(Tile { tile_type: TileType::Wall, ..}) =>
-            vec![Projection::visible(next_position, position_on_texture, bloc, TextureIndex::WALL)],
-        Some(Tile{ tile_type: TileType::Glass, ..}) => {
+            vec![Projection::invisible(next_position, position_on_texture, true, bloc)],
+        Some(Tile { tile_type: TileType::Wall, .. }) =>
+            vec![Projection::visible(next_position, position_on_texture, true, bloc, TextureIndex::WALL)],
+        Some(Tile { tile_type: TileType::Glass, .. }) => {
             let distances_glass_tile = distance_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, TextureIndex::GLASS);
             let distances_behind = inner_projection(next_position, angle, map, actions);
             [distances_glass_tile, distances_behind].concat()
         }
-        Some(Tile{ tile_type: TileType::Door, ..}) => {
+        Some(Tile { tile_type: TileType::Door, .. }) => {
             let distances_door_tile = distance_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, TextureIndex::DOOR);
             let distances_behind = inner_projection(next_position, angle, map, actions);
             [distances_door_tile, distances_behind].concat()
@@ -87,8 +89,11 @@ fn projection_concat(position: Position, angle: Angle, map: &Map, actions: &Acti
 }
 
 fn distance_on_door(angle: Angle, map: &Map, actions: &Actions, next_position: Position, position_on_texture: f32, door_up: bool, map_point: MapPoint, texture: TextureIndex) -> Vec<Projection> {
-    let invisible_wall = vec![Projection::invisible(next_position, position_on_texture, map_point)];
     let action_state = actions.state_at(map_point.x(), map_point.y()).unwrap();
+    let blocking = action_state.activated_percentage() != 1.0;
+
+    let invisible_wall = vec![Projection::invisible(next_position, position_on_texture, blocking, map_point)];
+
     let actual_door = inner_door_projection(next_position, angle, door_up, map_point, texture, action_state)
         .map_or_else(
             || inner_projection(next_position, angle, map, actions),
@@ -123,7 +128,7 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let position_on_texture = door.door_column(offset);
 
         position_on_texture.map(
-            |pot| Projection::visible(new_position, pot, map_point, texture),
+            |pot| Projection::visible(new_position, pot, true, map_point, texture),
         )
     } else {
         let door = LateralDoor::new(opening_percentage);
@@ -144,7 +149,7 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let offset = decimal_part(door_y);
 
         door.door_column(offset)
-            .map(|pot| Projection::visible(new_position, pot, map_point, texture))
+            .map(|pot| Projection::visible(new_position, pot, true, map_point, texture))
     }
 }
 
@@ -153,6 +158,7 @@ impl ProjectedPoint {
         Self {
             source_point,
             projected_point: projection.projected_point,
+            blocking: projection.blocking,
             offset_in_bloc: projection.offset_in_bloc,
             map_point: projection.map_point,
             tile_type: projection.tile_type,
@@ -174,21 +180,28 @@ impl ProjectedPoint {
     pub fn tile_type(&self) -> TextureIndex {
         self.tile_type
     }
+
+
+    pub fn blocking(&self) -> bool {
+        self.blocking
+    }
 }
 
 impl Projection {
-    pub fn invisible(projected_point: Position, offset_in_bloc: f32, map_point: MapPoint) -> Self {
+    pub fn invisible(projected_point: Position, offset_in_bloc: f32, blocking: bool, map_point: MapPoint) -> Self {
         Self {
             projected_point,
+            blocking,
             offset_in_bloc,
             map_point,
             tile_type: TextureIndex::VOID,
         }
     }
 
-    pub fn visible(projected_point: Position, offset_in_bloc: f32, map_point: MapPoint, tile_type: TextureIndex) -> Self {
+    pub fn visible(projected_point: Position, offset_in_bloc: f32, blocking: bool, map_point: MapPoint, tile_type: TextureIndex) -> Self {
         Self {
             projected_point,
+            blocking,
             offset_in_bloc,
             tile_type,
             map_point,
@@ -199,12 +212,14 @@ impl Projection {
 #[cfg(test)]
 mod distance_test {
     use std::f32::consts::PI;
+    use std::time::Duration;
 
     use spectral::prelude::*;
 
     use crate::domain::{coord::Position, map::Map};
     use crate::domain::actions::Actions;
     use crate::domain::index::TextureIndex;
+    use crate::domain::map::DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::projection::ProjectedPoint;
 
@@ -596,5 +611,40 @@ mod distance_test {
 
         assert_that!(distances_door).has_length(3);
         assert_that!(distances_door[1].distance()).is_equal_to(&distance_no_door.distance());
+    }
+
+    #[test]
+    fn closed_door_should_be_blocking() {
+        let map = Map::new(" D    ").unwrap();
+        let position = Position::new(0.5, 0.5);
+        let actions = Actions::new(&map);
+
+        let projection = project(position, ANGLE_RIGHT, &map, &actions);
+
+        assert_that!(projection[0].blocking()).is_true();
+    }
+
+    #[test]
+    fn open_door_should_not_be_blocking() {
+        let map = Map::new(" D    ").unwrap();
+        let position = Position::new(0.5, 0.5);
+        let mut actions = Actions::new(&map);
+        actions.activate(1, 0);
+        actions.notify_elapsed(Duration::from_secs(100000).as_micros());
+
+        let projection = project(position, ANGLE_RIGHT, &map, &actions);
+        assert_that!(projection[0].blocking()).is_false();
+    }
+
+    #[test]
+    fn half_open_door_should_be_blocking() {
+        let map = Map::new(" D    ").unwrap();
+        let position = Position::new(0.5, 0.5);
+        let mut actions = Actions::new(&map);
+        actions.activate(1, 0);
+        actions.notify_elapsed(((1000000.0 * 0.5) / DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS) as u128);
+
+        let projection = project(position, ANGLE_RIGHT, &map, &actions);
+        assert_that!(projection[0].blocking()).is_true();
     }
 }

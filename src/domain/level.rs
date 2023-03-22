@@ -3,6 +3,7 @@ use crate::domain::actor::{Enemy, Player};
 use crate::domain::force::Force;
 use crate::domain::index::TextureIndex;
 use crate::domain::maths::{Angle, signed_angle, Vector};
+use crate::domain::projection::ProjectedPoint;
 use crate::domain::view::ViewScreen;
 
 use super::{
@@ -60,7 +61,6 @@ impl Level {
             if closest.distance() < 1.0 {
                 let map_point = closest.map_point();
                 self.actions.activate(map_point.x(), map_point.y());
-
             }
         }
     }
@@ -132,7 +132,12 @@ impl Level {
     }
 
     fn distance(&self, start: Position, angle: Angle) -> f32 {
-        let distances = project(start, angle, &self.map, &self.actions);
+        let distances: Vec<ProjectedPoint> = project(start, angle, &self.map, &self.actions)
+            .iter()
+            .filter(|projection| projection.blocking())
+            .map(|i| i.clone())
+            .collect();
+
         if distances.len() > 0 {
             distances[0].distance()
         } else {
@@ -175,7 +180,7 @@ fn build_walls(
     position: &Position,
     angle: Angle,
     map: &Map,
-    actions: &Actions
+    actions: &Actions,
 ) -> Vec<DrawActionZIndex> {
     let mut result = vec![];
 
