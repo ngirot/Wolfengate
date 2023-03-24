@@ -6,7 +6,7 @@ use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part};
 
 use super::{
     coord::{MapPoint, Position},
-    map::{Map, Tile},
+    map::Map,
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -67,22 +67,17 @@ fn projection_concat(position: Position, angle: Angle, map: &Map, actions: &Acti
 
     let bloc_tile = map.paving_at(bloc.x(), bloc.y());
 
-    let recursive = match bloc_tile {
+    let recursive = match bloc_tile.map(|tile| tile.tile_type()) {
         None =>
             vec![Projection::invisible(next_position, position_on_texture, true, bloc)],
-        Some(Tile { tile_type: TileType::Wall, .. }) =>
-            vec![Projection::visible(next_position, position_on_texture, true, bloc, TextureIndex::WALL)],
-        Some(Tile { tile_type: TileType::Glass, .. }) => {
-            let distances_glass_tile = distance_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, TextureIndex::GLASS);
+        Some(TileType::SOLID) =>
+            vec![Projection::visible(next_position, position_on_texture, true, bloc, bloc_tile.unwrap().texture())],
+        Some(TileType::DYNAMIC) => {
+            let distances_glass_tile = distance_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, bloc_tile.unwrap().texture());
             let distances_behind = inner_projection(next_position, angle, map, actions);
             [distances_glass_tile, distances_behind].concat()
         }
-        Some(Tile { tile_type: TileType::Door, .. }) => {
-            let distances_door_tile = distance_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, TextureIndex::DOOR);
-            let distances_behind = inner_projection(next_position, angle, map, actions);
-            [distances_door_tile, distances_behind].concat()
-        }
-        _ => inner_projection(next_position, angle, map, actions)
+        Some(TileType::NOTHING) => inner_projection(next_position, angle, map, actions)
     };
 
     [previous, recursive].concat()

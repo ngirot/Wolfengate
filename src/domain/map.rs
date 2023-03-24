@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use crate::domain::actions::{ActionState, LinearActionState, NothingActionState};
 use crate::domain::actor::SpeedStats;
+use crate::domain::index::TextureIndex;
 
 pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
 
@@ -9,16 +12,23 @@ pub struct Map {
     height: i16,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum TileType {
+    SOLID,
+    DYNAMIC,
+    NOTHING,
+}
+
+#[derive(Copy, Clone)]
 pub struct Tile {
-    pub tile_type: TileType,
+    tile_type: TileType,
+    texture: TextureIndex,
     state_generator: fn() -> Box<dyn ActionState>,
 }
 
-pub enum TileType {
-    Wall,
-    Door,
-    Glass,
-    Nothing,
+
+pub struct MapConfiguration {
+    conf: HashMap<char, Tile>,
 }
 
 impl Map {
@@ -27,11 +37,18 @@ impl Map {
         let mut height: i16 = 0;
         let mut width: i16 = 0;
 
+
+        let mut configuration = MapConfiguration::new();
+        configuration.add('#', Tile::new(TileType::SOLID, TextureIndex::WALL, || Box::new(NothingActionState::new())));
+        configuration.add('D', Tile::new(TileType::DYNAMIC, TextureIndex::DOOR, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
+        configuration.add('G', Tile::new(TileType::DYNAMIC, TextureIndex::GLASS, || Box::new(NothingActionState::new())));
+        configuration.add(' ', Tile::new(TileType::NOTHING, TextureIndex::VOID, || Box::new(NothingActionState::new())));
+
         for line in paving.split('\n') {
             height += 1;
             let mut chars: Vec<Tile> = vec![];
             for char in line.chars() {
-                let tile = Self::char_to_tile(char)?;
+                let tile = Self::char_to_tile(&configuration, char)?;
                 chars.push(tile)
             }
 
@@ -67,14 +84,10 @@ impl Map {
     }
 
 
-    fn char_to_tile(c: char) -> Result<Tile, String> {
-        match c {
-            '#' => Ok(Tile::new(TileType::Wall, || Box::new(NothingActionState::new()))),
-            ' ' => Ok(Tile::new(TileType::Nothing, || Box::new(NothingActionState::new()))),
-            'D' => Ok(Tile::new(TileType::Door, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS))))),
-            'G' => Ok(Tile::new(TileType::Glass, || Box::new(NothingActionState::new()))),
-            _ => Err(String::from("Unknown char is used in the map")),
-        }
+    fn char_to_tile(configuration: &MapConfiguration, c: char) -> Result<Tile, String> {
+        configuration.get(c)
+            .ok_or(String::from("Unknown char is used in the map"))
+            .copied()
     }
 
     pub fn width(&self) -> i16 {
@@ -87,9 +100,10 @@ impl Map {
 }
 
 impl Tile {
-    pub fn new(tile_type: TileType, state_generator: fn() -> Box<dyn ActionState>) -> Self {
+    pub fn new(tile_type: TileType, texture: TextureIndex, state_generator: fn() -> Box<dyn ActionState>) -> Self {
         Self {
             tile_type,
+            texture,
             state_generator,
         }
     }
@@ -98,8 +112,28 @@ impl Tile {
         &self.tile_type
     }
 
+    pub fn texture(&self) -> TextureIndex {
+        self.texture
+    }
+
     pub fn generate_pristine_state(&self) -> Box<dyn ActionState> {
         (self.state_generator)()
+    }
+}
+
+impl MapConfiguration {
+    pub fn new() -> Self {
+        Self {
+            conf: HashMap::new()
+        }
+    }
+
+    pub fn add(&mut self, c: char, conf: Tile) {
+        self.conf.insert(c, conf);
+    }
+
+    pub fn get(&self, c: char) -> Option<&Tile> {
+        self.conf.get(&c)
     }
 }
 
@@ -114,21 +148,21 @@ mod map_test {
         let paving = String::from("###\n# #\n# #\n###");
         let map = Map::new(&paving).unwrap();
 
-        assert!(matches!(&map.paving_at(0, 0), Some(Tile {tile_type: TileType::Wall, ..})));
-        assert!(matches!(&map.paving_at(1, 0), Some(Tile {tile_type: TileType::Wall, ..})));
-        assert!(matches!(&map.paving_at(2, 0), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(0, 0), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(1, 0), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(2, 0), Some(Tile {tile_type: TileType::SOLID, ..})));
 
-        assert!(matches!(&map.paving_at(0, 1), Some(Tile {tile_type: TileType::Wall, ..})));
-        assert!(matches!(&map.paving_at(1, 1), Some(Tile {tile_type: TileType::Nothing, ..})));
-        assert!(matches!(&map.paving_at(2, 1), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(0, 1), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(1, 1), Some(Tile {tile_type: TileType::NOTHING, ..})));
+        assert!(matches!(&map.paving_at(2, 1), Some(Tile {tile_type: TileType::SOLID, ..})));
 
-        assert!(matches!(&map.paving_at(0, 2), Some(Tile {tile_type: TileType::Wall, ..})));
-        assert!(matches!(&map.paving_at(1, 2), Some(Tile {tile_type: TileType::Nothing, ..})));
-        assert!(matches!(&map.paving_at(2, 2), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(0, 2), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(1, 2), Some(Tile {tile_type: TileType::NOTHING, ..})));
+        assert!(matches!(&map.paving_at(2, 2), Some(Tile {tile_type: TileType::SOLID, ..})));
 
-        assert!(matches!(&map.paving_at(0, 3), Some(Tile {tile_type: TileType::Wall, ..})));
-        assert!(matches!(&map.paving_at(1, 3), Some(Tile {tile_type: TileType::Wall, ..})));
-        assert!(matches!(&map.paving_at(2, 3), Some(Tile {tile_type: TileType::Wall, ..})));
+        assert!(matches!(&map.paving_at(0, 3), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(1, 3), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(2, 3), Some(Tile {tile_type: TileType::SOLID, ..})));
     }
 
     #[test]
