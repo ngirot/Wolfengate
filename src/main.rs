@@ -58,7 +58,7 @@ fn main() -> Result<(), String> {
     let max_speed = SpeedStats::new(6.0);
     let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);
     let player = Player::new(position, ANGLE_UP, player_stats);
-    let enemy = Enemy::new(Position::new(5.0, 5.0));
+    let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(5.0, 5.0));
     let view = ViewScreen::new(500, 800);
     let mut level = Level::new(view, map, player, Some(enemy));
     let mut debug_info = DebugInfo::new();

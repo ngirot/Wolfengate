@@ -1,4 +1,5 @@
 use crate::domain::force::Force;
+use crate::domain::index::TextureIndex;
 use crate::domain::maths::{Angle, ANGLE_RIGHT};
 use crate::domain::physics::{Acceleration, Speed};
 
@@ -31,6 +32,7 @@ pub struct SpeedStats {
 
 pub struct Enemy {
     position: Position,
+    texture: TextureIndex,
 }
 
 impl Player {
@@ -142,12 +144,17 @@ impl PlayerStats {
 }
 
 impl Enemy {
-    pub fn new(position: Position) -> Self {
-        Self { position }
+    pub fn new(texture: TextureIndex, position: Position) -> Self {
+        Self { position, texture }
     }
 
     pub fn position(&self) -> Position {
         self.position
+    }
+
+
+    pub fn texture(&self) -> TextureIndex {
+        self.texture
     }
 }
 
@@ -280,6 +287,7 @@ mod actor_test {
 #[cfg(test)]
 mod speed_stats_test {
     use spectral::prelude::*;
+
     use crate::domain::actor::SpeedStats;
 
     #[test]

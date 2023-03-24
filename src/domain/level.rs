@@ -1,7 +1,6 @@
 use crate::domain::actions::Actions;
 use crate::domain::actor::{Enemy, Player};
 use crate::domain::force::Force;
-use crate::domain::index::TextureIndex;
 use crate::domain::maths::{Angle, signed_angle, Vector};
 use crate::domain::projection::ProjectedPoint;
 use crate::domain::view::ViewScreen;
@@ -248,7 +247,7 @@ fn build_enemies(
             (view.height() as f32 / 2.0 + sprite_height / 2.0) as i32,
         );
 
-        let action = DrawAction::Sprite(start, end, TextureIndex::ENEMY);
+        let action = DrawAction::Sprite(start, end, enemy.texture());
         actions.push(DrawActionZIndex::new(action, distance))
     }
     actions
@@ -267,6 +266,7 @@ mod level_test {
     use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
     use crate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
     use crate::domain::force::Force;
+    use crate::domain::index::TextureIndex;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::view::ViewScreen;
@@ -365,7 +365,7 @@ mod level_test {
     fn enemy_should_be_in_the_list_after_the_wall_behind_him() {
         let map = Map::new("#  #").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
-        let enemy = Enemy::new(Position::new(2.0, 0.5));
+        let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(2.0, 0.5));
         let view = ViewScreen::new(100, 100);
 
         let level = Level::new(view, map, player, Some(enemy));
@@ -389,7 +389,7 @@ mod level_test {
     fn enemy_should_be_in_the_list_before_the_wall_before_him() {
         let map = Map::new("# #   ").unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
-        let enemy = Enemy::new(Position::new(4.5, 0.5));
+        let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(4.5, 0.5));
         let view = ViewScreen::new(100, 100);
 
         let level = Level::new(view, map, player, Some(enemy));
