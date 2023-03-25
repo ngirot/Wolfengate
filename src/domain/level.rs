@@ -131,14 +131,14 @@ impl Level {
     }
 
     fn distance(&self, start: Position, angle: Angle) -> f32 {
-        let distances: Vec<ProjectedPoint> = project(start, angle, &self.map, &self.actions)
+        let projected: Vec<ProjectedPoint> = project(start, angle, &self.map, &self.actions)
             .iter()
             .filter(|projection| projection.blocking())
             .map(|i| i.clone())
             .collect();
 
-        if distances.len() > 0 {
-            distances[0].distance()
+        if projected.len() > 0 {
+            projected[0].distance()
         } else {
             0.0
         }
@@ -205,7 +205,7 @@ fn build_walls(
             let action = DrawAction::TexturedLine(
                 start,
                 end,
-                projected_point.tile_type(),
+                projected_point.texture(),
                 projected_point.offset_in_bloc(),
             );
             result.push(DrawActionZIndex::new(action, projection_distance));
