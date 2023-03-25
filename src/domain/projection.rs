@@ -1,7 +1,7 @@
 use crate::domain::actions::{Actions, ActionState};
 use crate::domain::door::{CentralDoor, LateralDoor, Openable};
 use crate::domain::index::TextureIndex;
-use crate::domain::map::TileType;
+use crate::domain::map::Tile;
 use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part};
 
 use super::{
@@ -67,27 +67,27 @@ fn projection_concat(position: Position, angle: Angle, map: &Map, actions: &Acti
 
     let bloc_tile = map.paving_at(bloc.x(), bloc.y());
 
-    let recursive = match bloc_tile.map(|tile| tile.tile_type()) {
+    let recursive = match bloc_tile {
         None =>
             vec![Projection::invisible(next_position, position_on_texture, true, bloc)],
-        Some(TileType::SOLID) =>
-            vec![Projection::visible(next_position, position_on_texture, true, bloc, bloc_tile.unwrap().texture())],
-        Some(TileType::DYNAMIC) => {
-            let projection_inside = projection_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, bloc_tile.unwrap().texture());
+        Some(Tile::SOLID(texture)) =>
+            vec![Projection::visible(next_position, position_on_texture, true, bloc, *texture)],
+        Some(Tile::DYNAMIC(texture_inside, texture_outside, _)) => {
+            let projection_inside = projection_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, *texture_inside, *texture_outside);
             let projection_behind = inner_projection(next_position, angle, map, actions);
             [projection_inside, projection_behind].concat()
         }
-        Some(TileType::NOTHING) => inner_projection(next_position, angle, map, actions)
+        Some(Tile::NOTHING) => inner_projection(next_position, angle, map, actions)
     };
 
     [previous, recursive].concat()
 }
 
-fn projection_on_door(angle: Angle, map: &Map, actions: &Actions, next_position: Position, position_on_texture: f32, door_up: bool, map_point: MapPoint, texture: TextureIndex) -> Vec<Projection> {
+fn projection_on_door(angle: Angle, map: &Map, actions: &Actions, next_position: Position, position_on_texture: f32, door_up: bool, map_point: MapPoint, texture: TextureIndex, blocking_texture: TextureIndex) -> Vec<Projection> {
     let action_state = actions.state_at(map_point.x(), map_point.y()).unwrap();
     let blocking = action_state.activated_percentage() != 1.0;
 
-    let invisible_wall = vec![Projection::invisible(next_position, position_on_texture, blocking, map_point)];
+    let invisible_wall = vec![Projection::visible(next_position, position_on_texture, blocking, map_point, blocking_texture)];
 
     let actual_door = inner_door_projection(next_position, angle, door_up, map_point, texture, action_state)
         .map_or_else(

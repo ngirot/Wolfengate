@@ -13,19 +13,11 @@ pub struct Map {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub enum TileType {
-    SOLID,
-    DYNAMIC,
+pub enum Tile {
+    SOLID(TextureIndex),
+    DYNAMIC(TextureIndex, TextureIndex, fn() -> Box<dyn ActionState>),
     NOTHING,
 }
-
-#[derive(Copy, Clone)]
-pub struct Tile {
-    tile_type: TileType,
-    texture: TextureIndex,
-    state_generator: fn() -> Box<dyn ActionState>,
-}
-
 
 pub struct MapConfiguration {
     conf: HashMap<char, Tile>,
@@ -39,10 +31,10 @@ impl Map {
 
 
         let mut configuration = MapConfiguration::new();
-        configuration.add('#', Tile::new(TileType::SOLID, TextureIndex::WALL, || Box::new(NothingActionState::new())));
-        configuration.add('D', Tile::new(TileType::DYNAMIC, TextureIndex::DOOR, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
-        configuration.add('G', Tile::new(TileType::DYNAMIC, TextureIndex::GLASS, || Box::new(NothingActionState::new())));
-        configuration.add(' ', Tile::new(TileType::NOTHING, TextureIndex::VOID, || Box::new(NothingActionState::new())));
+        configuration.add('#', Tile::SOLID(TextureIndex::WALL));
+        configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
+        configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
+        configuration.add(' ', Tile::NOTHING);
 
         for line in paving.split('\n') {
             height += 1;
@@ -99,28 +91,6 @@ impl Map {
     }
 }
 
-impl Tile {
-    pub fn new(tile_type: TileType, texture: TextureIndex, state_generator: fn() -> Box<dyn ActionState>) -> Self {
-        Self {
-            tile_type,
-            texture,
-            state_generator,
-        }
-    }
-
-    pub fn tile_type(&self) -> &TileType {
-        &self.tile_type
-    }
-
-    pub fn texture(&self) -> TextureIndex {
-        self.texture
-    }
-
-    pub fn generate_pristine_state(&self) -> Box<dyn ActionState> {
-        (self.state_generator)()
-    }
-}
-
 impl MapConfiguration {
     pub fn new() -> Self {
         Self {
@@ -141,28 +111,28 @@ impl MapConfiguration {
 mod map_test {
     use spectral::prelude::*;
 
-    use crate::domain::map::{Map, Tile, TileType};
+    use crate::domain::map::{Map, Tile};
 
     #[test]
     fn should_read_paving_information() {
         let paving = String::from("###\n# #\n# #\n###");
         let map = Map::new(&paving).unwrap();
 
-        assert!(matches!(&map.paving_at(0, 0), Some(Tile {tile_type: TileType::SOLID, ..})));
-        assert!(matches!(&map.paving_at(1, 0), Some(Tile {tile_type: TileType::SOLID, ..})));
-        assert!(matches!(&map.paving_at(2, 0), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(0, 0), Some(Tile::SOLID(_))));
+        assert!(matches!(&map.paving_at(1, 0), Some(Tile::SOLID(_))));
+        assert!(matches!(&map.paving_at(2, 0), Some(Tile::SOLID(_))));
 
-        assert!(matches!(&map.paving_at(0, 1), Some(Tile {tile_type: TileType::SOLID, ..})));
-        assert!(matches!(&map.paving_at(1, 1), Some(Tile {tile_type: TileType::NOTHING, ..})));
-        assert!(matches!(&map.paving_at(2, 1), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(0, 1), Some(Tile::SOLID(_))));
+        assert!(matches!(&map.paving_at(1, 1), Some(Tile::NOTHING)));
+        assert!(matches!(&map.paving_at(2, 1), Some(Tile::SOLID(_))));
 
-        assert!(matches!(&map.paving_at(0, 2), Some(Tile {tile_type: TileType::SOLID, ..})));
-        assert!(matches!(&map.paving_at(1, 2), Some(Tile {tile_type: TileType::NOTHING, ..})));
-        assert!(matches!(&map.paving_at(2, 2), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(0, 2), Some(Tile::SOLID(_))));
+        assert!(matches!(&map.paving_at(1, 2), Some(Tile::NOTHING)));
+        assert!(matches!(&map.paving_at(2, 2), Some(Tile::SOLID(_))));
 
-        assert!(matches!(&map.paving_at(0, 3), Some(Tile {tile_type: TileType::SOLID, ..})));
-        assert!(matches!(&map.paving_at(1, 3), Some(Tile {tile_type: TileType::SOLID, ..})));
-        assert!(matches!(&map.paving_at(2, 3), Some(Tile {tile_type: TileType::SOLID, ..})));
+        assert!(matches!(&map.paving_at(0, 3), Some(Tile::SOLID(_))));
+        assert!(matches!(&map.paving_at(1, 3), Some(Tile::SOLID(_))));
+        assert!(matches!(&map.paving_at(2, 3), Some(Tile::SOLID(_))));
     }
 
     #[test]

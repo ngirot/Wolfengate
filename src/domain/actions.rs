@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use crate::domain::actor::SpeedStats;
-use crate::domain::map::Map;
+use crate::domain::map::{Map, Tile};
 use crate::domain::maths::between;
 
 pub struct Actions {
@@ -32,8 +32,11 @@ impl Actions {
         for y in 0..map.height() {
             let mut line = vec![];
             for x in 0..map.width() {
-                let paving = map.paving_at(x, y).unwrap();
-                line.push(paving.generate_pristine_state())
+                let current_paving = map.paving_at(x, y).unwrap();
+                match current_paving {
+                    Tile::DYNAMIC(_, _, state_generator) => line.push(state_generator()),
+                    _ => line.push(Box::new(NothingActionState::new()))
+                }
             }
             paving.push(line);
         }
@@ -93,7 +96,7 @@ impl ActionState for LinearActionState {
         let increment = self.opening_speed.to_units(microseconds) * direction;
 
         let new_percentage = between(0.0, self.opening_percentage + increment, 1.0);
-        
+
         Box::new(
             Self {
                 opening_speed: self.opening_speed,
