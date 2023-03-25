@@ -69,9 +69,9 @@ fn projection_concat(position: Position, angle: Angle, map: &Map, actions: &Acti
 
     let recursive = match bloc_tile {
         None =>
-            vec![Projection::invisible(next_position, position_on_texture, true, bloc)],
+            vec![Projection::new(next_position, position_on_texture, true, bloc, map.border_texture())],
         Some(Tile::SOLID(texture)) =>
-            vec![Projection::visible(next_position, position_on_texture, true, bloc, *texture)],
+            vec![Projection::new(next_position, position_on_texture, true, bloc, *texture)],
         Some(Tile::DYNAMIC(texture_inside, texture_outside, _)) => {
             let projection_inside = projection_on_door(angle, map, actions, next_position, position_on_texture, door_up, bloc, *texture_inside, *texture_outside);
             let projection_behind = inner_projection(next_position, angle, map, actions);
@@ -87,7 +87,7 @@ fn projection_on_door(angle: Angle, map: &Map, actions: &Actions, next_position:
     let action_state = actions.state_at(map_point.x(), map_point.y()).unwrap();
     let blocking = action_state.activated_percentage() != 1.0;
 
-    let invisible_wall = vec![Projection::visible(next_position, position_on_texture, blocking, map_point, blocking_texture)];
+    let invisible_wall = vec![Projection::new(next_position, position_on_texture, blocking, map_point, blocking_texture)];
 
     let actual_door = inner_door_projection(next_position, angle, door_up, map_point, texture, action_state)
         .map_or_else(
@@ -123,7 +123,7 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let position_on_texture = door.door_column(offset);
 
         position_on_texture.map(
-            |pot| Projection::visible(new_position, pot, true, map_point, texture),
+            |pot| Projection::new(new_position, pot, true, map_point, texture),
         )
     } else {
         let door = LateralDoor::new(opening_percentage);
@@ -144,7 +144,7 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let offset = decimal_part(door_y);
 
         door.door_column(offset)
-            .map(|pot| Projection::visible(new_position, pot, true, map_point, texture))
+            .map(|pot| Projection::new(new_position, pot, true, map_point, texture))
     }
 }
 
@@ -183,17 +183,7 @@ impl ProjectedPoint {
 }
 
 impl Projection {
-    pub fn invisible(projected_point: Position, offset_in_bloc: f32, blocking: bool, map_point: MapPoint) -> Self {
-        Self {
-            projected_point,
-            blocking,
-            offset_in_bloc,
-            map_point,
-            texture: TextureIndex::VOID,
-        }
-    }
-
-    pub fn visible(projected_point: Position, offset_in_bloc: f32, blocking: bool, map_point: MapPoint, texture: TextureIndex) -> Self {
+    pub fn new(projected_point: Position, offset_in_bloc: f32, blocking: bool, map_point: MapPoint, texture: TextureIndex) -> Self {
         Self {
             projected_point,
             blocking,

@@ -8,6 +8,7 @@ pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
 
 pub struct Map {
     paving: Vec<Vec<Tile>>,
+    border_texture: TextureIndex,
     width: i16,
     height: i16,
 }
@@ -21,6 +22,7 @@ pub enum Tile {
 
 pub struct MapConfiguration {
     conf: HashMap<char, Tile>,
+    map_border_texture: TextureIndex,
 }
 
 impl Map {
@@ -30,7 +32,7 @@ impl Map {
         let mut width: i16 = 0;
 
 
-        let mut configuration = MapConfiguration::new();
+        let mut configuration = MapConfiguration::new(TextureIndex::VOID);
         configuration.add('#', Tile::SOLID(TextureIndex::WALL));
         configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
         configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
@@ -62,6 +64,7 @@ impl Map {
 
         Ok(Self {
             paving: p,
+            border_texture: configuration.map_border_texture(),
             height,
             width,
         })
@@ -89,12 +92,18 @@ impl Map {
     pub fn height(&self) -> i16 {
         self.height
     }
+
+
+    pub fn border_texture(&self) -> TextureIndex {
+        self.border_texture
+    }
 }
 
 impl MapConfiguration {
-    pub fn new() -> Self {
+    pub fn new(map_border_texture: TextureIndex) -> Self {
         Self {
-            conf: HashMap::new()
+            conf: HashMap::new(),
+            map_border_texture
         }
     }
 
@@ -104,6 +113,10 @@ impl MapConfiguration {
 
     pub fn get(&self, c: char) -> Option<&Tile> {
         self.conf.get(&c)
+    }
+
+    pub fn map_border_texture(&self) -> TextureIndex {
+        self.map_border_texture
     }
 }
 
