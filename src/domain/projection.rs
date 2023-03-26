@@ -100,6 +100,7 @@ fn projection_on_door(angle: Angle, map: &Map, actions: &Actions, next_position:
 
 fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool, map_point: MapPoint, texture: TextureIndex, action_state: &Box<dyn ActionState>) -> Option<Projection> {
     let opening_percentage = action_state.activated_percentage();
+    let position_inside_tile = 0.5;
 
     if door_up {
         let door = CentralDoor::new(opening_percentage);
@@ -109,21 +110,10 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let door_x = current_position.x() - (a / (2.0 * angle_sign));
 
         let new_position = current_position.with_x(door_x)
-            .with_y(current_position.y() + 0.5 * angle_sign);
+            .with_y(current_position.y() + position_inside_tile * angle_sign);
 
-        let right = current_position.x().ceil();
-        let left = current_position.x().floor();
-
-        if new_position.x() > right || new_position.x() < left {
-            return None;
-        }
-
-        let offset = decimal_part(door_x);
-
-        let position_on_texture = door.door_column(offset);
-
-        position_on_texture.map(
-            |pot| Projection::new(new_position, pot, true, map_point, texture),
+        position_on_texture_inside_tile(Box::new(door), door_x, current_position.x()).map(
+            |position_on_texture| Projection::new(new_position, position_on_texture, true, map_point, texture),
         )
     } else {
         let door = LateralDoor::new(opening_percentage);
@@ -131,22 +121,28 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let angle_sign = angle.cos().signum();
         let door_y = current_position.y() + (a / (2.0 * angle_sign));
 
-        let new_position = current_position.with_x(current_position.x() + 0.5 * angle_sign)
+        let new_position = current_position.with_x(current_position.x() + position_inside_tile * angle_sign)
             .with_y(door_y);
 
-        let right = current_position.y().ceil();
-        let left = current_position.y().floor();
-
-        if new_position.y() > right || new_position.y() < left {
-            return None;
-        }
-
-        let offset = decimal_part(door_y);
-
-        door.door_column(offset)
-            .map(|pot| Projection::new(new_position, pot, true, map_point, texture))
+        position_on_texture_inside_tile(Box::new(door), door_y, current_position.y())
+            .map(|position_on_texture| Projection::new(new_position, position_on_texture, true, map_point, texture))
     }
 }
+
+fn position_on_texture_inside_tile(door: Box<dyn Openable>, door_position: f32, current_position: f32) -> Option<f32> {
+    let right = current_position.ceil();
+    let left = current_position.floor();
+
+    if door_position > right || door_position < left {
+        return None;
+    }
+
+    let offset = decimal_part(door_position);
+    let position_on_texture = door.door_column(offset);
+
+    position_on_texture
+}
+
 
 impl ProjectedPoint {
     fn new(source_point: Position, projection: Projection) -> Self {
