@@ -27,43 +27,45 @@ pub struct MapConfiguration {
 
 impl Map {
     pub fn new(paving: &str) -> Result<Self, String> {
-        let mut p: Vec<Vec<Tile>> = vec![];
-        let mut height: i16 = 0;
-        let mut width: i16 = 0;
-
-
         let mut configuration = MapConfiguration::new(TextureIndex::VOID);
         configuration.add('#', Tile::SOLID(TextureIndex::WALL));
         configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
         configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
         configuration.add(' ', Tile::NOTHING);
 
+        let mut pav_x: Vec<Vec<Tile>> = vec![];
         for line in paving.split('\n') {
-            height += 1;
-            let mut chars: Vec<Tile> = vec![];
-            for char in line.chars() {
+            for (x, char) in line.chars().enumerate() {
+                if pav_x.len() <= x {
+                    pav_x.push(vec![]);
+                }
                 let tile = Self::char_to_tile(&configuration, char)?;
-                chars.push(tile)
+                pav_x[x].push(tile)
             }
+        }
 
-            let current_width = chars.len() as i16;
-            if width == 0 {
-                width = current_width;
+        for x in 0..pav_x.len() {
+            pav_x[x].reverse();
+        }
+
+
+        let mut current_height = 0;
+        for line in &pav_x {
+            let height = line.len() as i16;
+            if current_height == 0 {
+                current_height = height;
             }
-
-            if current_width != width {
+            if current_height != height {
                 return Err(String::from(
                     "Level is not valid: number of column is not consistent in every lines",
                 ));
             }
-
-            p.push(chars);
         }
-
-        p.reverse();
+        let height: i16 = current_height;
+        let width = pav_x.len() as i16;
 
         Ok(Self {
-            paving: p,
+            paving: pav_x,
             border_texture: configuration.map_border_texture(),
             height,
             width,
@@ -75,7 +77,7 @@ impl Map {
             return None;
         }
 
-        Some(&self.paving[y as usize][x as usize])
+        Some(&self.paving[x as usize][y as usize])
     }
 
 
@@ -103,7 +105,7 @@ impl MapConfiguration {
     pub fn new(map_border_texture: TextureIndex) -> Self {
         Self {
             conf: HashMap::new(),
-            map_border_texture
+            map_border_texture,
         }
     }
 

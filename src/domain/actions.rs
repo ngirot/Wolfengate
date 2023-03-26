@@ -29,9 +29,9 @@ pub struct NothingActionState {}
 impl Actions {
     pub fn new(map: &Map) -> Self {
         let mut paving = vec![];
-        for y in 0..map.height() {
+        for x in 0..map.width() {
             let mut line = vec![];
-            for x in 0..map.width() {
+            for y in 0..map.height() {
                 let current_paving = map.paving_at(x, y).unwrap();
                 match current_paving {
                     Tile::DYNAMIC(_, _, state_generator) => line.push(state_generator()),
@@ -53,21 +53,21 @@ impl Actions {
             return None;
         }
 
-        Some(&self.paving[y as usize][x as usize])
+        Some(&self.paving[x as usize][y as usize])
     }
 
     pub fn activate(&mut self, x: i16, y: i16) {
         let state = self.state_at(x, y);
         if state.is_some() {
             let new_state = state.unwrap().trigger();
-            self.paving[y as usize][x as usize] = new_state;
+            self.paving[x as usize][y as usize] = new_state;
         }
     }
 
     pub fn notify_elapsed(&mut self, microseconds: u128) {
         for x in 0..self.width {
             for y in 0..self.height {
-                self.paving[y as usize][x as usize] = self.paving[y as usize][x as usize].elapsed(microseconds);
+                self.paving[x as usize][y as usize] = self.paving[x as usize][y as usize].elapsed(microseconds);
             }
         }
     }
