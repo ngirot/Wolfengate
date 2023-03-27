@@ -10,7 +10,7 @@ pub struct Actions {
     height: i16,
 }
 
-pub trait ActionState {
+pub trait ActionState: Sync  {
     fn elapsed(&self, microseconds: u128) -> Box<dyn ActionState>;
     fn trigger(&self) -> Box<dyn ActionState>;
     fn activated_percentage(&self) -> f32;

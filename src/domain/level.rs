@@ -1,3 +1,5 @@
+use rayon::prelude::*;
+
 use crate::domain::actions::Actions;
 use crate::domain::actor::{Enemy, Player};
 use crate::domain::force::Force;
@@ -181,14 +183,12 @@ fn build_walls(
     map: &Map,
     actions: &Actions,
 ) -> Vec<DrawActionZIndex> {
-    let mut result = vec![];
-
-    let cone_angles = angle.discreet_cone(view.angle(), view.width());
-
-    for (i, current_angle) in cone_angles.iter().enumerate() {
-        let projected_points = project(*position, *current_angle, map, actions);
-
-        for projected_point in projected_points {
+    angle.discreet_cone(view.angle(), view.width())
+        .par_iter()
+        .enumerate()
+        .map(|(i, angle)| (i, project(*position, *angle, map, actions)))
+        .flat_map(|(i, projected)| projected.into_iter().map(|p| (i, p)).collect::<Vec<(usize, ProjectedPoint)>>())
+        .map(|(i, projected_point)| {
             let screen_length: i32 = view.height();
 
             let projection_distance = projected_point.distance();
@@ -208,10 +208,9 @@ fn build_walls(
                 projected_point.texture(),
                 projected_point.offset_in_bloc(),
             );
-            result.push(DrawActionZIndex::new(action, projection_distance));
-        }
-    }
-    result
+            DrawActionZIndex::new(action, projection_distance)
+        })
+        .collect()
 }
 
 fn build_enemies(
