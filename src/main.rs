@@ -1,18 +1,16 @@
 use std::time::Instant;
 
 use sdl2::ttf;
-use wolfengate::domain::actions::{LinearActionState, NothingActionState};
 
 use wolfengate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
 use wolfengate::domain::coord::Position;
 use wolfengate::domain::debug::DebugInfo;
 use wolfengate::domain::force::{Force, InputForce};
-use wolfengate::domain::index::{FontIndex, TextureIndex};
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level::Level;
-use wolfengate::domain::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 use wolfengate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
 use wolfengate::domain::view::ViewScreen;
+use wolfengate::fs::loader::map_loader;
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer;
 use wolfengate::sdl::drawer::ask_display;
@@ -32,31 +30,17 @@ fn render(
 }
 
 fn main() -> Result<(), String> {
-    let mut configuration = MapConfiguration::new(TextureIndex::VOID);
-    configuration.add('#', Tile::SOLID(TextureIndex::WALL));
-    configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
-    configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
-    configuration.add(' ', Tile::NOTHING);
+    let view = ViewScreen::new(500, 800);
+    let mut sdl_context = SdlContext::new(view)?;
+    let texture_creator = sdl_context.canvas().texture_creator();
+    let ttf_creator = ttf::init().unwrap();
 
-    let map = Map::new(
-        "\
-        ##############\n\
-        #      #     #\n\
-        #  #   #######\n\
-        #  #     #   #\n\
-        #  ####  # ###\n\
-        #     #      #\n\
-        #### ####G#D##\n\
-        #            #\n\
-        #            #\n\
-        #        #   #\n\
-        #        D   #\n\
-        #        #    \n\
-        #        G   #\n\
-        #        #   #\n\
-        ##############",
-    configuration)
-    .unwrap();
+
+    let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator);
+    let enemy_texture = registry.load_texture(String::from("enemy.png"));
+    let debug_font = registry.load_font(String::from("MontserratAlternates-Medium.otf"));
+
+    let map = map_loader(&mut registry);
 
     let position = Position::new(12.0, 3.0);
     let input_force = InputForce::new(0.004, 0.005);
@@ -65,24 +49,9 @@ fn main() -> Result<(), String> {
     let max_speed = SpeedStats::new(6.0);
     let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);
     let player = Player::new(position, ANGLE_UP, player_stats);
-    let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(5.0, 5.0));
-    let view = ViewScreen::new(500, 800);
+    let enemy = Enemy::new(enemy_texture, Position::new(5.0, 5.0));
     let mut level = Level::new(view, map, player, Some(enemy));
-    let mut debug_info = DebugInfo::new();
-
-    let mut sdl_context = SdlContext::new(view)?;
-    let texture_creator = sdl_context.canvas().texture_creator();
-    let ttf_creator = ttf::init().unwrap();
-    let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator);
-    registry.load_texture(TextureIndex::WALL, String::from("wall.png"));
-    registry.load_texture(TextureIndex::VOID, String::from("transparency.png"));
-    registry.load_texture(TextureIndex::ENEMY, String::from("enemy.png"));
-    registry.load_texture(TextureIndex::DOOR, String::from("door.png"));
-    registry.load_texture(TextureIndex::GLASS, String::from("glass.png"));
-    registry.load_font(
-        FontIndex::MONTSERRAT,
-        String::from("MontserratAlternates-Medium.otf"),
-    );
+    let mut debug_info = DebugInfo::new(debug_font);
 
     let mut start = Instant::now();
     'running: loop {

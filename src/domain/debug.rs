@@ -1,9 +1,11 @@
 use crate::domain::coord::ScreenPoint;
 use crate::domain::draw_action::DrawAction;
+use crate::domain::index::FontIndex;
 
 const MARGIN: i32 = 3;
 
 pub struct DebugInfo {
+    font: FontIndex,
     elapsed_time_in_microseconds: u128,
     frame_displayed: u128,
     last_fps: u128,
@@ -11,8 +13,9 @@ pub struct DebugInfo {
 }
 
 impl DebugInfo {
-    pub fn new() -> Self {
+    pub fn new(font: FontIndex) -> Self {
         Self {
+            font,
             elapsed_time_in_microseconds: 0,
             frame_displayed: 0,
             last_fps: 0,
@@ -27,6 +30,7 @@ impl DebugInfo {
                 fps,
                 ScreenPoint::new(MARGIN, 0),
                 ScreenPoint::new(100, 50),
+                self.font,
             )]
         } else {
             vec![]
@@ -35,6 +39,7 @@ impl DebugInfo {
 
     pub fn toggle_fps(&self) -> Self {
         Self {
+            font: self.font,
             elapsed_time_in_microseconds: self.elapsed_time_in_microseconds,
             frame_displayed: self.frame_displayed,
             last_fps: self.last_fps,
@@ -46,6 +51,7 @@ impl DebugInfo {
         if self.elapsed_time_in_microseconds > 500000 {
             let fps = self.frame_displayed * 1000000 / self.elapsed_time_in_microseconds;
             Self {
+                font: self.font,
                 elapsed_time_in_microseconds: 0,
                 frame_displayed: 0,
                 last_fps: fps,
@@ -53,6 +59,7 @@ impl DebugInfo {
             }
         } else {
             Self {
+                font: self.font,
                 elapsed_time_in_microseconds: self.elapsed_time_in_microseconds
                     + elapsed_time_in_microseconds,
                 frame_displayed: self.frame_displayed + 1,
@@ -60,11 +67,5 @@ impl DebugInfo {
                 display_fps: self.display_fps,
             }
         }
-    }
-}
-
-impl Default for DebugInfo {
-    fn default() -> Self {
-        DebugInfo::new()
     }
 }

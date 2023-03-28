@@ -125,10 +125,10 @@ pub mod map_test {
     use crate::domain::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 
     pub fn default_configuration() -> MapConfiguration {
-        let mut configuration = MapConfiguration::new(TextureIndex::VOID);
-        configuration.add('#', Tile::SOLID(TextureIndex::WALL));
-        configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
-        configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
+        let mut configuration = MapConfiguration::new(TextureIndex::new(0));
+        configuration.add('#', Tile::SOLID(TextureIndex::new(1)));
+        configuration.add('D', Tile::DYNAMIC(TextureIndex::new(2), TextureIndex::new(4), || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
+        configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), || Box::new(NothingActionState::new())));
         configuration.add(' ', Tile::NOTHING);
 
         configuration

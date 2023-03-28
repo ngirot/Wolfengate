@@ -1,13 +1,33 @@
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
-pub enum TextureIndex {
-    WALL,
-    VOID,
-    ENEMY,
-    DOOR,
-    GLASS,
+pub struct TextureIndex {
+    id: u128,
 }
 
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
-pub enum FontIndex {
-    MONTSERRAT,
+pub struct FontIndex {
+    id: u128,
+}
+
+impl TextureIndex {
+    pub fn new(id: u128) -> Self {
+        Self {
+            id
+        }
+    }
+
+    pub fn id(&self) -> u128 {
+        self.id
+    }
+}
+
+impl FontIndex {
+    pub fn new(id: u128) -> Self {
+        Self {
+            id
+        }
+    }
+
+    pub fn id(&self) -> u128 {
+        self.id
+    }
 }

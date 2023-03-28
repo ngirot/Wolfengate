@@ -365,7 +365,7 @@ mod level_test {
     fn enemy_should_be_in_the_list_after_the_wall_behind_him() {
         let map = Map::new("#  #", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
-        let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(2.0, 0.5));
+        let enemy = Enemy::new(TextureIndex::new(0), Position::new(2.0, 0.5));
         let view = ViewScreen::new(100, 100);
 
         let level = Level::new(view, map, player, Some(enemy));
@@ -389,7 +389,7 @@ mod level_test {
     fn enemy_should_be_in_the_list_before_the_wall_before_him() {
         let map = Map::new("# #   ", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
-        let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(4.5, 0.5));
+        let enemy = Enemy::new(TextureIndex::new(0), Position::new(4.5, 0.5));
         let view = ViewScreen::new(100, 100);
 
         let level = Level::new(view, map, player, Some(enemy));

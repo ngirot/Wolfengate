@@ -26,7 +26,7 @@ pub fn draw(context: &mut SdlContext, registry: &ResourceRegistry, actions: Vec<
                 )
             }
             DrawAction::Clear(color) => clear_screen(canvas, color),
-            DrawAction::Text(text, start, end) => draw_text(canvas, registry, text, start, end),
+            DrawAction::Text(text, start, end, font) => draw_text(canvas, registry, text, start, end, font),
             DrawAction::Sprite(start, end, texture) => {
                 draw_sprite(canvas, *start, *end, registry, *texture)
             }
@@ -44,9 +44,10 @@ fn draw_text(
     text: &str,
     start: &ScreenPoint,
     end: &ScreenPoint,
+    font: &FontIndex
 ) {
     let display_zone = to_sdl_rect(start, end);
-    let font = registry.get_font(FontIndex::MONTSERRAT).unwrap();
+    let font = registry.get_font(*font).unwrap();
 
     let surface = font
         .render(text)

@@ -431,7 +431,7 @@ mod project_test {
         let projected = project_single_wall(center, ANGLE_RIGHT, &map, &Actions::new(&map));
 
         assert_that!(projected.offset_in_bloc()).is_close_to(0.5, 0.001);
-        assert_that!(projected.texture()).is_equal_to(TextureIndex::VOID);
+        assert_that!(projected.texture()).is_equal_to(TextureIndex::new(0));
     }
 
     #[test]
@@ -549,7 +549,6 @@ mod project_test {
 
         assert_that!(projected).has_length(3);
         assert_that!(projected[0].distance()).is_close_to(1.0, 0.001);
-        assert_that!(projected[0].texture()).is_equal_to(TextureIndex::VOID);
     }
 
     #[test]

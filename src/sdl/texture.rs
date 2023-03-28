@@ -10,11 +10,12 @@ use sdl2::{
 use crate::domain::index::{FontIndex, TextureIndex};
 
 pub struct ResourceRegistry<'a> {
+    id: u128,
     texture_creator: &'a TextureCreator<WindowContext>,
     ttf_context: &'a Sdl2TtfContext,
 
-    texture_registry: HashMap<TextureIndex, LoadedTexture<'a>>,
-    font_registry: HashMap<FontIndex, Font<'a, 'a>>,
+    texture_registry: HashMap<u128, LoadedTexture<'a>>,
+    font_registry: HashMap<u128, Font<'a, 'a>>,
 }
 
 pub struct LoadedTexture<'a> {
@@ -29,6 +30,7 @@ impl<'s> ResourceRegistry<'s> {
         ttf_creator: &'s Sdl2TtfContext,
     ) -> ResourceRegistry<'s> {
         Self {
+            id: 0,
             texture_creator,
             ttf_context: ttf_creator,
             texture_registry: HashMap::new(),
@@ -36,28 +38,41 @@ impl<'s> ResourceRegistry<'s> {
         }
     }
 
-    pub fn load_texture(&mut self, index: TextureIndex, file: String) {
+    pub fn load_texture(&mut self, file: String) -> TextureIndex{
         let texture = load_texture(self.texture_creator, file);
         let query = texture.query();
 
         let loaded_texture = LoadedTexture::new(texture, query.width, query.height);
 
-        self.texture_registry.insert(index, loaded_texture);
+        let current_id = self.generate_id();
+        self.texture_registry.insert(current_id, loaded_texture);
+
+        TextureIndex::new(current_id)
     }
 
-    pub fn load_font(&mut self, index: FontIndex, filename: String) {
+    pub fn load_font(&mut self, filename: String) -> FontIndex{
         let path = build_path(filename);
         let font = self.ttf_context.load_font(path, 128).unwrap();
 
-        self.font_registry.insert(index, font);
+        let current_id = self.generate_id();
+        self.font_registry.insert(current_id, font);
+
+        FontIndex::new(current_id)
     }
 
     pub fn get_texture(&self, index: TextureIndex) -> Option<&LoadedTexture> {
-        self.texture_registry.get(&index)
+        self.texture_registry.get(&index.id())
     }
 
     pub fn get_font(&self, index: FontIndex) -> Option<&Font> {
-        self.font_registry.get(&index)
+        self.font_registry.get(&index.id())
+    }
+
+    fn generate_id(&mut self) -> u128 {
+        let generated = self.id;
+        self.id +=1;
+
+        generated
     }
 }
 
