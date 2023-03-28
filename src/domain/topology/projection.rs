@@ -1,9 +1,10 @@
 use crate::domain::control::actions::{Actions, ActionState};
-use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part};
+use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part, Vector};
 use crate::domain::topology::coord::{MapPoint, Position};
 use crate::domain::topology::door::Openable;
 use crate::domain::topology::index::TextureIndex;
 use crate::domain::topology::map::Tile;
+
 
 use super::map::Map;
 
@@ -153,6 +154,23 @@ impl ProjectedPoint {
 
     pub fn distance(&self) -> f32 {
         self.source_point.distance(&self.projected_point)
+    }
+
+    pub fn distance_no_fish_eye(&self, angle_reference: Angle) -> f32 {
+        let hypothenuse = self.distance();
+
+        let straight_vector = Vector::new(Position::new(0.0, 0.0), Position::new(angle_reference.cos(), angle_reference.sin()));
+        let projection_vector = Vector::new(self.source_point, self.projected_point);
+        let angle = projection_vector.angle(straight_vector);
+
+        let factor = angle
+            .map(|a| a.cos())
+            .map(|cos| cos.abs())
+            .filter(|n| !n.is_nan())
+            .unwrap_or_else(|| 1.0);
+
+
+        hypothenuse * factor
     }
 
     pub fn offset_in_bloc(&self) -> f32 {
@@ -575,5 +593,53 @@ mod project_test {
 
         let projected = project(position, ANGLE_RIGHT, &map, &actions);
         assert_that!(projected[0].blocking()).is_true();
+    }
+}
+
+#[cfg(test)]
+mod projected_point_test {
+    use spectral::prelude::*;
+
+    use crate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
+    use crate::domain::topology::coord::{MapPoint, Position};
+    use crate::domain::topology::index::TextureIndex;
+    use crate::domain::topology::projection::{ProjectedPoint, Projection};
+
+    #[test]
+    fn distance_fisheye_should_be_the_same_as_regular_distance_if_angle_is_the_same() {
+        let projected = build_projected_point(Position::new(0.0, 0.0), Position::new(1.0, 0.0));
+        let distance = projected.distance_no_fish_eye(ANGLE_RIGHT);
+        assert_that!(distance).is_close_to(projected.distance(), 0.001);
+    }
+
+    #[test]
+    fn distance_fisheye_should_be_the_same_as_another_point_in_the_same_wall() {
+        let projected = build_projected_point(Position::new(0.0, 0.0), Position::new(1.0, 1.0));
+        let distance = projected.distance_no_fish_eye(ANGLE_RIGHT);
+        assert_that!(distance).is_close_to(1.0, 0.001);
+    }
+
+    #[test]
+    fn distance_fisheye_should_be_the_same() {
+        let projected1 = build_projected_point(Position::new(0.0, 0.0), Position::new(100.0, 3.0));
+        let projected2 = build_projected_point(Position::new(0.0, 0.0), Position::new(-10.0, 3.0));
+
+        let distance1 = projected1.distance_no_fish_eye(ANGLE_UP);
+        let distance2 = projected2.distance_no_fish_eye(ANGLE_UP);
+
+        assert_that!(distance1).is_close_to(distance2, 0.001);
+    }
+
+    fn build_projected_point(source: Position, destination: Position) -> ProjectedPoint {
+        ProjectedPoint::new(
+            source,
+            Projection::new(
+                destination,
+                0.0,
+                true,
+                MapPoint::new(0, 0),
+                TextureIndex::new(0),
+            ),
+        )
     }
 }

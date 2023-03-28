@@ -178,11 +178,11 @@ fn build_background_actions(view: ViewScreen) -> Vec<DrawAction> {
 fn build_walls(
     view: ViewScreen,
     position: &Position,
-    angle: Angle,
+    view_angle: Angle,
     map: &Map,
     actions: &Actions,
 ) -> Vec<DrawActionZIndex> {
-    angle.discreet_cone(view.angle(), view.width())
+    view_angle.discreet_cone_straight_space(view.angle(), view.width())
         .par_iter()
         .enumerate()
         .map(|(i, angle)| (i, project(*position, *angle, map, actions)))
@@ -190,8 +190,9 @@ fn build_walls(
         .map(|(i, projected_point)| {
             let screen_length: i32 = view.height();
 
-            let projection_distance = projected_point.distance();
-            let wall_height = object_height(view, projection_distance);
+            let cartesian_distance = projected_point.distance();
+            let distance_for_height = projected_point.distance_no_fish_eye(view_angle);
+            let wall_height = object_height(view, distance_for_height);
             let start = ScreenPoint::new(
                 i as i32,
                 (screen_length as f32 / 2.0 - wall_height / 2.0) as i32,
@@ -207,7 +208,7 @@ fn build_walls(
                 projected_point.texture(),
                 projected_point.offset_in_bloc(),
             );
-            DrawActionZIndex::new(action, projection_distance)
+            DrawActionZIndex::new(action, cartesian_distance)
         })
         .collect()
 }

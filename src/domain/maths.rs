@@ -143,15 +143,35 @@ impl Angle {
         self.radiant.tan()
     }
 
-    pub fn discreet_cone(&self, cone_angle: Angle, number_of_angle: i32) -> Vec<Self> {
+    pub fn discreet_cone_spherical_space(&self, cone_angle: Angle, number_of_angle: i32) -> Vec<Self> {
         let min = self.radiant + (cone_angle.radiant / 2.0);
-        let step = cone_angle.radiant / number_of_angle as f32;
+        let step = cone_angle.radiant / (number_of_angle - 1) as f32;
 
         let mut result = vec![];
 
         for i in 0..number_of_angle {
             let current_angle = min - step * i as f32;
             result.push(Angle::new(current_angle));
+        }
+
+        result
+    }
+
+    pub fn discreet_cone_straight_space(&self, cone_angle: Angle, number_of_angle: i32) -> Vec<Self> {
+        let half_angle = Angle::new(cone_angle.to_radiant() / 2.0);
+        let max_x_distance = -half_angle.tan();
+        let step = max_x_distance * 2.0 / (number_of_angle - 1) as f32;
+
+        let mut result = vec![];
+
+        let angle_reference = Vector::new(Position::new(0.0, 0.0), Position::new(0.0, 1.0));
+
+        for i in 0..number_of_angle {
+            let current_x_position = max_x_distance - (step * (i as f32));
+            let current_vector = Vector::new(Position::new(0.0, 0.0), Position::new(current_x_position, 1.0));
+            let current_angle = current_vector.angle(angle_reference).unwrap();
+            let factor = if current_vector.angle_sign_is_negative(angle_reference) { -1.0 } else { 1.0 };
+            result.push(Angle::new(self.radiant + current_angle.radiant * factor));
         }
 
         result
@@ -318,8 +338,8 @@ mod fn_test {
 mod vector_test {
     use spectral::prelude::*;
 
-    use crate::domain::maths::Vector;
     use crate::domain::topology::coord::Position;
+    use crate::domain::maths::{Angle, ANGLE_LEFT, ANGLE_UP, Vector};
 
     #[test]
     fn vector_length_of_two_points() {
@@ -452,5 +472,87 @@ mod vector_test {
         let sign = vector1.angle_sign_is_negative(vector2);
 
         assert_that!(sign).is_false();
+    }
+
+    #[test]
+    fn spherical_cone_should_create_asked_number_of_angle() {
+        let angles = ANGLE_UP.discreet_cone_spherical_space(ANGLE_UP, 5);
+        assert_that!(angles).has_length(5);
+    }
+
+    #[test]
+    fn spherical_cone_should_have_uniform_angle_repartition() {
+        let angles = ANGLE_UP.discreet_cone_spherical_space(ANGLE_LEFT, 5);
+
+        let space_1 = angles[0].to_radiant() - angles[1].to_radiant();
+        let space_2 = angles[1].to_radiant() - angles[2].to_radiant();
+        let space_3 = angles[2].to_radiant() - angles[3].to_radiant();
+        let space_4 = angles[3].to_radiant() - angles[4].to_radiant();
+
+        assert_that!(space_1).is_close_to(space_2, 0.0001);
+        assert_that!(space_1).is_close_to(space_3, 0.0001);
+        assert_that!(space_1).is_close_to(space_4, 0.0001);
+    }
+
+    #[test]
+    fn spherical_cone_should_have_center_angle_as_base_angle() {
+        let base_angle = Angle::new(2.6);
+
+        let angles = base_angle.discreet_cone_spherical_space(ANGLE_LEFT, 5);
+
+        assert_that!(angles[2].to_radiant()).is_close_to(base_angle.to_radiant(), 0.01);
+    }
+
+    #[test]
+    fn spherical_cone_should_have_extreme_angle_difference_equals_to_cone_angle_asked() {
+        let cone_angle = Angle::new(1.8);
+        let angles = ANGLE_UP.discreet_cone_spherical_space(cone_angle, 5);
+
+        let space = angles[0].to_radiant() - angles[4].to_radiant();
+
+        assert_that!(space).is_close_to(cone_angle.to_radiant(), 0.01);
+    }
+
+    #[test]
+    fn straight_cone_should_create_asked_number_of_angle() {
+        let angles = ANGLE_UP.discreet_cone_straight_space(ANGLE_UP, 5);
+        assert_that!(angles).has_length(5);
+    }
+
+    #[test]
+    fn straight_cone_should_have_center_angle_as_base_angle() {
+        let base_angle = Angle::new(2.6);
+
+        let angles = base_angle.discreet_cone_straight_space(ANGLE_LEFT, 5);
+
+        assert_that!(angles[2].to_radiant()).is_close_to(base_angle.to_radiant(), 0.01);
+    }
+
+    #[test]
+    fn straight_cone_should_have_extreme_angle_difference_equals_to_cone_angle_asked() {
+        let cone_angle = Angle::new(1.8);
+        let angles = ANGLE_UP.discreet_cone_straight_space(cone_angle, 5);
+
+        let space = angles[0].to_radiant() - angles[4].to_radiant();
+
+        assert_that!(space).is_close_to(cone_angle.to_radiant(), 0.01);
+    }
+
+    #[test]
+    fn straight_cone_should_have_uniform_distance_repartition() {
+        let angles = ANGLE_UP.discreet_cone_straight_space(ANGLE_UP, 5);
+
+        let project_on_y: Vec<Position> = angles.iter()
+            .map(|angle| Position::new(angle.cos() / angle.sin(), angle.sin() / angle.sin()))
+            .collect();
+
+        let distance_1 = project_on_y[0].distance(&project_on_y[1]);
+        let distance_2 = project_on_y[1].distance(&project_on_y[2]);
+        let distance_3 = project_on_y[2].distance(&project_on_y[3]);
+        let distance_4 = project_on_y[3].distance(&project_on_y[4]);
+
+        assert_that!(distance_1).is_close_to(distance_2, 0.0001);
+        assert_that!(distance_1).is_close_to(distance_3, 0.0001);
+        assert_that!(distance_1).is_close_to(distance_4, 0.0001);
     }
 }
