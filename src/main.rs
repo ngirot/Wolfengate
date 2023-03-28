@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use sdl2::ttf;
+use wolfengate::domain::actions::{LinearActionState, NothingActionState};
 
 use wolfengate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
 use wolfengate::domain::coord::Position;
@@ -9,7 +10,7 @@ use wolfengate::domain::force::{Force, InputForce};
 use wolfengate::domain::index::{FontIndex, TextureIndex};
 use wolfengate::domain::input::Input;
 use wolfengate::domain::level::Level;
-use wolfengate::domain::map::Map;
+use wolfengate::domain::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 use wolfengate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
 use wolfengate::domain::view::ViewScreen;
 use wolfengate::sdl::context::SdlContext;
@@ -31,6 +32,12 @@ fn render(
 }
 
 fn main() -> Result<(), String> {
+    let mut configuration = MapConfiguration::new(TextureIndex::VOID);
+    configuration.add('#', Tile::SOLID(TextureIndex::WALL));
+    configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
+    configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
+    configuration.add(' ', Tile::NOTHING);
+
     let map = Map::new(
         "\
         ##############\n\
@@ -48,7 +55,7 @@ fn main() -> Result<(), String> {
         #        G   #\n\
         #        #   #\n\
         ##############",
-    )
+    configuration)
     .unwrap();
 
     let position = Position::new(12.0, 3.0);

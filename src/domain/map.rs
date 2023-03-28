@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
-use crate::domain::actions::{ActionState, LinearActionState, NothingActionState};
-use crate::domain::actor::SpeedStats;
+use crate::domain::actions::ActionState;
 use crate::domain::index::TextureIndex;
 
 pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
@@ -26,13 +25,7 @@ pub struct MapConfiguration {
 }
 
 impl Map {
-    pub fn new(paving: &str) -> Result<Self, String> {
-        let mut configuration = MapConfiguration::new(TextureIndex::VOID);
-        configuration.add('#', Tile::SOLID(TextureIndex::WALL));
-        configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
-        configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
-        configuration.add(' ', Tile::NOTHING);
-
+    pub fn new(paving: &str, configuration: MapConfiguration) -> Result<Self, String> {
         let mut pav_x: Vec<Vec<Tile>> = vec![];
         for line in paving.split('\n') {
             for (x, char) in line.chars().enumerate() {
@@ -123,15 +116,28 @@ impl MapConfiguration {
 }
 
 #[cfg(test)]
-mod map_test {
+pub mod map_test {
     use spectral::prelude::*;
 
-    use crate::domain::map::{Map, Tile};
+    use crate::domain::actions::{LinearActionState, NothingActionState};
+    use crate::domain::actor::SpeedStats;
+    use crate::domain::index::TextureIndex;
+    use crate::domain::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
+
+    pub fn default_configuration() -> MapConfiguration {
+        let mut configuration = MapConfiguration::new(TextureIndex::VOID);
+        configuration.add('#', Tile::SOLID(TextureIndex::WALL));
+        configuration.add('D', Tile::DYNAMIC(TextureIndex::DOOR, TextureIndex::VOID, || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
+        configuration.add('G', Tile::DYNAMIC(TextureIndex::GLASS, TextureIndex::VOID, || Box::new(NothingActionState::new())));
+        configuration.add(' ', Tile::NOTHING);
+
+        configuration
+    }
 
     #[test]
     fn should_read_paving_information() {
         let paving = String::from("###\n# #\n# #\n###");
-        let map = Map::new(&paving).unwrap();
+        let map = Map::new(&paving, default_configuration()).unwrap();
 
         assert!(matches!(&map.paving_at(0, 0), Some(Tile::SOLID(_))));
         assert!(matches!(&map.paving_at(1, 0), Some(Tile::SOLID(_))));
@@ -152,41 +158,41 @@ mod map_test {
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_width_map() {
-        let map = Map::new("  \n  ").unwrap();
+        let map = Map::new("  \n  ", default_configuration()).unwrap();
         let tile = map.paving_at(0, 2);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_height_map() {
-        let map = Map::new("  \n  ").unwrap();
+        let map = Map::new("  \n  ", default_configuration()).unwrap();
         let tile = map.paving_at(2, 0);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_negative_x_coordinate() {
-        let map = Map::new("  \n  ").unwrap();
+        let map = Map::new("  \n  ", default_configuration()).unwrap();
         let tile = map.paving_at(-1, 0);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_negative_y_coordinate() {
-        let map = Map::new("  \n  ").unwrap();
+        let map = Map::new("  \n  ", default_configuration()).unwrap();
         let tile = map.paving_at(0, -1);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_validate_a_map_with_inconsistent_column_number() {
-        let map = Map::new("   \n  ");
+        let map = Map::new("   \n  ", default_configuration());
         assert_that!(map.err()).is_some();
     }
 
     #[test]
     fn should_not_validate_a_map_with_unknown_char() {
-        let map = Map::new("#k\n #");
+        let map = Map::new("#k\n #", default_configuration());
         assert_that!(map.err()).is_some();
     }
 }

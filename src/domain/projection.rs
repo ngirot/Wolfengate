@@ -201,6 +201,7 @@ mod project_test {
     use crate::domain::actions::Actions;
     use crate::domain::index::TextureIndex;
     use crate::domain::map::DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS;
+    use crate::domain::map::map_test::default_configuration;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::projection::ProjectedPoint;
 
@@ -222,7 +223,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_UP, &map, &Actions::new(&map));
@@ -239,7 +240,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 1.3);
         let projected = project_single_wall(center, ANGLE_UP, &map, &Actions::new(&map));
@@ -256,7 +257,7 @@ mod project_test {
             #   #\n\
             # # #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_DOWN, &map, &Actions::new(&map));
@@ -273,7 +274,7 @@ mod project_test {
             #   #\n\
             # # #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 3.2);
         let projected = project_single_wall(center, ANGLE_DOWN, &map, &Actions::new(&map));
@@ -290,7 +291,7 @@ mod project_test {
             ##  #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_LEFT, &map, &Actions::new(&map));
@@ -307,7 +308,7 @@ mod project_test {
             ##  #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(3.1, 2.5);
         let projected = project_single_wall(center, ANGLE_LEFT, &map, &Actions::new(&map));
@@ -324,7 +325,7 @@ mod project_test {
             #  ##\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_RIGHT, &map, &Actions::new(&map));
@@ -341,7 +342,7 @@ mod project_test {
             #  ##\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(1.1, 2.5);
         let projected = project_single_wall(center, ANGLE_RIGHT, &map, &Actions::new(&map));
@@ -358,7 +359,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(0.7), &map, &Actions::new(&map));
@@ -375,7 +376,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(PI - 0.7), &map, &Actions::new(&map));
@@ -392,7 +393,7 @@ mod project_test {
             #   #\n\
             #  ##\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(-0.7), &map, &Actions::new(&map));
@@ -409,7 +410,7 @@ mod project_test {
             #   #\n\
             ##  #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(PI + 0.7), &map, &Actions::new(&map));
@@ -424,7 +425,7 @@ mod project_test {
             #####\n\
             #    \n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(1.5, 1.5);
         let projected = project_single_wall(center, ANGLE_RIGHT, &map, &Actions::new(&map));
@@ -442,7 +443,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_UP, &map, &Actions::new(&map));
@@ -459,7 +460,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(PI / 2.0 + 0.23), &map, &Actions::new(&map));
@@ -475,7 +476,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project(center, ANGLE_UP, &map, &Actions::new(&map));
@@ -492,7 +493,7 @@ mod project_test {
             #   #\n\
             #   #\n\
             ##D##",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.5, 2.5);
         let projected = project(center, ANGLE_DOWN, &map, &Actions::new(&map));
@@ -508,7 +509,7 @@ mod project_test {
             ####\n\
             D  #\n\
             ####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.0, 1.1);
 
@@ -525,7 +526,7 @@ mod project_test {
             ####\n\
             #  D\n\
             ####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.0, 1.1);
         let projected = project(center, ANGLE_RIGHT, &map, &Actions::new(&map));
@@ -541,7 +542,7 @@ mod project_test {
             ####\n\
             #  D\n\
             ####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.0, 1.1);
         let projected = project(center, ANGLE_RIGHT, &map, &Actions::new(&map));
@@ -558,7 +559,7 @@ mod project_test {
             #####\n\
             #  D#\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
         let center = Position::new(2.0, 1.1);
         let projected = project(center, ANGLE_RIGHT, &map, &Actions::new(&map));
@@ -574,7 +575,7 @@ mod project_test {
             ##D##\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
 
         let no_door_map = Map::new(
@@ -582,7 +583,7 @@ mod project_test {
             ## ##\n\
             #   #\n\
             #####",
-        )
+            default_configuration())
             .unwrap();
 
         let center = Position::new(2.9, 1.9);
@@ -595,7 +596,7 @@ mod project_test {
 
     #[test]
     fn closed_door_should_be_blocking() {
-        let map = Map::new(" D    ").unwrap();
+        let map = Map::new(" D    ", default_configuration()).unwrap();
         let position = Position::new(0.5, 0.5);
         let actions = Actions::new(&map);
 
@@ -606,7 +607,7 @@ mod project_test {
 
     #[test]
     fn open_door_should_not_be_blocking() {
-        let map = Map::new(" D    ").unwrap();
+        let map = Map::new(" D    ", default_configuration()).unwrap();
         let position = Position::new(0.5, 0.5);
         let mut actions = Actions::new(&map);
         actions.activate(1, 0);
@@ -618,7 +619,7 @@ mod project_test {
 
     #[test]
     fn half_open_door_should_be_blocking() {
-        let map = Map::new(" D    ").unwrap();
+        let map = Map::new(" D    ", default_configuration()).unwrap();
         let position = Position::new(0.5, 0.5);
         let mut actions = Actions::new(&map);
         actions.activate(1, 0);

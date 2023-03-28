@@ -267,6 +267,7 @@ mod level_test {
     use crate::domain::force::Force;
     use crate::domain::index::TextureIndex;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
+    use crate::domain::map::map_test::default_configuration;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::view::ViewScreen;
 
@@ -285,7 +286,7 @@ mod level_test {
     fn actions_should_start_with_a_clear() {
         let player = Player::new(Position::new(0.0, 0.0), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(0, 0);
-        let level = Level::new(view, Map::new("#").unwrap(), player, None);
+        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player, None);
 
         let actions = level.generate_actions();
 
@@ -298,7 +299,7 @@ mod level_test {
     fn actions_should_draw_ceiling() {
         let player = Player::new(Position::new(0.0, 0.0), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(200, 100);
-        let level = Level::new(view, Map::new("#").unwrap(), player, None);
+        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player, None);
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -319,7 +320,7 @@ mod level_test {
         let player = Player::new(Position::new(0.0, 0.0), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(200, 100);
 
-        let level = Level::new(view, Map::new("#").unwrap(), player, None);
+        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player, None);
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -337,7 +338,7 @@ mod level_test {
 
     #[test]
     fn apply_force_should_constraint_moves() {
-        let map = Map::new("# #").unwrap();
+        let map = Map::new("# #", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(100, 100);
 
@@ -349,7 +350,7 @@ mod level_test {
 
     #[test]
     fn apply_force_should_apply_not_constrained_moves() {
-        let map = Map::new("# #").unwrap();
+        let map = Map::new("# #", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.8, 0.5), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(100, 100);
 
@@ -362,7 +363,7 @@ mod level_test {
 
     #[test]
     fn enemy_should_be_in_the_list_after_the_wall_behind_him() {
-        let map = Map::new("#  #").unwrap();
+        let map = Map::new("#  #", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
         let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(2.0, 0.5));
         let view = ViewScreen::new(100, 100);
@@ -386,7 +387,7 @@ mod level_test {
 
     #[test]
     fn enemy_should_be_in_the_list_before_the_wall_before_him() {
-        let map = Map::new("# #   ").unwrap();
+        let map = Map::new("# #   ", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
         let enemy = Enemy::new(TextureIndex::ENEMY, Position::new(4.5, 0.5));
         let view = ViewScreen::new(100, 100);
@@ -410,7 +411,7 @@ mod level_test {
 
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_top() {
-        let map = Map::new("# #").unwrap();
+        let map = Map::new("# #", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(100, 100);
 
@@ -427,7 +428,7 @@ mod level_test {
 
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_bottom() {
-        let map = Map::new("# #").unwrap();
+        let map = Map::new("# #", default_configuration()).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_LEFT, default_stats());
         let view = ViewScreen::new(100, 100);
 
@@ -441,7 +442,7 @@ mod level_test {
 
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_right() {
-        let map = Map::new("#\n \n#").unwrap();
+        let map = Map::new("#\n \n#", default_configuration()).unwrap();
         let player = Player::new(Position::new(0.5, 1.5), ANGLE_UP, default_stats());
         let view = ViewScreen::new(100, 100);
 
@@ -458,7 +459,7 @@ mod level_test {
 
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_left() {
-        let map = Map::new("#\n \n#").unwrap();
+        let map = Map::new("#\n \n#", default_configuration()).unwrap();
         let player = Player::new(Position::new(0.5, 1.5), ANGLE_DOWN, default_stats());
         let view = ViewScreen::new(100, 100);
 
