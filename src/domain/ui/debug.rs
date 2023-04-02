@@ -1,6 +1,6 @@
-use crate::domain::coord::ScreenPoint;
-use crate::domain::draw_action::DrawAction;
-use crate::domain::index::FontIndex;
+use crate::domain::topology::coord::ScreenPoint;
+use crate::domain::topology::index::FontIndex;
+use crate::domain::ui::draw_action::DrawAction;
 
 const MARGIN: i32 = 3;
 

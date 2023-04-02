@@ -1,18 +1,9 @@
-pub mod actor;
-pub mod color;
-pub mod coord;
-pub mod debug;
-pub mod draw_action;
-pub mod force;
-pub mod index;
-pub mod input;
 pub mod level;
-pub mod map;
 pub mod maths;
-pub mod physics;
-pub mod view;
-pub mod door;
-pub mod actions;
 pub mod resources;
-mod projection;
 pub mod loader;
+
+pub mod control;
+pub mod topology;
+pub mod ui;
+pub mod actors;

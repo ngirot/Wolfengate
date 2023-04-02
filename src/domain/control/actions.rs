@@ -1,8 +1,8 @@
 use std::fmt::Debug;
+use crate::domain::actors::actor::SpeedStats;
 
-use crate::domain::actor::SpeedStats;
-use crate::domain::map::{Map, Tile};
 use crate::domain::maths::between;
+use crate::domain::topology::map::{Map, Tile};
 
 pub struct Actions {
     paving: Vec<Vec<Box<dyn ActionState>>>,
@@ -146,10 +146,10 @@ impl ActionState for NothingActionState {
 #[cfg(test)]
 mod actions_test {
     use spectral::prelude::*;
+    use crate::domain::control::actions::Actions;
+    use crate::domain::topology::map::Map;
+    use crate::domain::topology::map::map_test::default_configuration;
 
-    use crate::domain::actions::Actions;
-    use crate::domain::map::Map;
-    use crate::domain::map::map_test::default_configuration;
 
     #[test]
     fn should_read_paving_information() {
@@ -215,9 +215,9 @@ mod actions_test {
 #[cfg(test)]
 mod linear_action_state_test {
     use spectral::prelude::*;
-
-    use crate::domain::actions::{ActionState, LinearActionState};
-    use crate::domain::actor::SpeedStats;
+    use crate::domain::actors::actor::SpeedStats;
+    use crate::domain::control::actions::LinearActionState;
+    use crate::domain::control::actions::ActionState;
 
     #[test]
     fn should_activate_at_50_percentage_at_mid_timer() {

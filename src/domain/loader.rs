@@ -1,7 +1,7 @@
-use crate::domain::actions::{LinearActionState, NothingActionState};
-use crate::domain::actor::SpeedStats;
-use crate::domain::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
+use crate::domain::actors::actor::SpeedStats;
+use crate::domain::control::actions::{LinearActionState, NothingActionState};
 use crate::domain::resources::ResourceLoader;
+use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 use crate::sdl::texture::ResourceRegistry;
 
 pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoader) -> Map {

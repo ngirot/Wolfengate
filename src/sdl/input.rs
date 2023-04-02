@@ -1,7 +1,6 @@
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-
-use crate::domain::input::Input;
+use crate::domain::control::input::Input;
 
 use super::context::SdlContext;
 

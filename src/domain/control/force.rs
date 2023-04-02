@@ -112,7 +112,7 @@ mod input_force_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::force::{Force, InputForce};
+    use crate::domain::control::force::{Force, InputForce};
     use crate::domain::maths::{Angle, ANGLE_RIGHT};
 
     #[test]

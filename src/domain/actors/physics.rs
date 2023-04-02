@@ -1,4 +1,4 @@
-use crate::domain::actor::SpeedStats;
+use crate::domain::actors::actor::SpeedStats;
 use crate::domain::maths::{Angle, Move};
 
 #[derive(Copy, Clone)]
@@ -108,10 +108,10 @@ impl Acceleration {
 #[cfg(test)]
 mod fn_speed_stats {
     use spectral::prelude::*;
+    use crate::domain::actors::actor::SpeedStats;
+    use crate::domain::actors::physics::Speed;
 
-    use crate::domain::actor::SpeedStats;
     use crate::domain::maths::ANGLE_RIGHT;
-    use crate::domain::physics::Speed;
 
     #[test]
     fn should_reduce_speed_if_bigger_than_max() {

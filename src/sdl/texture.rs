@@ -7,7 +7,7 @@ use sdl2::{
     video::WindowContext,
 };
 
-use crate::domain::index::{FontIndex, TextureIndex};
+use crate::domain::topology::index::{FontIndex, TextureIndex};
 
 pub struct ResourceRegistry<'a> {
     id: u128,

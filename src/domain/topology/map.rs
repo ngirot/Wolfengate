@@ -1,7 +1,6 @@
 use std::collections::HashMap;
-
-use crate::domain::actions::ActionState;
-use crate::domain::index::TextureIndex;
+use crate::domain::control::actions::ActionState;
+use crate::domain::topology::index::TextureIndex;
 
 pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
 
@@ -118,11 +117,10 @@ impl MapConfiguration {
 #[cfg(test)]
 pub mod map_test {
     use spectral::prelude::*;
-
-    use crate::domain::actions::{LinearActionState, NothingActionState};
-    use crate::domain::actor::SpeedStats;
-    use crate::domain::index::TextureIndex;
-    use crate::domain::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
+    use crate::domain::actors::actor::SpeedStats;
+    use crate::domain::control::actions::{LinearActionState, NothingActionState};
+    use crate::domain::topology::index::TextureIndex;
+    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 
     pub fn default_configuration() -> MapConfiguration {
         let mut configuration = MapConfiguration::new(TextureIndex::new(0));

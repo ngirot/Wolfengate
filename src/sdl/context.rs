@@ -1,9 +1,9 @@
-use crate::domain::view::ViewScreen;
 use sdl2::{
     render::WindowCanvas,
     video::{DisplayMode, FullscreenType},
     EventPump,
 };
+use crate::domain::ui::view::ViewScreen;
 
 pub struct SdlContext {
     canvas: WindowCanvas,

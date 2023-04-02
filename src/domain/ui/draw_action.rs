@@ -1,5 +1,6 @@
-use crate::domain::index::FontIndex;
-use super::{color::Color, coord::ScreenPoint, index::TextureIndex};
+use crate::domain::topology::index::{FontIndex, TextureIndex};
+use crate::domain::topology::coord::ScreenPoint;
+use crate::domain::ui::color::Color;
 
 #[derive(Clone)]
 pub enum DrawAction {

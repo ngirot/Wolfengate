@@ -1,13 +1,11 @@
-use crate::domain::actions::{Actions, ActionState};
-use crate::domain::door::{CentralDoor, LateralDoor, Openable};
-use crate::domain::index::TextureIndex;
-use crate::domain::map::Tile;
+use crate::domain::control::actions::{Actions, ActionState};
+use crate::domain::topology::door::{CentralDoor, LateralDoor, Openable};
+use crate::domain::topology::index::TextureIndex;
 use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part};
+use crate::domain::topology::coord::{MapPoint, Position};
+use crate::domain::topology::map::Tile;
 
-use super::{
-    coord::{MapPoint, Position},
-    map::Map,
-};
+use super::map::Map;
 
 #[derive(Debug, Copy, Clone)]
 pub struct ProjectedPoint {
@@ -196,14 +194,14 @@ mod project_test {
     use std::time::Duration;
 
     use spectral::prelude::*;
+    use crate::domain::control::actions::Actions;
 
-    use crate::domain::{coord::Position, map::Map};
-    use crate::domain::actions::Actions;
-    use crate::domain::index::TextureIndex;
-    use crate::domain::map::DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS;
-    use crate::domain::map::map_test::default_configuration;
+    use crate::domain::topology::index::TextureIndex;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
-    use crate::domain::projection::ProjectedPoint;
+    use crate::domain::topology::coord::Position;
+    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map};
+    use crate::domain::topology::map::map_test::default_configuration;
+    use crate::domain::topology::projection::ProjectedPoint;
 
     use super::project;
 

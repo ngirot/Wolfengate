@@ -1,9 +1,9 @@
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 
-use crate::domain::coord::ScreenPoint;
-use crate::domain::draw_action::DrawAction;
-use crate::domain::index::{FontIndex, TextureIndex};
+use crate::domain::topology::coord::ScreenPoint;
+use crate::domain::topology::index::{FontIndex, TextureIndex};
+use crate::domain::ui::draw_action::DrawAction;
 
 use super::context::SdlContext;
 use super::texture::ResourceRegistry;
@@ -62,7 +62,7 @@ fn draw_text(
 
 fn clear_screen(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
-    color: &crate::domain::color::Color,
+    color: &crate::domain::ui::color::Color,
 ) {
     canvas.set_draw_color(to_sdl_color(color));
     canvas.clear();
@@ -70,7 +70,7 @@ fn clear_screen(
 
 fn draw_line(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
-    color: &crate::domain::color::Color,
+    color: &crate::domain::ui::color::Color,
     start: &ScreenPoint,
     end: &ScreenPoint,
 ) {
@@ -125,7 +125,7 @@ fn draw_sprite(
 
 fn draw_rectangle(
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
-    color: &crate::domain::color::Color,
+    color: &crate::domain::ui::color::Color,
     start: &ScreenPoint,
     end: &ScreenPoint,
 ) {
@@ -135,7 +135,7 @@ fn draw_rectangle(
         .expect("Cannot render a rectangle");
 }
 
-fn to_sdl_color(color: &crate::domain::color::Color) -> Color {
+fn to_sdl_color(color: &crate::domain::ui::color::Color) -> Color {
     Color::RGB(color.red(), color.green(), color.blue())
 }
 

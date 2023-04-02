@@ -63,7 +63,7 @@ mod openable_test {
     use rand::Rng;
     use spectral::prelude::*;
 
-    use crate::domain::door::{CentralDoor, LateralDoor, Openable};
+    use crate::domain::topology::door::{CentralDoor, LateralDoor, Openable};
 
     fn test_on_range(f: impl Fn(f32)) {
         let mut rng = rand::thread_rng();

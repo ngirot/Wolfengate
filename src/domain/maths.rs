@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use crate::domain::coord::Position;
+use crate::domain::topology::coord::Position;
 
 pub const ANGLE_RIGHT: Angle = Angle::init(0.0);
 pub const ANGLE_UP: Angle = Angle::init(PI / 2.0);
@@ -245,7 +245,7 @@ mod fn_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::coord::Position;
+    use crate::domain::topology::coord::Position;
     use crate::domain::maths::signed_angle;
 
     #[test]
@@ -280,7 +280,7 @@ mod fn_test {
 mod vector_test {
     use spectral::prelude::*;
 
-    use crate::domain::coord::Position;
+    use crate::domain::topology::coord::Position;
     use crate::domain::maths::Vector;
 
     #[test]

@@ -1,19 +1,15 @@
 use rayon::prelude::*;
 
-use crate::domain::actions::Actions;
-use crate::domain::actor::{Enemy, Player};
-use crate::domain::force::Force;
+use crate::domain::actors::actor::{Enemy, Player};
+use crate::domain::control::actions::Actions;
+use crate::domain::control::force::Force;
 use crate::domain::maths::{Angle, signed_angle, Vector};
-use crate::domain::projection::ProjectedPoint;
-use crate::domain::view::ViewScreen;
-
-use super::{
-    color::Color,
-    coord::{Position, ScreenPoint},
-    draw_action::DrawAction,
-    map::Map,
-    projection::project,
-};
+use crate::domain::topology::coord::{Position, ScreenPoint};
+use crate::domain::topology::map::Map;
+use crate::domain::topology::projection::{project, ProjectedPoint};
+use crate::domain::ui::color::Color;
+use crate::domain::ui::draw_action::DrawAction;
+use crate::domain::ui::view::ViewScreen;
 
 const WALL_MINIMUM_DISTANCE: f32 = 0.1;
 
@@ -262,14 +258,16 @@ mod level_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::{coord::Position, draw_action::DrawAction, map::Map};
-    use crate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
-    use crate::domain::force::Force;
-    use crate::domain::index::TextureIndex;
+    use crate::domain::actors::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
+    use crate::domain::control::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
-    use crate::domain::map::map_test::default_configuration;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
-    use crate::domain::view::ViewScreen;
+    use crate::domain::topology::coord::Position;
+    use crate::domain::topology::index::TextureIndex;
+    use crate::domain::topology::map::Map;
+    use crate::domain::topology::map::map_test::default_configuration;
+    use crate::domain::ui::draw_action::DrawAction;
+    use crate::domain::ui::view::ViewScreen;
 
     use super::Level;
 

@@ -2,16 +2,16 @@ use std::time::Instant;
 
 use sdl2::ttf;
 
-use wolfengate::domain::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
-use wolfengate::domain::coord::Position;
-use wolfengate::domain::debug::DebugInfo;
-use wolfengate::domain::force::{Force, InputForce};
-use wolfengate::domain::input::Input;
+use wolfengate::domain::actors::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
+use wolfengate::domain::topology::coord::Position;
+use wolfengate::domain::control::force::{Force, InputForce};
+use wolfengate::domain::control::input::Input;
 use wolfengate::domain::level::Level;
 use wolfengate::domain::loader::map_loader;
 use wolfengate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
 use wolfengate::domain::resources::ResourceLoader;
-use wolfengate::domain::view::ViewScreen;
+use wolfengate::domain::ui::debug::DebugInfo;
+use wolfengate::domain::ui::view::ViewScreen;
 use wolfengate::fs::filesystem::load_as_binary;
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer;
