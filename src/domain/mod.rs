@@ -13,5 +13,6 @@ pub mod physics;
 pub mod view;
 pub mod door;
 pub mod actions;
-
+pub mod resources;
 mod projection;
+pub mod loader;

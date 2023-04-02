@@ -1,10 +1,10 @@
 use crate::domain::actions::{LinearActionState, NothingActionState};
 use crate::domain::actor::SpeedStats;
 use crate::domain::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
+use crate::domain::resources::ResourceLoader;
 use crate::sdl::texture::ResourceRegistry;
 
-pub fn map_loader(registry: &mut ResourceRegistry) -> Map {
-
+pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoader) -> Map {
     let wal_texture = registry.load_texture(String::from("wall.png"));
     let void_texture = registry.load_texture(String::from("transparency.png"));
     let door_texture = registry.load_texture(String::from("door.png"));
@@ -16,23 +16,9 @@ pub fn map_loader(registry: &mut ResourceRegistry) -> Map {
     configuration.add('G', Tile::DYNAMIC(glass_texture, void_texture, || Box::new(NothingActionState::new())));
     configuration.add(' ', Tile::NOTHING);
 
+    let map_content = resource_loader.load_as_string(String::from("1.map"));
     let map = Map::new(
-        "\
-        ##############\n\
-        #      #     #\n\
-        #  #   #######\n\
-        #  #     #   #\n\
-        #  ####  # ###\n\
-        #     #      #\n\
-        #### ####G#D##\n\
-        #            #\n\
-        #            #\n\
-        #        #   #\n\
-        #        D   #\n\
-        #        #    \n\
-        #        G   #\n\
-        #        #   #\n\
-        ##############",
+        &map_content,
         configuration)
         .unwrap();
 
