@@ -1,18 +1,20 @@
 use std::collections::HashMap;
 
-use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::{
     image::LoadTexture,
     render::{Texture, TextureCreator},
     video::WindowContext,
 };
+use sdl2::ttf::{Font, Sdl2TtfContext};
 
+use crate::domain::resources::ResourceLoader;
 use crate::domain::topology::index::{FontIndex, TextureIndex};
 
 pub struct ResourceRegistry<'a> {
     id: u128,
     texture_creator: &'a TextureCreator<WindowContext>,
     ttf_context: &'a Sdl2TtfContext,
+    resource_loader: &'a ResourceLoader,
 
     texture_registry: HashMap<u128, LoadedTexture<'a>>,
     font_registry: HashMap<u128, Font<'a, 'a>>,
@@ -28,18 +30,20 @@ impl<'s> ResourceRegistry<'s> {
     pub fn new(
         texture_creator: &'s TextureCreator<WindowContext>,
         ttf_creator: &'s Sdl2TtfContext,
+        resource_loader: &'s ResourceLoader,
     ) -> ResourceRegistry<'s> {
         Self {
             id: 0,
             texture_creator,
+            resource_loader,
             ttf_context: ttf_creator,
             texture_registry: HashMap::new(),
             font_registry: HashMap::new(),
         }
     }
 
-    pub fn load_texture(&mut self, file: String) -> TextureIndex{
-        let texture = load_texture(self.texture_creator, file);
+    pub fn load_texture(&mut self, file: String) -> TextureIndex {
+        let texture = load_texture(self.texture_creator, file, self.resource_loader);
         let query = texture.query();
 
         let loaded_texture = LoadedTexture::new(texture, query.width, query.height);
@@ -50,10 +54,9 @@ impl<'s> ResourceRegistry<'s> {
         TextureIndex::new(current_id)
     }
 
-    pub fn load_font(&mut self, filename: String) -> FontIndex{
-        let path = build_path(filename);
-        let font = self.ttf_context.load_font(path, 128).unwrap();
-
+    pub fn load_font(&mut self, filename: String) -> FontIndex {
+        let file = self.resource_loader.load_as_file(filename);
+        let font = self.ttf_context.load_font(file, 128).unwrap();
         let current_id = self.generate_id();
         self.font_registry.insert(current_id, font);
 
@@ -70,7 +73,7 @@ impl<'s> ResourceRegistry<'s> {
 
     fn generate_id(&mut self) -> u128 {
         let generated = self.id;
-        self.id +=1;
+        self.id += 1;
 
         generated
     }
@@ -98,17 +101,10 @@ impl<'s> LoadedTexture<'s> {
     }
 }
 
-fn load_texture(texture_creator: &TextureCreator<WindowContext>, filename: String) -> Texture {
-    let path = build_path(filename);
+fn load_texture<'a>(texture_creator: &'a TextureCreator<WindowContext>, filename: String, resource_loader: &'a ResourceLoader) -> Texture<'a> {
+    let path = resource_loader.load_as_binary(filename);
     let texture = texture_creator
-        .load_texture(path)
+        .load_texture_bytes(path.as_slice())
         .expect("Unable to load texture");
     texture
-}
-
-fn build_path(filename: String) -> String {
-    let mut path = String::from("res/");
-    path.push_str(&filename);
-
-    path
 }

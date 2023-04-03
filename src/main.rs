@@ -12,7 +12,7 @@ use wolfengate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
 use wolfengate::domain::resources::ResourceLoader;
 use wolfengate::domain::ui::debug::DebugInfo;
 use wolfengate::domain::ui::view::ViewScreen;
-use wolfengate::fs::filesystem::load_as_binary;
+use wolfengate::fs::filesystem::{load_as_binary, load_as_file};
 use wolfengate::sdl::context::SdlContext;
 use wolfengate::sdl::drawer;
 use wolfengate::sdl::drawer::ask_display;
@@ -36,9 +36,9 @@ fn main() -> Result<(), String> {
     let mut sdl_context = SdlContext::new(view)?;
     let texture_creator = sdl_context.canvas().texture_creator();
     let ttf_creator = ttf::init().unwrap();
-    let resource_loader = ResourceLoader::new(load_as_binary);
+    let resource_loader = ResourceLoader::new(load_as_binary, load_as_file);
 
-    let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator);
+    let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator, &resource_loader);
     let enemy_texture = registry.load_texture(String::from("enemy.png"));
     let debug_font = registry.load_font(String::from("MontserratAlternates-Medium.otf"));
 
