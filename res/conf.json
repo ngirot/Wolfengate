@@ -1,0 +1,27 @@
+{
+  "tiles": [
+    {
+      "id": "#",
+      "tile_type": "SOLID",
+      "texture": "wall.png"
+    },
+    {
+      "id": " ",
+      "tile_type": "NOTHING"
+    },
+    {
+      "id": "G",
+      "tile_type": "DYNAMIC",
+      "texture": "glass.png"
+    },
+    {
+      "id": "D",
+      "tile_type": "DYNAMIC",
+      "texture": "door.png",
+      "state": {
+        "state_type": "LINEAR",
+        "speed": 3.0
+      }
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use crate::domain::control::actions::ActionState;
+
+use crate::domain::control::actions::ActionStateBuilder;
 use crate::domain::topology::index::TextureIndex;
 
 pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
@@ -14,7 +15,7 @@ pub struct Map {
 #[derive(Debug, Copy, Clone)]
 pub enum Tile {
     SOLID(TextureIndex),
-    DYNAMIC(TextureIndex, TextureIndex, fn() -> Box<dyn ActionState>),
+    DYNAMIC(TextureIndex, TextureIndex, ActionStateBuilder),
     NOTHING,
 }
 
@@ -118,15 +119,18 @@ impl MapConfiguration {
 pub mod map_test {
     use spectral::prelude::*;
     use crate::domain::actors::actor::SpeedStats;
-    use crate::domain::control::actions::{LinearActionState, NothingActionState};
+    use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
     use crate::domain::topology::index::TextureIndex;
     use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 
     pub fn default_configuration() -> MapConfiguration {
+        let door_state_builder = ActionStateBuilder::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, |context| Box::new(LinearActionState::new(SpeedStats::new(context))));
+        let glass_state_builder = ActionStateBuilder::new(0.0, |_| Box::new(NothingActionState::new()));
+
         let mut configuration = MapConfiguration::new(TextureIndex::new(0));
         configuration.add('#', Tile::SOLID(TextureIndex::new(1)));
-        configuration.add('D', Tile::DYNAMIC(TextureIndex::new(2), TextureIndex::new(4), || Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS)))));
-        configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), || Box::new(NothingActionState::new())));
+        configuration.add('D', Tile::DYNAMIC(TextureIndex::new(2), TextureIndex::new(4), door_state_builder));
+        configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), glass_state_builder));
         configuration.add(' ', Tile::NOTHING);
 
         configuration

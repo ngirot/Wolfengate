@@ -1,6 +1,6 @@
 use std::fmt::Debug;
-use crate::domain::actors::actor::SpeedStats;
 
+use crate::domain::actors::actor::SpeedStats;
 use crate::domain::maths::between;
 use crate::domain::topology::map::{Map, Tile};
 
@@ -10,10 +10,16 @@ pub struct Actions {
     height: i16,
 }
 
-pub trait ActionState: Sync  {
+pub trait ActionState: Sync {
     fn elapsed(&self, microseconds: u128) -> Box<dyn ActionState>;
     fn trigger(&self) -> Box<dyn ActionState>;
     fn activated_percentage(&self) -> f32;
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct ActionStateBuilder {
+    context: f32,
+    builder: fn(f32) -> Box<dyn ActionState>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -34,7 +40,7 @@ impl Actions {
             for y in 0..map.height() {
                 let current_paving = map.paving_at(x, y).unwrap();
                 match current_paving {
-                    Tile::DYNAMIC(_, _, state_generator) => line.push(state_generator()),
+                    Tile::DYNAMIC(_, _, state_generator) => line.push(state_generator.build()),
                     _ => line.push(Box::new(NothingActionState::new()))
                 }
             }
@@ -73,10 +79,22 @@ impl Actions {
     }
 }
 
-
 impl Debug for Box<dyn ActionState> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", "Action state")
+    }
+}
+
+impl ActionStateBuilder {
+    pub fn new(context: f32, builder: fn(f32) -> Box<dyn ActionState>) -> Self {
+        Self {
+            context,
+            builder,
+        }
+    }
+
+    pub fn build(&self) -> Box<dyn ActionState> {
+        (self.builder)(self.context)
     }
 }
 
@@ -146,10 +164,10 @@ impl ActionState for NothingActionState {
 #[cfg(test)]
 mod actions_test {
     use spectral::prelude::*;
+
     use crate::domain::control::actions::Actions;
     use crate::domain::topology::map::Map;
     use crate::domain::topology::map::map_test::default_configuration;
-
 
     #[test]
     fn should_read_paving_information() {
@@ -215,9 +233,10 @@ mod actions_test {
 #[cfg(test)]
 mod linear_action_state_test {
     use spectral::prelude::*;
+
     use crate::domain::actors::actor::SpeedStats;
-    use crate::domain::control::actions::LinearActionState;
     use crate::domain::control::actions::ActionState;
+    use crate::domain::control::actions::LinearActionState;
 
     #[test]
     fn should_activate_at_50_percentage_at_mid_timer() {
