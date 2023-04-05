@@ -7,17 +7,18 @@ use wolfengate::domain::topology::coord::Position;
 use wolfengate::domain::control::force::{Force, InputForce};
 use wolfengate::domain::control::input::Input;
 use wolfengate::domain::level::Level;
-use wolfengate::domain::loader::map_loader;
 use wolfengate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
 use wolfengate::domain::resources::ResourceLoader;
+use wolfengate::domain::topology::map::Map;
 use wolfengate::domain::ui::debug::DebugInfo;
 use wolfengate::domain::ui::view::ViewScreen;
-use wolfengate::fs::filesystem::{load_as_binary, load_as_file};
-use wolfengate::sdl::context::SdlContext;
-use wolfengate::sdl::drawer;
-use wolfengate::sdl::drawer::ask_display;
-use wolfengate::sdl::input::poll_input;
-use wolfengate::sdl::texture::ResourceRegistry;
+use wolfengate::infrastructure::fs::filesystem::{load_as_binary, load_as_file};
+use wolfengate::infrastructure::fs::json::load_configuration;
+use wolfengate::infrastructure::sdl::context::SdlContext;
+use wolfengate::infrastructure::sdl::drawer;
+use wolfengate::infrastructure::sdl::drawer::ask_display;
+use wolfengate::infrastructure::sdl::input::poll_input;
+use wolfengate::infrastructure::sdl::texture::ResourceRegistry;
 
 fn render(
     context: &mut SdlContext,
@@ -83,4 +84,17 @@ fn main() -> Result<(), String> {
     }
 
     Ok(())
+}
+
+pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoader) -> Map {
+    let configuration_content = resource_loader.load_as_string(String::from("conf.json"));
+    let configuration = load_configuration(configuration_content, registry);
+
+    let map_content = resource_loader.load_as_string(String::from("1.map"));
+    let map = Map::new(
+        &map_content,
+        configuration)
+        .unwrap();
+
+    map
 }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
 use crate::domain::topology::map::MapConfiguration;
-use crate::sdl::texture::ResourceRegistry;
+use crate::infrastructure::sdl::texture::ResourceRegistry;
 
 #[derive(Serialize, Deserialize)]
 pub struct State {
@@ -44,10 +44,10 @@ fn to_conf(data: Json, resource_registry: &mut ResourceRegistry) -> MapConfigura
                 |id| resource_registry.load_texture(id));
 
         if tile.tile_type == "NOTHING" {
-            conf.add(tile.id.as_bytes()[0] as char, super::super::domain::topology::map::Tile::NOTHING)
+            conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::NOTHING)
         }
         if tile.tile_type == "SOLID" {
-            conf.add(tile.id.as_bytes()[0] as char, super::super::domain::topology::map::Tile::SOLID(texture))
+            conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::SOLID(texture))
         }
         if tile.tile_type == "DYNAMIC" {
             let state = tile.state.map_or_else(
@@ -57,7 +57,7 @@ fn to_conf(data: Json, resource_registry: &mut ResourceRegistry) -> MapConfigura
                 |state| {
                     ActionStateBuilder::new(state.speed, |context| Box::new(LinearActionState::new(SpeedStats::new(context))))
                 });
-            conf.add(tile.id.as_bytes()[0] as char, super::super::domain::topology::map::Tile::DYNAMIC(texture, transparency, state))
+            conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::DYNAMIC(texture, transparency, state))
         }
     }
 
