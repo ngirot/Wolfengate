@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
 use crate::domain::topology::map::MapConfiguration;
-use crate::infrastructure::sdl::texture::ResourceRegistry;
+use crate::infrastructure::sdl::texture::{ResourceRegistryLoader};
 
 #[derive(Serialize, Deserialize)]
 pub struct State {
@@ -24,7 +24,7 @@ pub struct Json {
     tiles: Vec<Tile>,
 }
 
-pub fn load_configuration(content: String, resource_registry: &mut ResourceRegistry) -> MapConfiguration {
+pub fn load_configuration(content: String, resource_registry: &mut dyn ResourceRegistryLoader) -> MapConfiguration {
     let data = load(content);
     to_conf(data, resource_registry)
 }
@@ -33,7 +33,7 @@ fn load(content: String) -> Json {
     serde_json::from_str(&content).unwrap()
 }
 
-fn to_conf(data: Json, resource_registry: &mut ResourceRegistry) -> MapConfiguration {
+fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> MapConfiguration {
     let transparency = resource_registry.load_texture(String::from("transparency.png"));
     let mut conf = MapConfiguration::new(transparency);
 

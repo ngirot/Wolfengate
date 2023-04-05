@@ -10,6 +10,11 @@ use sdl2::ttf::{Font, Sdl2TtfContext};
 use crate::domain::resources::ResourceLoader;
 use crate::domain::topology::index::{FontIndex, TextureIndex};
 
+pub trait ResourceRegistryLoader {
+    fn load_texture(&mut self, file: String) -> TextureIndex;
+    fn load_font(&mut self, filename: String) -> FontIndex;
+}
+
 pub struct ResourceRegistry<'a> {
     id: u128,
     texture_creator: &'a TextureCreator<WindowContext>,
@@ -42,7 +47,24 @@ impl<'s> ResourceRegistry<'s> {
         }
     }
 
-    pub fn load_texture(&mut self, file: String) -> TextureIndex {
+    pub fn get_texture(&self, index: TextureIndex) -> Option<&LoadedTexture<'s>> {
+        self.texture_registry.get(&index.id())
+    }
+
+    pub fn get_font(&self, index: FontIndex) -> Option<&Font<'s, 's>> {
+        self.font_registry.get(&index.id())
+    }
+
+    fn generate_id(&mut self) -> u128 {
+        let generated = self.id;
+        self.id += 1;
+
+        generated
+    }
+}
+
+impl<'s> ResourceRegistryLoader for ResourceRegistry<'s> {
+    fn load_texture(&mut self, file: String) -> TextureIndex {
         let texture = load_texture(self.texture_creator, file, self.resource_loader);
         let query = texture.query();
 
@@ -54,7 +76,7 @@ impl<'s> ResourceRegistry<'s> {
         TextureIndex::new(current_id)
     }
 
-    pub fn load_font(&mut self, filename: String) -> FontIndex {
+    fn load_font(&mut self, filename: String) -> FontIndex {
         let file = self.resource_loader.load_as_file(filename);
         let font = self.ttf_context.load_font(file, 128).unwrap();
         let current_id = self.generate_id();
@@ -63,20 +85,7 @@ impl<'s> ResourceRegistry<'s> {
         FontIndex::new(current_id)
     }
 
-    pub fn get_texture(&self, index: TextureIndex) -> Option<&LoadedTexture> {
-        self.texture_registry.get(&index.id())
-    }
 
-    pub fn get_font(&self, index: FontIndex) -> Option<&Font> {
-        self.font_registry.get(&index.id())
-    }
-
-    fn generate_id(&mut self) -> u128 {
-        let generated = self.id;
-        self.id += 1;
-
-        generated
-    }
 }
 
 impl<'s> LoadedTexture<'s> {

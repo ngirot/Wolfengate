@@ -18,7 +18,7 @@ use wolfengate::infrastructure::sdl::context::SdlContext;
 use wolfengate::infrastructure::sdl::drawer;
 use wolfengate::infrastructure::sdl::drawer::ask_display;
 use wolfengate::infrastructure::sdl::input::poll_input;
-use wolfengate::infrastructure::sdl::texture::ResourceRegistry;
+use wolfengate::infrastructure::sdl::texture::{ResourceRegistryLoader, ResourceRegistry};
 
 fn render(
     context: &mut SdlContext,
