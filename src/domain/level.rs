@@ -135,7 +135,7 @@ impl Level {
             .map(|i| i.clone())
             .collect();
 
-        if projected.len() > 0 {
+        if !projected.is_empty() {
             projected[0].distance()
         } else {
             0.0

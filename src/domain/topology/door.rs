@@ -37,14 +37,11 @@ impl Openable for CentralDoor {
             return None;
         }
 
-        let position_on_texture;
         if offset <= new_left {
-            position_on_texture = offset + self.opening_percentage / 2.0;
+            Some(offset + self.opening_percentage / 2.0)
         } else {
-            position_on_texture = offset - self.opening_percentage / 2.0;
+            Some(offset - self.opening_percentage / 2.0)
         }
-
-        Some(position_on_texture)
     }
 }
 

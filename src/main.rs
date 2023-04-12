@@ -91,10 +91,9 @@ pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoad
     let configuration = load_configuration(configuration_content, registry);
 
     let map_content = resource_loader.load_as_string(String::from("1.map"));
-    let map = Map::new(
+
+    Map::new(
         &map_content,
         configuration)
-        .unwrap();
-
-    map
+        .unwrap()
 }

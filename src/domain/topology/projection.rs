@@ -136,9 +136,8 @@ fn position_on_texture_inside_tile(door: Box<dyn Openable>, door_position: f32, 
     }
 
     let offset = decimal_part(door_position);
-    let position_on_texture = door.door_column(offset);
 
-    position_on_texture
+    door.door_column(offset)
 }
 
 
