@@ -1,8 +1,8 @@
 use crate::domain::control::actions::{Actions, ActionState};
-use crate::domain::topology::door::{CentralDoor, LateralDoor, Openable};
-use crate::domain::topology::index::TextureIndex;
 use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part};
 use crate::domain::topology::coord::{MapPoint, Position};
+use crate::domain::topology::door::Openable;
+use crate::domain::topology::index::TextureIndex;
 use crate::domain::topology::map::Tile;
 
 use super::map::Map;
@@ -99,10 +99,9 @@ fn projection_on_door(angle: Angle, map: &Map, actions: &Actions, next_position:
 fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool, map_point: MapPoint, texture: TextureIndex, action_state: &Box<dyn ActionState>) -> Option<Projection> {
     let opening_percentage = action_state.activated_percentage();
     let position_inside_tile = 0.5;
+    let openable = action_state.openable();
 
     if door_up {
-        let door = CentralDoor::new(opening_percentage);
-
         let a = angle.add(ANGLE_DOWN).tan();
         let angle_sign = angle.sin().signum();
         let door_x = current_position.x() - (a / (2.0 * angle_sign));
@@ -110,11 +109,10 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let new_position = current_position.with_x(door_x)
             .with_y(current_position.y() + position_inside_tile * angle_sign);
 
-        position_on_texture_inside_tile(Box::new(door), door_x, current_position.x()).map(
-            |position_on_texture| Projection::new(new_position, position_on_texture, true, map_point, texture),
-        )
+        position_on_texture_inside_tile(&openable, door_x, current_position.x(), opening_percentage)
+            .map(|position_on_texture| Projection::new(new_position, position_on_texture, true, map_point, texture),
+            )
     } else {
-        let door = LateralDoor::new(opening_percentage);
         let a = angle.tan();
         let angle_sign = angle.cos().signum();
         let door_y = current_position.y() + (a / (2.0 * angle_sign));
@@ -122,12 +120,12 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
         let new_position = current_position.with_x(current_position.x() + position_inside_tile * angle_sign)
             .with_y(door_y);
 
-        position_on_texture_inside_tile(Box::new(door), door_y, current_position.y())
+        position_on_texture_inside_tile(&openable, door_y, current_position.y(), opening_percentage)
             .map(|position_on_texture| Projection::new(new_position, position_on_texture, true, map_point, texture))
     }
 }
 
-fn position_on_texture_inside_tile(door: Box<dyn Openable>, door_position: f32, current_position: f32) -> Option<f32> {
+fn position_on_texture_inside_tile(door: &Box<dyn Openable>, door_position: f32, current_position: f32, opening_percentage: f32) -> Option<f32> {
     let right = current_position.ceil();
     let left = current_position.floor();
 
@@ -137,7 +135,7 @@ fn position_on_texture_inside_tile(door: Box<dyn Openable>, door_position: f32, 
 
     let offset = decimal_part(door_position);
 
-    door.door_column(offset)
+    door.door_column(opening_percentage, offset)
 }
 
 
@@ -193,11 +191,11 @@ mod project_test {
     use std::time::Duration;
 
     use spectral::prelude::*;
-    use crate::domain::control::actions::Actions;
 
-    use crate::domain::topology::index::TextureIndex;
+    use crate::domain::control::actions::Actions;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::topology::coord::Position;
+    use crate::domain::topology::index::TextureIndex;
     use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map};
     use crate::domain::topology::map::map_test::default_configuration;
     use crate::domain::topology::projection::ProjectedPoint;

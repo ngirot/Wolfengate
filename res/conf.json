@@ -20,6 +20,17 @@
       "texture": "door.png",
       "state": {
         "state_type": "LINEAR",
+        "opening_mode": "CENTER",
+        "speed": 3.0
+      }
+    },
+    {
+      "id": "d",
+      "tile_type": "DYNAMIC",
+      "texture": "door.png",
+      "state": {
+        "state_type": "LINEAR",
+        "opening_mode": "SIDE",
         "speed": 3.0
       }
     }

@@ -2,12 +2,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
+use crate::domain::topology::door::{CentralOpening, LateralOpening, Openable};
 use crate::domain::topology::map::MapConfiguration;
 use crate::infrastructure::sdl::texture::ResourceRegistryLoader;
 
 #[derive(Serialize, Deserialize)]
 pub struct State {
     pub state_type: String,
+    pub opening_mode: String,
     pub speed: f32,
 }
 
@@ -55,8 +57,14 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
                     ActionStateBuilder::new(Box::new(NothingActionState::new()))
                 },
                 |state| {
-                    ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(state.speed))))
+                    let openable: Box<dyn Openable> = if state.opening_mode == "CENTER" {
+                        Box::new(CentralOpening::new())
+                    } else {
+                        Box::new(LateralOpening::new())
+                    };
+                    ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(state.speed), openable)))
                 });
+
             conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::DYNAMIC(texture, transparency, state))
         }
     }

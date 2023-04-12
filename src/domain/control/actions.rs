@@ -3,6 +3,7 @@ use dyn_clone::DynClone;
 
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::maths::between;
+use crate::domain::topology::door::{LateralOpening, Openable};
 use crate::domain::topology::map::{Map, Tile};
 
 pub struct Actions {
@@ -14,6 +15,7 @@ pub struct Actions {
 pub trait ActionState: Sync + DynClone {
     fn elapsed(&self, microseconds: u128) -> Box<dyn ActionState>;
     fn trigger(&self) -> Box<dyn ActionState>;
+    fn openable(&self) -> Box<dyn Openable>;
     fn activated_percentage(&self) -> f32;
 }
 dyn_clone::clone_trait_object!(ActionState);
@@ -23,11 +25,12 @@ pub struct ActionStateBuilder {
     default_state: Box<dyn ActionState>,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Clone)]
 pub struct LinearActionState {
     opening_speed: SpeedStats,
     activated: bool,
     opening_percentage: f32,
+    openable: Box<dyn Openable>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -100,10 +103,11 @@ impl ActionStateBuilder {
 }
 
 impl LinearActionState {
-    pub fn new(opening_speed: SpeedStats) -> Self {
+    pub fn new(opening_speed: SpeedStats, openable: Box<dyn Openable>) -> Self {
         Self {
             activated: false,
             opening_percentage: 0.0,
+            openable,
             opening_speed,
         }
     }
@@ -120,6 +124,7 @@ impl ActionState for LinearActionState {
             Self {
                 opening_speed: self.opening_speed,
                 activated: self.activated,
+                openable: self.openable.clone(),
                 opening_percentage: new_percentage,
             }
         )
@@ -131,9 +136,14 @@ impl ActionState for LinearActionState {
             Self {
                 opening_speed: self.opening_speed,
                 activated: !self.activated,
+                openable: self.openable.clone(),
                 opening_percentage: self.opening_percentage,
             }
         )
+    }
+
+    fn openable(&self) -> Box<dyn Openable> {
+        self.openable.clone()
     }
 
 
@@ -161,6 +171,10 @@ impl ActionState for NothingActionState {
 
     fn trigger(&self) -> Box<dyn ActionState> {
         Box::new(Self {})
+    }
+
+    fn openable(&self) -> Box<dyn Openable> {
+        Box::new(LateralOpening::new())
     }
 
     fn activated_percentage(&self) -> f32 {
@@ -244,10 +258,11 @@ mod linear_action_state_test {
     use crate::domain::actors::actor::SpeedStats;
     use crate::domain::control::actions::ActionState;
     use crate::domain::control::actions::LinearActionState;
+    use crate::domain::topology::door::LateralOpening;
 
     #[test]
     fn should_activate_at_50_percentage_at_mid_timer() {
-        let action = LinearActionState::new(SpeedStats::new(1.0))
+        let action = LinearActionState::new(SpeedStats::new(1.0), Box::new(LateralOpening::new()))
             .trigger()
             .elapsed(500000);
 
@@ -256,7 +271,7 @@ mod linear_action_state_test {
 
     #[test]
     fn should_activate_at_25_percentage_at_quarter_timer() {
-        let action = LinearActionState::new(SpeedStats::new(0.5))
+        let action = LinearActionState::new(SpeedStats::new(0.5), Box::new(LateralOpening::new()))
             .trigger()
             .elapsed(500000);
 
@@ -265,7 +280,7 @@ mod linear_action_state_test {
 
     #[test]
     fn percentage_should_not_go_below_0() {
-        let action = LinearActionState::new(SpeedStats::new(999.0))
+        let action = LinearActionState::new(SpeedStats::new(999.0), Box::new(LateralOpening::new()))
             .elapsed(99999999999999999999999);
 
         assert_that!(action.activated_percentage()).is_equal_to(0.0);
@@ -273,7 +288,7 @@ mod linear_action_state_test {
 
     #[test]
     fn percentage_should_not_go_above_1() {
-        let action = LinearActionState::new(SpeedStats::new(999.0))
+        let action = LinearActionState::new(SpeedStats::new(999.0), Box::new(LateralOpening::new()))
             .trigger()
             .elapsed(99999999999999999999999);
 
@@ -282,7 +297,7 @@ mod linear_action_state_test {
 
     #[test]
     fn should_keep_opening_percentage_when_reactivating_before_previous_state_finished() {
-        let action = LinearActionState::new(SpeedStats::new(1.0))
+        let action = LinearActionState::new(SpeedStats::new(1.0), Box::new(LateralOpening::new()))
             .trigger()
             .elapsed(500000)
             .trigger()

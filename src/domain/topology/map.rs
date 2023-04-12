@@ -12,7 +12,7 @@ pub struct Map {
     height: i16,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Tile {
     SOLID(TextureIndex),
     DYNAMIC(TextureIndex, TextureIndex, ActionStateBuilder),
@@ -120,11 +120,12 @@ pub mod map_test {
 
     use crate::domain::actors::actor::SpeedStats;
     use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
+    use crate::domain::topology::door::LateralOpening;
     use crate::domain::topology::index::TextureIndex;
     use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 
     pub fn default_configuration() -> MapConfiguration {
-        let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS))));
+        let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::new()))));
         let glass_state_builder = ActionStateBuilder::new(Box::new(NothingActionState::new()));
 
         let mut configuration = MapConfiguration::new(TextureIndex::new(0));
