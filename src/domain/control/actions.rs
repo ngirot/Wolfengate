@@ -65,8 +65,9 @@ impl Actions {
 
     pub fn activate(&mut self, x: i16, y: i16) {
         let state = self.state_at(x, y);
-        if state.is_some() {
-            let new_state = state.unwrap().trigger();
+
+        if let Some(value) = state {
+            let new_state = value.trigger();
             self.paving[x as usize][y as usize] = new_state;
         }
     }
@@ -82,7 +83,7 @@ impl Actions {
 
 impl Debug for Box<dyn ActionState> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", "Action state")
+        write!(f, "Action state")
     }
 }
 
@@ -144,6 +145,12 @@ impl ActionState for LinearActionState {
 impl NothingActionState {
     pub fn new() -> Self {
         Self {}
+    }
+}
+
+impl Default for NothingActionState {
+    fn default() -> Self {
+        NothingActionState::new()
     }
 }
 

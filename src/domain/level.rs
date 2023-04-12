@@ -132,7 +132,7 @@ impl Level {
         let projected: Vec<ProjectedPoint> = project(start, angle, &self.map, &self.actions)
             .iter()
             .filter(|projection| projection.blocking())
-            .map(|i| i.clone())
+            .cloned()
             .collect();
 
         if !projected.is_empty() {

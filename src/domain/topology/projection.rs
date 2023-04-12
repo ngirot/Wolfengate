@@ -205,7 +205,7 @@ mod project_test {
     use super::project;
 
     fn project_single_wall(position: Position, angle: Angle, map: &Map, actions: &Actions) -> ProjectedPoint {
-        let points = project(position, angle, &map, actions);
+        let points = project(position, angle, map, actions);
         assert_that!(points).has_length(1);
 
         points[0]

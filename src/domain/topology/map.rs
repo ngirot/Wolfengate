@@ -37,10 +37,9 @@ impl Map {
             }
         }
 
-        for x in 0..pav_x.len() {
-            pav_x[x].reverse();
+        for x in &mut pav_x {
+            x.reverse();
         }
-
 
         let mut current_height = 0;
         for line in &pav_x {
@@ -76,7 +75,7 @@ impl Map {
 
     fn char_to_tile(configuration: &MapConfiguration, c: char) -> Result<Tile, String> {
         configuration.get(c)
-            .ok_or(String::from("Unknown char is used in the map"))
+            .ok_or_else(|| String::from("Unknown char is used in the map"))
             .map(|tile| tile.clone())
     }
 
