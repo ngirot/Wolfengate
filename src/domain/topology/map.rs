@@ -12,7 +12,7 @@ pub struct Map {
     height: i16,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum Tile {
     SOLID(TextureIndex),
     DYNAMIC(TextureIndex, TextureIndex, ActionStateBuilder),
@@ -77,7 +77,7 @@ impl Map {
     fn char_to_tile(configuration: &MapConfiguration, c: char) -> Result<Tile, String> {
         configuration.get(c)
             .ok_or(String::from("Unknown char is used in the map"))
-            .copied()
+            .map(|tile| tile.clone())
     }
 
     pub fn width(&self) -> i16 {
@@ -118,14 +118,15 @@ impl MapConfiguration {
 #[cfg(test)]
 pub mod map_test {
     use spectral::prelude::*;
+
     use crate::domain::actors::actor::SpeedStats;
     use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
     use crate::domain::topology::index::TextureIndex;
     use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
 
     pub fn default_configuration() -> MapConfiguration {
-        let door_state_builder = ActionStateBuilder::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, |context| Box::new(LinearActionState::new(SpeedStats::new(context))));
-        let glass_state_builder = ActionStateBuilder::new(0.0, |_| Box::new(NothingActionState::new()));
+        let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS))));
+        let glass_state_builder = ActionStateBuilder::new(Box::new(NothingActionState::new()));
 
         let mut configuration = MapConfiguration::new(TextureIndex::new(0));
         configuration.add('#', Tile::SOLID(TextureIndex::new(1)));

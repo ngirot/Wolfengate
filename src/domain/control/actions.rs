@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use dyn_clone::DynClone;
 
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::maths::between;
@@ -10,16 +11,16 @@ pub struct Actions {
     height: i16,
 }
 
-pub trait ActionState: Sync {
+pub trait ActionState: Sync + DynClone {
     fn elapsed(&self, microseconds: u128) -> Box<dyn ActionState>;
     fn trigger(&self) -> Box<dyn ActionState>;
     fn activated_percentage(&self) -> f32;
 }
+dyn_clone::clone_trait_object!(ActionState);
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct ActionStateBuilder {
-    context: f32,
-    builder: fn(f32) -> Box<dyn ActionState>,
+    default_state: Box<dyn ActionState>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -86,15 +87,14 @@ impl Debug for Box<dyn ActionState> {
 }
 
 impl ActionStateBuilder {
-    pub fn new(context: f32, builder: fn(f32) -> Box<dyn ActionState>) -> Self {
+    pub fn new(default_state: Box<dyn ActionState>) -> Self {
         Self {
-            context,
-            builder,
+            default_state,
         }
     }
 
     pub fn build(&self) -> Box<dyn ActionState> {
-        (self.builder)(self.context)
+        self.default_state.clone()
     }
 }
 

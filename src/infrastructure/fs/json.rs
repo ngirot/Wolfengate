@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
 use crate::domain::topology::map::MapConfiguration;
-use crate::infrastructure::sdl::texture::{ResourceRegistryLoader};
+use crate::infrastructure::sdl::texture::ResourceRegistryLoader;
 
 #[derive(Serialize, Deserialize)]
 pub struct State {
@@ -52,10 +52,10 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
         if tile.tile_type == "DYNAMIC" {
             let state = tile.state.map_or_else(
                 || {
-                    ActionStateBuilder::new(0.0, |_| Box::new(NothingActionState::new()))
+                    ActionStateBuilder::new(Box::new(NothingActionState::new()))
                 },
                 |state| {
-                    ActionStateBuilder::new(state.speed, |context| Box::new(LinearActionState::new(SpeedStats::new(context))))
+                    ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(state.speed))))
                 });
             conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::DYNAMIC(texture, transparency, state))
         }
