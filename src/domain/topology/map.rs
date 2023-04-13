@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
+use crate::domain::actors::actor::Enemy;
 use crate::domain::control::actions::ActionStateBuilder;
+use crate::domain::topology::coord::Position;
 use crate::domain::topology::index::TextureIndex;
 
 pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
@@ -8,6 +10,7 @@ pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
 pub struct Map {
     paving: Vec<Vec<Tile>>,
     border_texture: TextureIndex,
+    enemies: Vec<Enemy>,
     width: i16,
     height: i16,
 }
@@ -19,22 +22,40 @@ pub enum Tile {
     NOTHING,
 }
 
+#[derive(Clone)]
+pub struct EnemyType {
+    texture: TextureIndex,
+}
+
+#[derive(Clone)]
 pub struct MapConfiguration {
     conf: HashMap<char, Tile>,
+    enemies: HashMap<char, EnemyType>,
     map_border_texture: TextureIndex,
 }
 
 impl Map {
     pub fn new(paving: &str, configuration: MapConfiguration) -> Result<Self, String> {
+        let mut ennemies = vec![];
+
         let mut pav_x: Vec<Vec<Tile>> = vec![];
+        let l: Vec<&str> = paving.split('\n').collect();
+        let mut y: i32 = l.len() as i32 - 1;
         for line in paving.split('\n') {
             for (x, char) in line.chars().enumerate() {
                 if pav_x.len() <= x {
                     pav_x.push(vec![]);
                 }
-                let tile = Self::char_to_tile(&configuration, char)?;
-                pav_x[x].push(tile)
+                if let Some(enemy) = Self::chat_to_enemy(&configuration, char) {
+                    let position = Position::new(x as f32 + 0.5, y as f32 + 0.5);
+                    ennemies.push(Enemy::new(enemy.texture, position));
+                    pav_x[x].push(Tile::NOTHING)
+                } else {
+                    let tile = Self::char_to_tile(&configuration, char)?;
+                    pav_x[x].push(tile)
+                }
             }
+            y -= 1;
         }
 
         for x in &mut pav_x {
@@ -59,6 +80,7 @@ impl Map {
         Ok(Self {
             paving: pav_x,
             border_texture: configuration.map_border_texture(),
+            enemies: ennemies,
             height,
             width,
         })
@@ -72,11 +94,18 @@ impl Map {
         Some(&self.paving[x as usize][y as usize])
     }
 
+    fn chat_to_enemy(configuration: &MapConfiguration, c: char) -> Option<&EnemyType> {
+        configuration.get_enemy(c)
+    }
 
     fn char_to_tile(configuration: &MapConfiguration, c: char) -> Result<Tile, String> {
         configuration.get(c)
             .ok_or_else(|| String::from("Unknown char is used in the map"))
             .map(|tile| tile.clone())
+    }
+
+    pub fn generate_enemies(&self) -> Vec<Enemy> {
+        self.enemies.to_vec()
     }
 
     pub fn width(&self) -> i16 {
@@ -98,6 +127,7 @@ impl MapConfiguration {
         Self {
             conf: HashMap::new(),
             map_border_texture,
+            enemies: HashMap::new(),
         }
     }
 
@@ -105,12 +135,28 @@ impl MapConfiguration {
         self.conf.insert(c, conf);
     }
 
+    pub fn add_enemy(&mut self, c: char, enemy: EnemyType) {
+        self.enemies.insert(c, enemy);
+    }
+
     pub fn get(&self, c: char) -> Option<&Tile> {
         self.conf.get(&c)
     }
 
+    pub fn get_enemy(&self, c: char) -> Option<&EnemyType> {
+        self.enemies.get(&c)
+    }
+
     pub fn map_border_texture(&self) -> TextureIndex {
         self.map_border_texture
+    }
+}
+
+impl EnemyType {
+    pub fn new(texture: TextureIndex) -> Self {
+        Self {
+            texture
+        }
     }
 }
 
@@ -122,7 +168,7 @@ pub mod map_test {
     use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
     use crate::domain::topology::door::LateralOpening;
     use crate::domain::topology::index::TextureIndex;
-    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map, MapConfiguration, Tile};
+    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, EnemyType, Map, MapConfiguration, Tile};
 
     pub fn default_configuration() -> MapConfiguration {
         let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::new()))));
@@ -134,7 +180,9 @@ pub mod map_test {
         configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), glass_state_builder));
         configuration.add(' ', Tile::NOTHING);
 
-        configuration
+        configuration.add_enemy('E', EnemyType::new(TextureIndex::new(4)));
+
+        configuration.clone()
     }
 
     #[test]

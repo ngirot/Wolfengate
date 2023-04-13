@@ -33,6 +33,11 @@
         "opening_mode": "SIDE",
         "speed": 3.0
       }
+    },
+    {
+      "id": "E",
+      "tile_type": "ENEMY",
+      "texture": "enemy.png"
     }
   ]
 }

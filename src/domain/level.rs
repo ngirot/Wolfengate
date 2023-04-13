@@ -27,16 +27,15 @@ struct DrawActionZIndex {
 }
 
 impl Level {
-    pub fn new(view: ViewScreen, map: Map, player: Player, enemy: Option<Enemy>) -> Self {
-        let enemies = enemy.map_or_else(Vec::new, |p| vec![p]);
+    pub fn new(view: ViewScreen, map: Map, player: Player) -> Self {
         let actions = Actions::new(&map);
 
         Self {
             view,
+            enemies: map.generate_enemies(),
             map,
             actions,
             player,
-            enemies,
         }
     }
 
@@ -258,12 +257,11 @@ mod level_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::actors::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
+    use crate::domain::actors::actor::{AccelerationStats, Player, PlayerStats, SpeedStats};
     use crate::domain::control::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::topology::coord::Position;
-    use crate::domain::topology::index::TextureIndex;
     use crate::domain::topology::map::Map;
     use crate::domain::topology::map::map_test::default_configuration;
     use crate::domain::ui::draw_action::DrawAction;
@@ -284,7 +282,7 @@ mod level_test {
     fn actions_should_start_with_a_clear() {
         let player = Player::new(Position::new(0.0, 0.0), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(0, 0);
-        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player, None);
+        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player);
 
         let actions = level.generate_actions();
 
@@ -297,7 +295,7 @@ mod level_test {
     fn actions_should_draw_ceiling() {
         let player = Player::new(Position::new(0.0, 0.0), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(200, 100);
-        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player, None);
+        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player);
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -318,7 +316,7 @@ mod level_test {
         let player = Player::new(Position::new(0.0, 0.0), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(200, 100);
 
-        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player, None);
+        let level = Level::new(view, Map::new("#", default_configuration()).unwrap(), player);
         let mut found = false;
 
         let actions = level.generate_actions();
@@ -340,7 +338,7 @@ mod level_test {
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(100, 100);
 
-        let mut level = Level::new(view, map, player, None);
+        let mut level = Level::new(view, map, player);
 
         level.apply_forces(Force::new(ANGLE_RIGHT, 10.0, ANGLE_RIGHT), 1000000);
         assert_that!(level.player.position().x()).is_less_than_or_equal_to(2.0);
@@ -352,7 +350,7 @@ mod level_test {
         let player = Player::new(Position::new(1.8, 0.5), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(100, 100);
 
-        let mut level = Level::new(view, map, player, None);
+        let mut level = Level::new(view, map, player);
 
         level.apply_forces(Force::new(ANGLE_RIGHT, 0.2, ANGLE_RIGHT), 1000000);
 
@@ -361,12 +359,12 @@ mod level_test {
 
     #[test]
     fn enemy_should_be_in_the_list_after_the_wall_behind_him() {
-        let map = Map::new("#  #", default_configuration()).unwrap();
-        let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
-        let enemy = Enemy::new(TextureIndex::new(0), Position::new(2.0, 0.5));
+        let configuration = default_configuration();
+        let map = Map::new("# E #", configuration).unwrap();
+        let player = Player::new(Position::new(2.3, 0.5), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(100, 100);
 
-        let level = Level::new(view, map, player, Some(enemy));
+        let level = Level::new(view, map, player);
 
         let actions = level.generate_actions();
 
@@ -385,12 +383,11 @@ mod level_test {
 
     #[test]
     fn enemy_should_be_in_the_list_before_the_wall_before_him() {
-        let map = Map::new("# #   ", default_configuration()).unwrap();
+        let configuration = default_configuration();
+        let map = Map::new("# # E ", configuration).unwrap();
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
-        let enemy = Enemy::new(TextureIndex::new(0), Position::new(4.5, 0.5));
         let view = ViewScreen::new(100, 100);
-
-        let level = Level::new(view, map, player, Some(enemy));
+        let level = Level::new(view, map, player);
 
         let actions = level.generate_actions();
 
@@ -413,7 +410,7 @@ mod level_test {
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_RIGHT, default_stats());
         let view = ViewScreen::new(100, 100);
 
-        let mut level = Level::new(view, map, player, None);
+        let mut level = Level::new(view, map, player);
 
         level.apply_forces(
             Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_RIGHT),
@@ -430,7 +427,7 @@ mod level_test {
         let player = Player::new(Position::new(1.5, 0.5), ANGLE_LEFT, default_stats());
         let view = ViewScreen::new(100, 100);
 
-        let mut level = Level::new(view, map, player, None);
+        let mut level = Level::new(view, map, player);
 
         level.apply_forces(Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_RIGHT), 1000000);
 
@@ -444,7 +441,7 @@ mod level_test {
         let player = Player::new(Position::new(0.5, 1.5), ANGLE_UP, default_stats());
         let view = ViewScreen::new(100, 100);
 
-        let mut level = Level::new(view, map, player, None);
+        let mut level = Level::new(view, map, player);
 
         level.apply_forces(
             Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT),
@@ -461,7 +458,7 @@ mod level_test {
         let player = Player::new(Position::new(0.5, 1.5), ANGLE_DOWN, default_stats());
         let view = ViewScreen::new(100, 100);
 
-        let mut level = Level::new(view, map, player, None);
+        let mut level = Level::new(view, map, player);
 
         level.apply_forces(
             Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT),

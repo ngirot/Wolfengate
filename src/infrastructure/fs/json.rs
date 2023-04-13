@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
 use crate::domain::topology::door::{CentralOpening, LateralOpening, Openable};
-use crate::domain::topology::map::MapConfiguration;
+use crate::domain::topology::map::{EnemyType, MapConfiguration};
 use crate::infrastructure::sdl::texture::ResourceRegistryLoader;
 
 #[derive(Serialize, Deserialize)]
@@ -44,12 +44,16 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
             .map_or_else(
                 || transparency,
                 |id| resource_registry.load_texture(id));
+        let id_char = tile.id.as_bytes()[0] as char;
 
         if tile.tile_type == "NOTHING" {
-            conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::NOTHING)
+            conf.add(id_char, crate::domain::topology::map::Tile::NOTHING)
         }
         if tile.tile_type == "SOLID" {
-            conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::SOLID(texture))
+            conf.add(id_char, crate::domain::topology::map::Tile::SOLID(texture))
+        }
+        if tile.tile_type == "ENEMY" {
+            conf.add_enemy(id_char, EnemyType::new(texture));
         }
         if tile.tile_type == "DYNAMIC" {
             let state = tile.state.map_or_else(
@@ -65,7 +69,7 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
                     ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(state.speed), openable)))
                 });
 
-            conf.add(tile.id.as_bytes()[0] as char, crate::domain::topology::map::Tile::DYNAMIC(texture, transparency, state))
+            conf.add(id_char, crate::domain::topology::map::Tile::DYNAMIC(texture, transparency, state))
         }
     }
 

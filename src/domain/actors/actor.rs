@@ -29,6 +29,7 @@ pub struct SpeedStats {
     units_per_seconds: f32,
 }
 
+#[derive(Copy, Clone)]
 pub struct Enemy {
     position: Position,
     texture: TextureIndex,

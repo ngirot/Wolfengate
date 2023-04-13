@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use sdl2::ttf;
 
-use wolfengate::domain::actors::actor::{AccelerationStats, Enemy, Player, PlayerStats, SpeedStats};
+use wolfengate::domain::actors::actor::{AccelerationStats, Player, PlayerStats, SpeedStats};
 use wolfengate::domain::topology::coord::Position;
 use wolfengate::domain::control::force::{Force, InputForce};
 use wolfengate::domain::control::input::Input;
@@ -40,7 +40,6 @@ fn main() -> Result<(), String> {
     let resource_loader = ResourceLoader::new(load_as_binary, load_as_file);
 
     let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator, &resource_loader);
-    let enemy_texture = registry.load_texture(String::from("enemy.png"));
     let debug_font = registry.load_font(String::from("MontserratAlternates-Medium.otf"));
 
     let map = map_loader(&mut registry, resource_loader);
@@ -52,8 +51,7 @@ fn main() -> Result<(), String> {
     let max_speed = SpeedStats::new(6.0);
     let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);
     let player = Player::new(position, ANGLE_UP, player_stats);
-    let enemy = Enemy::new(enemy_texture, Position::new(5.0, 5.0));
-    let mut level = Level::new(view, map, player, Some(enemy));
+    let mut level = Level::new(view, map, player);
     let mut debug_info = DebugInfo::new(debug_font);
 
     let mut start = Instant::now();
