@@ -39,9 +39,10 @@ impl Map {
         let mut ennemies = vec![];
 
         let mut pav_x: Vec<Vec<Tile>> = vec![];
-        let l: Vec<&str> = paving.split('\n').collect();
-        let mut y: i32 = l.len() as i32 - 1;
-        for line in paving.split('\n') {
+        let split: Vec<&str> = paving.split('\n').collect();
+        let mut y: i32 = split.len() as i32 - 1;
+        
+        for line in split {
             for (x, char) in line.chars().enumerate() {
                 if pav_x.len() <= x {
                     pav_x.push(vec![]);
