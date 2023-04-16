@@ -6,8 +6,6 @@ use crate::domain::maths::Angle;
 use crate::domain::topology::coord::Position;
 use crate::domain::topology::index::TextureIndex;
 
-pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
-
 pub struct Map {
     paving: Vec<Vec<Tile>>,
     border_texture: TextureIndex,
@@ -216,7 +214,9 @@ pub mod map_test {
     use crate::domain::maths::{ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::topology::door::LateralOpening;
     use crate::domain::topology::index::TextureIndex;
-    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, EnemyType, Map, MapConfiguration, SpawnPoint, Tile};
+    use crate::domain::topology::map::{EnemyType, Map, MapConfiguration, SpawnPoint, Tile};
+
+    pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
 
     pub fn default_configuration() -> MapConfiguration {
         let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::new()))));

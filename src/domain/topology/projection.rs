@@ -196,8 +196,8 @@ mod project_test {
     use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::topology::coord::Position;
     use crate::domain::topology::index::TextureIndex;
-    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map};
-    use crate::domain::topology::map::map_test::build_map;
+    use crate::domain::topology::map::Map;
+    use crate::domain::topology::map::map_test::{build_map, DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS};
     use crate::domain::topology::projection::ProjectedPoint;
 
     use super::project;
