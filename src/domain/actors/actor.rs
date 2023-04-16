@@ -192,8 +192,8 @@ impl SpeedStats {
         self.units_per_seconds
     }
 
-    pub fn to_units(&self, microseconds_elasped: u128) -> f32 {
-        microseconds_elasped as f32 / 1000000.0 * self.units_per_seconds as f32
+    pub fn to_units(&self, microseconds_elapsed: u128) -> f32 {
+        microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds as f32
     }
 }
 
