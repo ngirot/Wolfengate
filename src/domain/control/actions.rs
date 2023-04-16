@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+
 use dyn_clone::DynClone;
 
 use crate::domain::actors::actor::SpeedStats;
@@ -187,12 +188,11 @@ mod actions_test {
     use spectral::prelude::*;
 
     use crate::domain::control::actions::Actions;
-    use crate::domain::topology::map::Map;
-    use crate::domain::topology::map::map_test::default_configuration;
+    use crate::domain::topology::map::map_test::build_map;
 
     #[test]
     fn should_read_paving_information() {
-        let map = Map::new("###\n# #\n# #\n###", default_configuration()).unwrap();
+        let map = build_map("###\n# #\n# #\n###");
 
         let actions = Actions::new(&map);
 
@@ -215,7 +215,7 @@ mod actions_test {
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_width_map() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let actions = Actions::new(&map);
 
         let state = actions.state_at(0, 2);
@@ -224,7 +224,7 @@ mod actions_test {
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_height_map() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let actions = Actions::new(&map);
 
         let state = actions.state_at(2, 0);
@@ -233,7 +233,7 @@ mod actions_test {
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_negative_x_coordinate() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let actions = Actions::new(&map);
 
         let state = actions.state_at(-1, 0);
@@ -242,7 +242,7 @@ mod actions_test {
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_negative_y_coordinate() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let actions = Actions::new(&map);
 
         let state = actions.state_at(0, -1);

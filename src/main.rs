@@ -2,12 +2,11 @@ use std::time::Instant;
 
 use sdl2::ttf;
 
-use wolfengate::domain::actors::actor::{AccelerationStats, Player, PlayerStats, SpeedStats};
-use wolfengate::domain::topology::coord::Position;
+use wolfengate::domain::actors::actor::{AccelerationStats, PlayerStats, SpeedStats};
 use wolfengate::domain::control::force::{Force, InputForce};
 use wolfengate::domain::control::input::Input;
 use wolfengate::domain::level::Level;
-use wolfengate::domain::maths::{ANGLE_RIGHT, ANGLE_UP};
+use wolfengate::domain::maths::{ANGLE_RIGHT};
 use wolfengate::domain::resources::ResourceLoader;
 use wolfengate::domain::topology::map::Map;
 use wolfengate::domain::ui::debug::DebugInfo;
@@ -42,16 +41,15 @@ fn main() -> Result<(), String> {
     let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator, &resource_loader);
     let debug_font = registry.load_font(String::from("MontserratAlternates-Medium.otf"));
 
-    let map = map_loader(&mut registry, resource_loader);
-
-    let position = Position::new(12.0, 3.0);
-    let input_force = InputForce::new(0.004, 0.005);
     let acceleration = AccelerationStats::new(70.0);
     let deceleration = AccelerationStats::new(40.0);
     let max_speed = SpeedStats::new(6.0);
+
     let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);
-    let player = Player::new(position, ANGLE_UP, player_stats);
-    let mut level = Level::new(view, map, player);
+    let map = map_loader(&mut registry, resource_loader, player_stats);
+
+    let input_force = InputForce::new(0.004, 0.005);
+    let mut level = Level::new(view, map);
     let mut debug_info = DebugInfo::new(debug_font);
 
     let mut start = Instant::now();
@@ -84,7 +82,7 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoader) -> Map {
+pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoader, player_stats: PlayerStats) -> Map {
     let configuration_content = resource_loader.load_as_string(String::from("conf.json"));
     let configuration = load_configuration(configuration_content, registry);
 
@@ -92,6 +90,7 @@ pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoad
 
     Map::new(
         &map_content,
-        configuration)
+        configuration,
+        player_stats)
         .unwrap()
 }

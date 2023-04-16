@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::actors::actor::SpeedStats;
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
+use crate::domain::maths::Angle;
 use crate::domain::topology::door::{CentralOpening, LateralOpening, Openable};
-use crate::domain::topology::map::{EnemyType, MapConfiguration};
+use crate::domain::topology::map::{EnemyType, MapConfiguration, SpawnPoint};
 use crate::infrastructure::sdl::texture::ResourceRegistryLoader;
 
 #[derive(Serialize, Deserialize)]
@@ -19,6 +20,7 @@ pub struct Tile {
     pub tile_type: String,
     pub texture: Option<String>,
     pub state: Option<State>,
+    pub orientation_in_degrees: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -54,6 +56,10 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
         }
         if tile.tile_type == "ENEMY" {
             conf.add_enemy(id_char, EnemyType::new(texture));
+        }
+        if tile.tile_type == "PLAYER" {
+            let angle = Angle::from_degree(tile.orientation_in_degrees.unwrap());
+            conf.add_spawn(id_char, SpawnPoint::new(angle));
         }
         if tile.tile_type == "DYNAMIC" {
             let state = tile.state.map_or_else(

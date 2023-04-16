@@ -197,7 +197,7 @@ mod project_test {
     use crate::domain::topology::coord::Position;
     use crate::domain::topology::index::TextureIndex;
     use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, Map};
-    use crate::domain::topology::map::map_test::default_configuration;
+    use crate::domain::topology::map::map_test::build_map;
     use crate::domain::topology::projection::ProjectedPoint;
 
     use super::project;
@@ -211,15 +211,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_one_tile_ahead() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             # # #\n\
             #   #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_UP, &map, &Actions::new(&map));
 
@@ -228,15 +226,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_multiple_tile_ahead() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             # # #\n\
             #   #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 1.3);
         let projected = project_single_wall(center, ANGLE_UP, &map, &Actions::new(&map));
 
@@ -245,15 +241,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_one_tile_behind() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             #   #\n\
             # # #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_DOWN, &map, &Actions::new(&map));
 
@@ -262,15 +256,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_multiple_tile_behind() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             #   #\n\
             # # #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 3.2);
         let projected = project_single_wall(center, ANGLE_DOWN, &map, &Actions::new(&map));
 
@@ -279,15 +271,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_one_tile_left() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             ##  #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_LEFT, &map, &Actions::new(&map));
 
@@ -296,15 +286,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_multiple_tile_left() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             ##  #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(3.1, 2.5);
         let projected = project_single_wall(center, ANGLE_LEFT, &map, &Actions::new(&map));
 
@@ -313,15 +301,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_one_tile_right() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             #  ##\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_RIGHT, &map, &Actions::new(&map));
 
@@ -330,15 +316,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_multiple_tile_right() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             #  ##\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(1.1, 2.5);
         let projected = project_single_wall(center, ANGLE_RIGHT, &map, &Actions::new(&map));
 
@@ -347,15 +331,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_with_angle_upper_right() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #  ##\n\
             #   #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(0.7), &map, &Actions::new(&map));
 
@@ -364,15 +346,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_with_angle_upper_left() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             ##  #\n\
             #   #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(PI - 0.7), &map, &Actions::new(&map));
 
@@ -381,15 +361,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_with_angle_lower_right() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             #   #\n\
             #  ##\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(-0.7), &map, &Actions::new(&map));
 
@@ -398,15 +376,13 @@ mod project_test {
 
     #[test]
     fn should_find_distance_with_angle_lower_left() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             #   #\n\
             ##  #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(PI + 0.7), &map, &Actions::new(&map));
 
@@ -415,13 +391,11 @@ mod project_test {
 
     #[test]
     fn should_return_some_void_when_there_is_no_border() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #    \n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(1.5, 1.5);
         let projected = project_single_wall(center, ANGLE_RIGHT, &map, &Actions::new(&map));
 
@@ -431,15 +405,13 @@ mod project_test {
 
     #[test]
     fn position_on_texture_on_straight_direction() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             # # #\n\
             #   #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, ANGLE_UP, &map, &Actions::new(&map));
 
@@ -448,15 +420,13 @@ mod project_test {
 
     #[test]
     fn position_on_texture_on_diagonal_direction() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             # # #\n\
             #   #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project_single_wall(center, Angle::new(PI / 2.0 + 0.23), &map, &Actions::new(&map));
 
@@ -465,14 +435,12 @@ mod project_test {
 
     #[test]
     fn door_should_be_at_half_distance_top() {
-        let map = Map::new(
+        let map = build_map(
             "\
             ##D##\n\
             #   #\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.5, 2.5);
         let projected = project(center, ANGLE_UP, &map, &Actions::new(&map));
 
@@ -482,14 +450,12 @@ mod project_test {
 
     #[test]
     fn door_should_be_at_half_distance_down() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #   #\n\
             #   #\n\
-            ##D##",
-            default_configuration())
-            .unwrap();
+            ##D##");
         let center = Position::new(2.5, 2.5);
         let projected = project(center, ANGLE_DOWN, &map, &Actions::new(&map));
 
@@ -499,13 +465,11 @@ mod project_test {
 
     #[test]
     fn door_should_be_at_half_distance_left() {
-        let map = Map::new(
+        let map = build_map(
             "\
             ####\n\
             D  #\n\
-            ####",
-            default_configuration())
-            .unwrap();
+            ####");
         let center = Position::new(2.0, 1.1);
 
         let projected = project(center, ANGLE_LEFT, &map, &Actions::new(&map));
@@ -516,13 +480,11 @@ mod project_test {
 
     #[test]
     fn door_should_be_at_half_distance_right() {
-        let map = Map::new(
+        let map = build_map(
             "\
             ####\n\
             #  D\n\
-            ####",
-            default_configuration())
-            .unwrap();
+            ####");
         let center = Position::new(2.0, 1.1);
         let projected = project(center, ANGLE_RIGHT, &map, &Actions::new(&map));
 
@@ -532,13 +494,11 @@ mod project_test {
 
     #[test]
     fn looking_at_a_closed_door_should_not_allow_moves_through_square() {
-        let map = Map::new(
+        let map = build_map(
             "\
             ####\n\
             #  D\n\
-            ####",
-            default_configuration())
-            .unwrap();
+            ####");
         let center = Position::new(2.0, 1.1);
         let projected = project(center, ANGLE_RIGHT, &map, &Actions::new(&map));
 
@@ -548,13 +508,11 @@ mod project_test {
 
     #[test]
     fn looking_at_a_door_should_draw_wall_behind() {
-        let map = Map::new(
+        let map = build_map(
             "\
             #####\n\
             #  D#\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
         let center = Position::new(2.0, 1.1);
         let projected = project(center, ANGLE_RIGHT, &map, &Actions::new(&map));
 
@@ -564,21 +522,17 @@ mod project_test {
 
     #[test]
     fn should_not_change_distance_when_looking_at_wall_at_side_of_the_door() {
-        let door_map = Map::new(
+        let door_map = build_map(
             "\
             ##D##\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
 
-        let no_door_map = Map::new(
+        let no_door_map = build_map(
             "\
             ## ##\n\
             #   #\n\
-            #####",
-            default_configuration())
-            .unwrap();
+            #####");
 
         let center = Position::new(2.9, 1.9);
         let projected_door = project(center, Angle::new(PI - 0.2), &door_map, &Actions::new(&door_map));
@@ -590,7 +544,7 @@ mod project_test {
 
     #[test]
     fn closed_door_should_be_blocking() {
-        let map = Map::new(" D    ", default_configuration()).unwrap();
+        let map = build_map(" D    ");
         let position = Position::new(0.5, 0.5);
         let actions = Actions::new(&map);
 
@@ -601,7 +555,7 @@ mod project_test {
 
     #[test]
     fn open_door_should_not_be_blocking() {
-        let map = Map::new(" D    ", default_configuration()).unwrap();
+        let map = build_map(" D    ");
         let position = Position::new(0.5, 0.5);
         let mut actions = Actions::new(&map);
         actions.activate(1, 0);
@@ -613,7 +567,7 @@ mod project_test {
 
     #[test]
     fn half_open_door_should_be_blocking() {
-        let map = Map::new(" D    ", default_configuration()).unwrap();
+        let map = build_map(" D    ");
         let position = Position::new(0.5, 0.5);
         let mut actions = Actions::new(&map);
         actions.activate(1, 0);

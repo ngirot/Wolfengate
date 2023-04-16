@@ -38,6 +38,11 @@
       "id": "E",
       "tile_type": "ENEMY",
       "texture": "enemy.png"
+    },
+    {
+      "id": "P",
+      "tile_type": "PLAYER",
+      "orientation_in_degrees": 90
     }
   ]
 }

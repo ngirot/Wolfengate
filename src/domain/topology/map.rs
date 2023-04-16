@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
-use crate::domain::actors::actor::Enemy;
+use crate::domain::actors::actor::{Enemy, Player, PlayerStats};
 use crate::domain::control::actions::ActionStateBuilder;
+use crate::domain::maths::Angle;
 use crate::domain::topology::coord::Position;
 use crate::domain::topology::index::TextureIndex;
 
@@ -11,6 +12,7 @@ pub struct Map {
     paving: Vec<Vec<Tile>>,
     border_texture: TextureIndex,
     enemies: Vec<Enemy>,
+    player: Option<Player>,
     width: i16,
     height: i16,
 }
@@ -22,34 +24,46 @@ pub enum Tile {
     NOTHING,
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct EnemyType {
     texture: TextureIndex,
+}
+
+#[derive(Copy, Clone)]
+pub struct SpawnPoint {
+    orientation: Angle,
 }
 
 #[derive(Clone)]
 pub struct MapConfiguration {
     conf: HashMap<char, Tile>,
     enemies: HashMap<char, EnemyType>,
+    spawn: HashMap<char, SpawnPoint>,
     map_border_texture: TextureIndex,
 }
 
 impl Map {
-    pub fn new(paving: &str, configuration: MapConfiguration) -> Result<Self, String> {
-        let mut ennemies = vec![];
+    pub fn new(paving: &str, configuration: MapConfiguration, player_stats: PlayerStats) -> Result<Self, String> {
+        let mut enemies = vec![];
+        let mut player = None;
 
         let mut pav_x: Vec<Vec<Tile>> = vec![];
         let split: Vec<&str> = paving.split('\n').collect();
         let mut y: i32 = split.len() as i32 - 1;
-        
+
         for line in split {
             for (x, char) in line.chars().enumerate() {
                 if pav_x.len() <= x {
                     pav_x.push(vec![]);
                 }
-                if let Some(enemy) = Self::chat_to_enemy(&configuration, char) {
+                if let Some(spawn) = Self::char_to_spawn(&configuration, char) {
                     let position = Position::new(x as f32 + 0.5, y as f32 + 0.5);
-                    ennemies.push(Enemy::new(enemy.texture, position));
+                    let orientation = spawn.orientation();
+                    player = Some(Player::new(position, orientation, player_stats));
+                    pav_x[x].push(Tile::NOTHING);
+                } else if let Some(enemy) = Self::char_to_enemy(&configuration, char) {
+                    let position = Position::new(x as f32 + 0.5, y as f32 + 0.5);
+                    enemies.push(Enemy::new(enemy.texture(), position));
                     pav_x[x].push(Tile::NOTHING)
                 } else {
                     let tile = Self::char_to_tile(&configuration, char)?;
@@ -81,7 +95,8 @@ impl Map {
         Ok(Self {
             paving: pav_x,
             border_texture: configuration.map_border_texture(),
-            enemies: ennemies,
+            enemies,
+            player,
             height,
             width,
         })
@@ -95,8 +110,12 @@ impl Map {
         Some(&self.paving[x as usize][y as usize])
     }
 
-    fn chat_to_enemy(configuration: &MapConfiguration, c: char) -> Option<&EnemyType> {
+    fn char_to_enemy(configuration: &MapConfiguration, c: char) -> Option<&EnemyType> {
         configuration.get_enemy(c)
+    }
+
+    fn char_to_spawn(configuration: &MapConfiguration, c: char) -> Option<&SpawnPoint> {
+        configuration.get_spawn(c)
     }
 
     fn char_to_tile(configuration: &MapConfiguration, c: char) -> Result<Tile, String> {
@@ -107,6 +126,10 @@ impl Map {
 
     pub fn generate_enemies(&self) -> Vec<Enemy> {
         self.enemies.to_vec()
+    }
+
+    pub fn generate_player(&self) -> Option<Player> {
+        self.player.clone()
     }
 
     pub fn width(&self) -> i16 {
@@ -129,6 +152,7 @@ impl MapConfiguration {
             conf: HashMap::new(),
             map_border_texture,
             enemies: HashMap::new(),
+            spawn: HashMap::new(),
         }
     }
 
@@ -140,12 +164,20 @@ impl MapConfiguration {
         self.enemies.insert(c, enemy);
     }
 
+    pub fn add_spawn(&mut self, c: char, spawn_point: SpawnPoint) {
+        self.spawn.insert(c, spawn_point);
+    }
+
     pub fn get(&self, c: char) -> Option<&Tile> {
         self.conf.get(&c)
     }
 
     pub fn get_enemy(&self, c: char) -> Option<&EnemyType> {
         self.enemies.get(&c)
+    }
+
+    pub fn get_spawn(&self, c: char) -> Option<&SpawnPoint> {
+        self.spawn.get(&c)
     }
 
     pub fn map_border_texture(&self) -> TextureIndex {
@@ -159,17 +191,32 @@ impl EnemyType {
             texture
         }
     }
+
+    pub fn texture(&self) -> TextureIndex {
+        self.texture
+    }
+}
+
+impl SpawnPoint {
+    pub fn new(orientation: Angle) -> Self {
+        Self { orientation }
+    }
+
+    pub fn orientation(&self) -> Angle {
+        self.orientation
+    }
 }
 
 #[cfg(test)]
 pub mod map_test {
     use spectral::prelude::*;
 
-    use crate::domain::actors::actor::SpeedStats;
+    use crate::domain::actors::actor::{AccelerationStats, PlayerStats, SpeedStats};
     use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
+    use crate::domain::maths::{ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::topology::door::LateralOpening;
     use crate::domain::topology::index::TextureIndex;
-    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, EnemyType, Map, MapConfiguration, Tile};
+    use crate::domain::topology::map::{DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS, EnemyType, Map, MapConfiguration, SpawnPoint, Tile};
 
     pub fn default_configuration() -> MapConfiguration {
         let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::new()))));
@@ -183,13 +230,29 @@ pub mod map_test {
 
         configuration.add_enemy('E', EnemyType::new(TextureIndex::new(4)));
 
+        configuration.add_spawn('u', SpawnPoint::new(ANGLE_UP));
+        configuration.add_spawn('d', SpawnPoint::new(ANGLE_DOWN));
+        configuration.add_spawn('l', SpawnPoint::new(ANGLE_LEFT));
+        configuration.add_spawn('r', SpawnPoint::new(ANGLE_RIGHT));
+
         configuration.clone()
+    }
+
+    pub fn build_map(paving: &str) -> Map {
+        Map::new(paving, default_configuration(), default_stats()).unwrap()
+    }
+
+    pub fn default_stats() -> PlayerStats {
+        let acceleration = AccelerationStats::new(1000000000.0);
+        let deceleration = AccelerationStats::new(1.0);
+        let max_speed = SpeedStats::new(100000.0);
+        PlayerStats::new(acceleration, deceleration, max_speed)
     }
 
     #[test]
     fn should_read_paving_information() {
         let paving = String::from("###\n# #\n# #\n###");
-        let map = Map::new(&paving, default_configuration()).unwrap();
+        let map = build_map(&paving);
 
         assert!(matches!(&map.paving_at(0, 0), Some(Tile::SOLID(_))));
         assert!(matches!(&map.paving_at(1, 0), Some(Tile::SOLID(_))));
@@ -210,41 +273,41 @@ pub mod map_test {
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_width_map() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let tile = map.paving_at(0, 2);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_x_coordinate_bigger_than_height_map() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let tile = map.paving_at(2, 0);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_negative_x_coordinate() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let tile = map.paving_at(-1, 0);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_get_paving_information_on_tiles_with_negative_y_coordinate() {
-        let map = Map::new("  \n  ", default_configuration()).unwrap();
+        let map = build_map("  \n  ");
         let tile = map.paving_at(0, -1);
         assert!(matches!(tile, None));
     }
 
     #[test]
     fn should_not_validate_a_map_with_inconsistent_column_number() {
-        let map = Map::new("   \n  ", default_configuration());
+        let map = Map::new("   \n  ", default_configuration(), default_stats());
         assert_that!(map.err()).is_some();
     }
 
     #[test]
     fn should_not_validate_a_map_with_unknown_char() {
-        let map = Map::new("#k\n #", default_configuration());
+        let map = Map::new("#k\n #", default_configuration(), default_stats());
         assert_that!(map.err()).is_some();
     }
 }

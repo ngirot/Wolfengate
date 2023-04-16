@@ -70,6 +70,15 @@ impl Player {
         }
     }
 
+    pub fn with_position(&self, position: Position) -> Self {
+        Self {
+            inertia: self.inertia,
+            orientation: self.orientation,
+            stats: self.stats,
+            position,
+        }
+    }
+
     pub fn apply_force(&self, force: Force, microseconds_elapsed: u128) -> Self {
         self.move_direction(force, microseconds_elapsed)
             .rotate(force.rotation().add(self.orientation))

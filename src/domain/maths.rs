@@ -114,10 +114,15 @@ impl Angle {
     const fn init(radiant: f32) -> Self {
         Self { radiant }
     }
+
     pub fn new(radiant: f32) -> Self {
         Self {
             radiant: radiant % (2.0 * PI),
         }
+    }
+
+    pub fn from_degree(degree: f32) -> Self {
+        Angle::new(degree * PI / 180.0)
     }
 
     pub fn add(&self, other: Angle) -> Self {
@@ -238,6 +243,39 @@ mod fn_between {
     }
 }
 
+#[cfg(test)]
+mod angle_test {
+    use std::f32::consts::PI;
+
+    use spectral::prelude::*;
+
+    use crate::domain::maths::Angle;
+
+    #[test]
+    fn angle_should_be_created_from_radiant() {
+        let angle = Angle::new(PI / 2.0);
+        assert_that!(angle.to_radiant()).is_close_to(PI / 2.0, 0.001);
+    }
+
+    #[test]
+    fn angle_should_be_created_from_radiant_modulo_2_pi() {
+        let angle = Angle::new(8.0 * PI);
+        assert_that!(angle.to_radiant()).is_close_to(0.0, 0.001);
+    }
+
+    #[test]
+    fn angle_could_be_created_from_degrees() {
+        let angle = Angle::from_degree(90.0);
+        assert_that!(angle.to_radiant()).is_close_to(PI / 2.0, 0.001)
+    }
+
+    #[test]
+    fn angle_could_be_created_from_degrees_modulo_2_pi() {
+        let angle = Angle::from_degree(540.0);
+        assert_that!(angle.to_radiant()).is_close_to(PI, 0.001)
+    }
+}
+
 
 #[cfg(test)]
 mod fn_test {
@@ -245,8 +283,8 @@ mod fn_test {
 
     use spectral::prelude::*;
 
-    use crate::domain::topology::coord::Position;
     use crate::domain::maths::signed_angle;
+    use crate::domain::topology::coord::Position;
 
     #[test]
     fn should_compute_positive_angle_with_two_points() {
@@ -280,8 +318,8 @@ mod fn_test {
 mod vector_test {
     use spectral::prelude::*;
 
-    use crate::domain::topology::coord::Position;
     use crate::domain::maths::Vector;
+    use crate::domain::topology::coord::Position;
 
     #[test]
     fn vector_length_of_two_points() {
