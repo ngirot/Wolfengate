@@ -2,7 +2,6 @@ use std::time::Instant;
 
 use sdl2::ttf;
 
-use wolfengate::domain::actors::actor::{AccelerationStats, PlayerStats, SpeedStats};
 use wolfengate::domain::control::force::{Force, InputForce};
 use wolfengate::domain::control::input::Input;
 use wolfengate::domain::level::Level;
@@ -41,12 +40,7 @@ fn main() -> Result<(), String> {
     let mut registry = ResourceRegistry::new(&texture_creator, &ttf_creator, &resource_loader);
     let debug_font = registry.load_font(String::from("MontserratAlternates-Medium.otf"));
 
-    let acceleration = AccelerationStats::new(70.0);
-    let deceleration = AccelerationStats::new(40.0);
-    let max_speed = SpeedStats::new(6.0);
-
-    let player_stats = PlayerStats::new(acceleration, deceleration, max_speed);
-    let map = map_loader(&mut registry, resource_loader, player_stats);
+    let map = map_loader(&mut registry, resource_loader);
 
     let input_force = InputForce::new(0.004, 0.005);
     let mut level = Level::new(view, map);
@@ -82,7 +76,7 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoader, player_stats: PlayerStats) -> Map {
+pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoader) -> Map {
     let configuration_content = resource_loader.load_as_string(String::from("conf.json"));
     let configuration = load_configuration(configuration_content, registry);
 
@@ -90,7 +84,6 @@ pub fn map_loader(registry: &mut ResourceRegistry, resource_loader: ResourceLoad
 
     Map::new(
         &map_content,
-        configuration,
-        player_stats)
+        configuration)
         .unwrap()
 }

@@ -38,10 +38,11 @@ pub struct MapConfiguration {
     enemies: HashMap<char, EnemyType>,
     spawn: HashMap<char, SpawnPoint>,
     map_border_texture: TextureIndex,
+    player_conf: PlayerStats,
 }
 
 impl Map {
-    pub fn new(paving: &str, configuration: MapConfiguration, player_stats: PlayerStats) -> Result<Self, String> {
+    pub fn new(paving: &str, configuration: MapConfiguration) -> Result<Self, String> {
         let mut enemies = vec![];
         let mut player = None;
 
@@ -57,7 +58,7 @@ impl Map {
                 if let Some(spawn) = Self::char_to_spawn(&configuration, char) {
                     let position = Position::new(x as f32 + 0.5, y as f32 + 0.5);
                     let orientation = spawn.orientation();
-                    player = Some(Player::new(position, orientation, player_stats));
+                    player = Some(Player::new(position, orientation, configuration.player_conf()));
                     pav_x[x].push(Tile::NOTHING);
                 } else if let Some(enemy) = Self::char_to_enemy(&configuration, char) {
                     let position = Position::new(x as f32 + 0.5, y as f32 + 0.5);
@@ -145,12 +146,13 @@ impl Map {
 }
 
 impl MapConfiguration {
-    pub fn new(map_border_texture: TextureIndex) -> Self {
+    pub fn new(map_border_texture: TextureIndex, player_conf: PlayerStats) -> Self {
         Self {
             conf: HashMap::new(),
             map_border_texture,
             enemies: HashMap::new(),
             spawn: HashMap::new(),
+            player_conf,
         }
     }
 
@@ -180,6 +182,10 @@ impl MapConfiguration {
 
     pub fn map_border_texture(&self) -> TextureIndex {
         self.map_border_texture
+    }
+
+    pub fn player_conf(&self) -> PlayerStats {
+        self.player_conf
     }
 }
 
@@ -222,7 +228,7 @@ pub mod map_test {
         let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::new()))));
         let glass_state_builder = ActionStateBuilder::new(Box::new(NothingActionState::new()));
 
-        let mut configuration = MapConfiguration::new(TextureIndex::new(0));
+        let mut configuration = MapConfiguration::new(TextureIndex::new(0), default_stats());
         configuration.add('#', Tile::SOLID(TextureIndex::new(1)));
         configuration.add('D', Tile::DYNAMIC(TextureIndex::new(2), TextureIndex::new(4), door_state_builder));
         configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), glass_state_builder));
@@ -239,7 +245,7 @@ pub mod map_test {
     }
 
     pub fn build_map(paving: &str) -> Map {
-        Map::new(paving, default_configuration(), default_stats()).unwrap()
+        Map::new(paving, default_configuration()).unwrap()
     }
 
     pub fn default_stats() -> PlayerStats {
@@ -301,13 +307,13 @@ pub mod map_test {
 
     #[test]
     fn should_not_validate_a_map_with_inconsistent_column_number() {
-        let map = Map::new("   \n  ", default_configuration(), default_stats());
+        let map = Map::new("   \n  ", default_configuration());
         assert_that!(map.err()).is_some();
     }
 
     #[test]
     fn should_not_validate_a_map_with_unknown_char() {
-        let map = Map::new("#k\n #", default_configuration(), default_stats());
+        let map = Map::new("#k\n #", default_configuration());
         assert_that!(map.err()).is_some();
     }
 }

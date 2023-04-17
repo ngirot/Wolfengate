@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::actors::actor::SpeedStats;
+use crate::domain::actors::actor::{AccelerationStats, PlayerStats, SpeedStats};
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
 use crate::domain::maths::Angle;
 use crate::domain::topology::door::{CentralOpening, LateralOpening, Openable};
@@ -24,7 +24,15 @@ pub struct Tile {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct JsonPlayer {
+    acceleration: f32,
+    deceleration: f32,
+    maximum_speed: f32,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Json {
+    player: JsonPlayer,
     tiles: Vec<Tile>,
 }
 
@@ -38,8 +46,9 @@ fn load(content: String) -> Json {
 }
 
 fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> MapConfiguration {
+    let player_conf = player_conf(data.player);
     let transparency = resource_registry.load_texture(String::from("transparency.png"));
-    let mut conf = MapConfiguration::new(transparency);
+    let mut conf = MapConfiguration::new(transparency, player_conf);
 
     for tile in data.tiles {
         let texture = tile.texture
@@ -80,4 +89,12 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
     }
 
     conf
+}
+
+fn player_conf(data: JsonPlayer) -> PlayerStats {
+    PlayerStats::new(
+        AccelerationStats::new(data.acceleration),
+        AccelerationStats::new(data.deceleration),
+        SpeedStats::new(data.maximum_speed),
+    )
 }
