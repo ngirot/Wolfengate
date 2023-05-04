@@ -14,7 +14,7 @@ impl ViewScreen {
             height,
             width,
             angle: ANGLE_UP,
-            ratio: 0.8,
+            ratio: height as f32 / width as f32,
         }
     }
 
