@@ -2,7 +2,7 @@
   "player": {
     "acceleration": 70,
     "deceleration": 40,
-    "maximum_speed": 12
+    "maximum_speed": 6
   },
   "tiles": [
     {
