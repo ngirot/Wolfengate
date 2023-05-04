@@ -1,4 +1,4 @@
-use crate::domain::maths::{Angle, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
+use crate::domain::maths::{Angle, ANGLE_0, ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
 
 #[derive(Copy, Clone)]
 pub struct Force {
@@ -97,7 +97,7 @@ impl InputForce {
     }
 
     fn movement_to_force(&self, orientation: Angle) -> Force {
-        Force::new(orientation, self.movement_speed, ANGLE_RIGHT)
+        Force::new(orientation, self.movement_speed, ANGLE_0)
     }
 
     fn rotation_to_force(&self, amplitude: i32) -> Force {
@@ -113,7 +113,7 @@ mod input_force_test {
     use spectral::prelude::*;
 
     use crate::domain::control::force::{Force, InputForce};
-    use crate::domain::maths::{Angle, ANGLE_RIGHT};
+    use crate::domain::maths::{Angle, ANGLE_0, ANGLE_RIGHT};
 
     #[test]
     fn move_force_should_not_have_a_rotation() {
@@ -164,8 +164,8 @@ mod input_force_test {
 
     #[test]
     fn force_should_add_power_and_orientation() {
-        let force1 = Force::new(ANGLE_RIGHT, 1.0, ANGLE_RIGHT);
-        let force2 = Force::new(Angle::new(PI / 2.0), 1.5, ANGLE_RIGHT);
+        let force1 = Force::new(ANGLE_RIGHT, 1.0, ANGLE_0);
+        let force2 = Force::new(Angle::new(PI / 2.0), 1.5, ANGLE_0);
 
         let added = force1.add(force2);
 
@@ -185,7 +185,7 @@ mod input_force_test {
 
     #[test]
     fn force_should_add_zero() {
-        let force = Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT);
+        let force = Force::new(ANGLE_RIGHT, 0.0, ANGLE_0);
 
         let added = force.add(force);
 
@@ -196,7 +196,7 @@ mod input_force_test {
 
     #[test]
     fn should_increase_force_by_factor() {
-        let force = Force::new(ANGLE_RIGHT, 10.0, ANGLE_RIGHT);
+        let force = Force::new(ANGLE_RIGHT, 10.0, ANGLE_0);
 
         let reduced = force.power_multiplier(2.0);
 
@@ -205,7 +205,7 @@ mod input_force_test {
 
     #[test]
     fn should_reduce_force_by_factor() {
-        let force = Force::new(ANGLE_RIGHT, 10.0, ANGLE_RIGHT);
+        let force = Force::new(ANGLE_RIGHT, 10.0, ANGLE_0);
 
         let reduced = force.power_multiplier(0.5);
 

@@ -1,5 +1,5 @@
 use crate::domain::control::actions::{Actions, ActionState};
-use crate::domain::maths::{Angle, ANGLE_DOWN, decimal_part, Vector};
+use crate::domain::maths::{Angle, ANGLE_240, decimal_part, Vector};
 use crate::domain::topology::coord::{MapPoint, Position};
 use crate::domain::topology::door::Openable;
 use crate::domain::topology::index::TextureIndex;
@@ -103,7 +103,7 @@ fn inner_door_projection(current_position: Position, angle: Angle, door_up: bool
     let openable = action_state.openable();
 
     if door_up {
-        let a = angle.add(ANGLE_DOWN).tan();
+        let a = angle.add(ANGLE_240).tan();
         let angle_sign = angle.sin().signum();
         let door_x = current_position.x() - (a / (2.0 * angle_sign));
 

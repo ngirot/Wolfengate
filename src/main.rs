@@ -5,7 +5,7 @@ use sdl2::ttf;
 use wolfengate::domain::control::force::{Force, InputForce};
 use wolfengate::domain::control::input::Input;
 use wolfengate::domain::level::Level;
-use wolfengate::domain::maths::{ANGLE_RIGHT};
+use wolfengate::domain::maths::{ANGLE_0, ANGLE_RIGHT};
 use wolfengate::domain::resources::ResourceLoader;
 use wolfengate::domain::topology::map::Map;
 use wolfengate::domain::ui::debug::DebugInfo;
@@ -50,7 +50,7 @@ fn main() -> Result<(), String> {
     'running: loop {
         let elapsed = start.elapsed().as_micros();
         start = Instant::now();
-        let mut current_force = Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT);
+        let mut current_force = Force::new(ANGLE_RIGHT, 0.0, ANGLE_0);
         for input in poll_input(&mut sdl_context) {
             match input {
                 Input::Quit => break 'running,

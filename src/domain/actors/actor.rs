@@ -204,7 +204,7 @@ mod actor_test {
     use crate::domain::actors::physics::Speed;
     use crate::domain::control::force::Force;
 
-    use crate::domain::maths::{Angle, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
+    use crate::domain::maths::{Angle, ANGLE_0, ANGLE_90, ANGLE_LEFT, ANGLE_RIGHT};
     use crate::domain::topology::coord::Position;
 
     use super::Player;
@@ -220,7 +220,7 @@ mod actor_test {
             ANGLE_RIGHT,
             PlayerStats::new(acceleration, deceleration, max_speed),
         );
-        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 1.0, ANGLE_RIGHT), 1000000);
+        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 1.0, ANGLE_0), 1000000);
         assert_that!(after_move.position().x()).is_equal_to(3.0);
         assert_that!(after_move.position().y()).is_equal_to(2.0);
     }
@@ -237,7 +237,7 @@ mod actor_test {
             PlayerStats::new(acceleration, deceleration, max_speed),
         )
             .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
-        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_RIGHT), 1000000);
+        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_0), 1000000);
         assert_that!(after_move.position().x()).is_equal_to(3.0);
         assert_that!(after_move.position().y()).is_equal_to(2.0);
     }
@@ -254,7 +254,7 @@ mod actor_test {
             PlayerStats::new(acceleration, deceleration, max_speed),
         )
             .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
-        let after_move = player.apply_force(Force::new(ANGLE_LEFT, 1.0, ANGLE_RIGHT), 1000000);
+        let after_move = player.apply_force(Force::new(ANGLE_LEFT, 1.0, ANGLE_0), 1000000);
         assert_that!(after_move.position().x()).is_equal_to(2.0);
         assert_that!(after_move.position().y()).is_equal_to(5.0);
     }
@@ -286,7 +286,7 @@ mod actor_test {
             PlayerStats::new(acceleration, deceleration, max_speed),
         )
             .with_inertia(Speed::new(ANGLE_RIGHT, 3.0));
-        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_UP), 1000000);
+        let after_move = player.apply_force(Force::new(ANGLE_RIGHT, 0.0, ANGLE_90), 1000000);
 
         assert_that!(after_move.position.x()).is_close_to(1.0, 0.001);
         assert_that!(after_move.position.y()).is_equal_to(4.0);

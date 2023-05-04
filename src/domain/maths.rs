@@ -7,6 +7,11 @@ pub const ANGLE_UP: Angle = Angle::init(PI / 2.0);
 pub const ANGLE_DOWN: Angle = Angle::init(3.0 * PI / 2.0);
 pub const ANGLE_LEFT: Angle = Angle::init(PI);
 
+pub const ANGLE_0: Angle = ANGLE_RIGHT;
+pub const ANGLE_90: Angle = ANGLE_UP;
+pub const ANGLE_180: Angle = ANGLE_LEFT;
+pub const ANGLE_240: Angle = ANGLE_DOWN;
+
 #[derive(Copy, Clone)]
 pub struct Vector {
     start: Position,
@@ -339,7 +344,7 @@ mod vector_test {
     use spectral::prelude::*;
 
     use crate::domain::topology::coord::Position;
-    use crate::domain::maths::{Angle, ANGLE_LEFT, ANGLE_UP, Vector};
+    use crate::domain::maths::{Angle, ANGLE_180, ANGLE_90, ANGLE_UP, Vector};
 
     #[test]
     fn vector_length_of_two_points() {
@@ -476,13 +481,13 @@ mod vector_test {
 
     #[test]
     fn spherical_cone_should_create_asked_number_of_angle() {
-        let angles = ANGLE_UP.discreet_cone_spherical_space(ANGLE_UP, 5);
+        let angles = ANGLE_UP.discreet_cone_spherical_space(ANGLE_90, 5);
         assert_that!(angles).has_length(5);
     }
 
     #[test]
     fn spherical_cone_should_have_uniform_angle_repartition() {
-        let angles = ANGLE_UP.discreet_cone_spherical_space(ANGLE_LEFT, 5);
+        let angles = ANGLE_UP.discreet_cone_spherical_space(ANGLE_180, 5);
 
         let space_1 = angles[0].to_radiant() - angles[1].to_radiant();
         let space_2 = angles[1].to_radiant() - angles[2].to_radiant();
@@ -498,7 +503,7 @@ mod vector_test {
     fn spherical_cone_should_have_center_angle_as_base_angle() {
         let base_angle = Angle::new(2.6);
 
-        let angles = base_angle.discreet_cone_spherical_space(ANGLE_LEFT, 5);
+        let angles = base_angle.discreet_cone_spherical_space(ANGLE_180, 5);
 
         assert_that!(angles[2].to_radiant()).is_close_to(base_angle.to_radiant(), 0.01);
     }
@@ -515,7 +520,7 @@ mod vector_test {
 
     #[test]
     fn straight_cone_should_create_asked_number_of_angle() {
-        let angles = ANGLE_UP.discreet_cone_straight_space(ANGLE_UP, 5);
+        let angles = ANGLE_UP.discreet_cone_straight_space(ANGLE_90, 5);
         assert_that!(angles).has_length(5);
     }
 
@@ -523,7 +528,7 @@ mod vector_test {
     fn straight_cone_should_have_center_angle_as_base_angle() {
         let base_angle = Angle::new(2.6);
 
-        let angles = base_angle.discreet_cone_straight_space(ANGLE_LEFT, 5);
+        let angles = base_angle.discreet_cone_straight_space(ANGLE_180, 5);
 
         assert_that!(angles[2].to_radiant()).is_close_to(base_angle.to_radiant(), 0.01);
     }
@@ -540,7 +545,7 @@ mod vector_test {
 
     #[test]
     fn straight_cone_should_have_uniform_distance_repartition() {
-        let angles = ANGLE_UP.discreet_cone_straight_space(ANGLE_UP, 5);
+        let angles = ANGLE_UP.discreet_cone_straight_space(ANGLE_90, 5);
 
         let project_on_y: Vec<Position> = angles.iter()
             .map(|angle| Position::new(angle.cos() / angle.sin(), angle.sin() / angle.sin()))

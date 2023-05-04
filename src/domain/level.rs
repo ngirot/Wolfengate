@@ -264,7 +264,7 @@ mod level_test {
 
     use crate::domain::control::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
-    use crate::domain::maths::{Angle, ANGLE_RIGHT};
+    use crate::domain::maths::{Angle, ANGLE_0, ANGLE_RIGHT};
     use crate::domain::topology::coord::Position;
     use crate::domain::topology::map::map_test::build_map;
     use crate::domain::ui::draw_action::DrawAction;
@@ -332,7 +332,7 @@ mod level_test {
 
         let mut level = Level::new(view, map);
 
-        level.apply_forces(Force::new(ANGLE_RIGHT, 10.0, ANGLE_RIGHT), 1000000);
+        level.apply_forces(Force::new(ANGLE_RIGHT, 10.0, ANGLE_0), 1000000);
         assert_that!(level.player.position().x()).is_less_than_or_equal_to(2.0);
     }
 
@@ -343,7 +343,7 @@ mod level_test {
 
         let mut level = Level::new(view, map);
 
-        level.apply_forces(Force::new(ANGLE_RIGHT, 0.2, ANGLE_RIGHT), 1000000);
+        level.apply_forces(Force::new(ANGLE_RIGHT, 0.2, ANGLE_0), 1000000);
 
         assert_that!(level.player.position().x()).is_greater_than(1.5);
     }
@@ -400,7 +400,7 @@ mod level_test {
         let mut level = Level::new(view, map);
 
         level.apply_forces(
-            Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_RIGHT),
+            Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_0),
             10000000,
         );
 
@@ -415,7 +415,7 @@ mod level_test {
 
         let mut level = Level::new(view, map);
 
-        level.apply_forces(Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_RIGHT), 1000000);
+        level.apply_forces(Force::new(Angle::new(PI / 16.0), 1.0, ANGLE_0), 1000000);
 
         assert_that!(level.player.position().x()).is_close_to(1.0, TOLERANCE);
         assert_that!(level.player.position().y()).is_less_than(0.5);
@@ -429,7 +429,7 @@ mod level_test {
         let mut level = Level::new(view, map);
 
         level.apply_forces(
-            Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT),
+            Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_0),
             1000000,
         );
 
@@ -445,7 +445,7 @@ mod level_test {
         let mut level = Level::new(view, map);
 
         level.apply_forces(
-            Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_RIGHT),
+            Force::new(Angle::new(-PI / 16.0), 1.0, ANGLE_0),
             1000000,
         );
 
