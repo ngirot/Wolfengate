@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use rayon::prelude::*;
 
 use crate::domain::actors::actor::{Enemy, Player};
@@ -59,6 +60,26 @@ impl Level {
                 self.actions.activate(map_point.x(), map_point.y());
             }
         }
+    }
+
+    pub fn handle_shoot(&mut self) {
+        let range_distance = 0.5;
+        let range_angle = Angle::new(PI / 4.0);
+
+        self.enemies.par_iter_mut().for_each(|enemy| {
+            let enemy_size = 0.5;
+            let distance = self.player.position().distance(&enemy.position());
+            let look_at = Vector::from_angle(self.player.orientation());
+            let enemy_look = Vector::new(*self.player.position(), enemy.position());
+
+            let hit = look_at.angle(enemy_look)
+                .map(|angle| distance < range_distance + enemy_size && angle.to_radiant() < range_angle.to_radiant())
+                .unwrap_or(false);
+
+            if hit {
+                println!("Enemy hit!");
+            }
+        });
     }
 
     pub fn notify_elapsed(&mut self, microseconds: u128) {

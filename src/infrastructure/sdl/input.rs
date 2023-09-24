@@ -63,6 +63,9 @@ pub fn poll_input(sdl_context: &mut SdlContext) -> Vec<Input> {
             } => {
                 inputs.push(Input::Action);
             }
+            Event::MouseButtonDown { .. } => {
+                inputs.push(Input::Shoot);
+            }
             _ => {}
         }
     }

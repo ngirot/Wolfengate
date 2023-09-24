@@ -61,6 +61,7 @@ fn main() -> Result<(), String> {
                 Input::Rotate(x) => current_force = current_force.add(input_force.rotate(x)),
                 Input::ToggleFullscreen => sdl_context.toggle_fullscreen(),
                 Input::Action => level.handle_action(),
+                Input::Shoot => level.handle_shoot(),
                 Input::ShowFps => debug_info = debug_info.toggle_fps(),
             }
         }

@@ -54,6 +54,13 @@ impl Vector {
         Self { start, end }
     }
 
+    pub fn from_angle(angle: Angle) -> Self {
+        Self {
+            start: Position::new(0.0, 0.0),
+            end: Position::new(angle.cos(), angle.sin()),
+        }
+    }
+
     pub fn angle(&self, vector: Vector) -> Option<Angle> {
         let len = self.length() * vector.length();
         if len == 0.0 {
@@ -345,6 +352,16 @@ mod vector_test {
 
     use crate::domain::topology::coord::Position;
     use crate::domain::maths::{Angle, ANGLE_180, ANGLE_90, ANGLE_UP, Vector};
+
+    #[test]
+    fn vector_from_angle() {
+        let vector = Vector::from_angle(ANGLE_90);
+
+        assert_that!(vector.start.x()).is_equal_to(0.0);
+        assert_that!(vector.start.y()).is_equal_to(0.0);
+        assert_that!(vector.end.x()).is_close_to(0.0, 0.001);
+        assert_that!(vector.end.y()).is_close_to(1.0, 0.001);
+    }
 
     #[test]
     fn vector_length_of_two_points() {

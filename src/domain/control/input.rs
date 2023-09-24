@@ -7,5 +7,6 @@ pub enum Input {
     Action,
     ToggleFullscreen,
     ShowFps,
+    Shoot,
     Quit,
 }
