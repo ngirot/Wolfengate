@@ -252,23 +252,26 @@ fn build_enemies(
         let enemy_vector = Vector::new(view_position, enemy.position());
 
         let angle = view_vector.angle(enemy_vector).unwrap();
-        let angle_negative = view_vector.angle_sign_is_negative(enemy_vector);
 
-        let x = angle.position_in_discreet_cone(view.angle(), view.width(), angle_negative);
+        let sprite = enemy.position().with_reference_point(&view_position);
+        let sprite_projection = angle.position_in_discreet_cone_straight(&view, orientation, sprite);
 
-        let distance = view_position.distance(&enemy.position());
-        let sprite_height = object_height(view, distance);
-        let start = ScreenPoint::new(
-            (x - sprite_height / 2.0) as i32,
-            (view.height() as f32 / 2.0 - sprite_height / 2.0) as i32,
-        );
-        let end = ScreenPoint::new(
-            (x + sprite_height / 2.0) as i32,
-            (view.height() as f32 / 2.0 + sprite_height / 2.0) as i32,
-        );
+        if sprite_projection.is_some() {
+            let projected = sprite_projection.unwrap();
+            let sprite_height = object_height(view, projected.distance());
+            let start = ScreenPoint::new(
+                (projected.column() - sprite_height / 2.0) as i32,
+                (view.height() as f32 / 2.0 - sprite_height / 2.0) as i32,
+            );
+            let end = ScreenPoint::new(
+                (projected.column() + sprite_height / 2.0) as i32,
+                (view.height() as f32 / 2.0 + sprite_height / 2.0) as i32,
+            );
 
-        let action = DrawAction::Sprite(start, end, enemy.texture());
-        actions.push(DrawActionZIndex::new(action, distance))
+            let action = DrawAction::Sprite(start, end, enemy.texture());
+            actions.push(DrawActionZIndex::new(action, projected.distance()))
+        }
+
     }
     actions
 }
@@ -285,7 +288,7 @@ mod level_test {
 
     use crate::domain::control::force::Force;
     use crate::domain::level::WALL_MINIMUM_DISTANCE;
-    use crate::domain::maths::{Angle, ANGLE_0, ANGLE_RIGHT};
+    use crate::domain::maths::{Angle, ANGLE_0, ANGLE_90, ANGLE_RIGHT};
     use crate::domain::topology::coord::Position;
     use crate::domain::topology::map::map_test::build_map;
     use crate::domain::ui::draw_action::DrawAction;
@@ -297,7 +300,7 @@ mod level_test {
 
     #[test]
     fn actions_should_start_with_a_clear() {
-        let view = ViewScreen::new(0, 0);
+        let view = ViewScreen::new(0, 0, ANGLE_90);
         let level = Level::new(view, build_map("r#"));
 
         let actions = level.generate_actions();
@@ -309,7 +312,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_ceiling() {
-        let view = ViewScreen::new(200, 100);
+        let view = ViewScreen::new(200, 100, ANGLE_90);
         let level = Level::new(view, build_map("r#"));
         let mut found = false;
 
@@ -328,7 +331,7 @@ mod level_test {
 
     #[test]
     fn actions_should_draw_floor() {
-        let view = ViewScreen::new(200, 100);
+        let view = ViewScreen::new(200, 100, ANGLE_90);
 
         let level = Level::new(view, build_map("r#"));
         let mut found = false;
@@ -349,7 +352,7 @@ mod level_test {
     #[test]
     fn apply_force_should_constraint_moves() {
         let map = build_map("#r#");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
 
         let mut level = Level::new(view, map);
 
@@ -360,7 +363,7 @@ mod level_test {
     #[test]
     fn apply_force_should_apply_not_constrained_moves() {
         let map = build_map("#r#");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
 
         let mut level = Level::new(view, map);
 
@@ -372,7 +375,7 @@ mod level_test {
     #[test]
     fn enemy_should_be_in_the_list_after_the_wall_behind_him() {
         let map = build_map("#rE #");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
 
         let mut level = Level::new(view, map);
         level.teleport(Position::new(2.3, 0.5));
@@ -395,7 +398,7 @@ mod level_test {
     #[test]
     fn enemy_should_be_in_the_list_before_the_wall_before_him() {
         let map = build_map("#r# E ");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
         let level = Level::new(view, map);
 
         let actions = level.generate_actions();
@@ -416,7 +419,7 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_top() {
         let map = build_map("#r#");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
 
         let mut level = Level::new(view, map);
 
@@ -432,7 +435,7 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_bottom() {
         let map = build_map("#l#");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
 
         let mut level = Level::new(view, map);
 
@@ -445,7 +448,7 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_right() {
         let map = build_map("#\nu\n#");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
 
         let mut level = Level::new(view, map);
 
@@ -461,7 +464,7 @@ mod level_test {
     #[test]
     fn apply_force_should_constrains_move_by_sliding_through_the_wall_by_left() {
         let map = build_map("#\nd\n#");
-        let view = ViewScreen::new(100, 100);
+        let view = ViewScreen::new(100, 100, ANGLE_90);
 
         let mut level = Level::new(view, map);
 

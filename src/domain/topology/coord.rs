@@ -18,6 +18,11 @@ pub struct Position {
     y: f32,
 }
 
+pub struct ProjectedSprite {
+    column: f32,
+    distance: f32,
+}
+
 impl ScreenPoint {
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
@@ -71,6 +76,24 @@ impl Position {
         Vector::new(*self, *position).length()
     }
 
+    pub fn distance_no_fisheye(&self, end: Position, angle_reference: Angle) -> f32 {
+        let hypothenuse = self.distance(&end);
+
+        let straight_vector = Vector::from_angle(angle_reference);
+        let projection_vector = Vector::new(*self, end);
+        let angle = projection_vector.angle(straight_vector);
+
+        let factor = angle
+            .map(|a| a.cos())
+            .map(|cos| cos.abs())
+            .filter(|n| !n.is_nan())
+            .unwrap_or_else(|| 1.0);
+
+
+        hypothenuse * factor
+    }
+
+
     pub fn apply_force(&self, moves: Move) -> Position {
         let factor = moves.distance();
         let new_angle = moves.orientation();
@@ -107,6 +130,10 @@ impl Position {
             .with_y(next_y)
     }
 
+    pub fn with_reference_point(&self, reference: &Position) -> Self {
+        Position::new(self.x() - reference.x(), self.y() - reference.y())
+    }
+
     fn round(number: f32, sign: f32) -> f32 {
         let rounded = if sign > 0.0 {
             number.ceil()
@@ -119,6 +146,20 @@ impl Position {
         } else {
             rounded
         }
+    }
+}
+
+impl ProjectedSprite {
+    pub fn new(column: f32, distance: f32) -> Self {
+        Self { column, distance }
+    }
+
+    pub fn column(&self) -> f32 {
+        self.column
+    }
+
+    pub fn distance(&self) -> f32 {
+        self.distance
     }
 }
 

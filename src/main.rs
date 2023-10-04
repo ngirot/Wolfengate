@@ -5,7 +5,7 @@ use sdl2::ttf;
 use wolfengate::domain::control::force::{Force, InputForce};
 use wolfengate::domain::control::input::Input;
 use wolfengate::domain::level::Level;
-use wolfengate::domain::maths::{ANGLE_0, ANGLE_RIGHT};
+use wolfengate::domain::maths::{ANGLE_0, ANGLE_90, ANGLE_RIGHT};
 use wolfengate::domain::resources::ResourceLoader;
 use wolfengate::domain::topology::map::Map;
 use wolfengate::domain::ui::debug::DebugInfo;
@@ -31,7 +31,7 @@ fn render(
 }
 
 fn main() -> Result<(), String> {
-    let view = ViewScreen::new(500, 800);
+    let view = ViewScreen::new(500, 800, ANGLE_90);
     let mut sdl_context = SdlContext::new(view)?;
     let texture_creator = sdl_context.canvas().texture_creator();
     let ttf_creator = ttf::init().unwrap();

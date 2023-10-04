@@ -1,5 +1,5 @@
 use crate::domain::control::actions::{Actions, ActionState};
-use crate::domain::maths::{Angle, ANGLE_240, decimal_part, Vector};
+use crate::domain::maths::{Angle, ANGLE_240, decimal_part};
 use crate::domain::topology::coord::{MapPoint, Position};
 use crate::domain::topology::door::Openable;
 use crate::domain::topology::index::TextureIndex;
@@ -157,20 +157,7 @@ impl ProjectedPoint {
     }
 
     pub fn distance_no_fish_eye(&self, angle_reference: Angle) -> f32 {
-        let hypothenuse = self.distance();
-
-        let straight_vector = Vector::new(Position::new(0.0, 0.0), Position::new(angle_reference.cos(), angle_reference.sin()));
-        let projection_vector = Vector::new(self.source_point, self.projected_point);
-        let angle = projection_vector.angle(straight_vector);
-
-        let factor = angle
-            .map(|a| a.cos())
-            .map(|cos| cos.abs())
-            .filter(|n| !n.is_nan())
-            .unwrap_or_else(|| 1.0);
-
-
-        hypothenuse * factor
+        self.source_point.distance_no_fisheye(self.projected_point, angle_reference)
     }
 
     pub fn offset_in_bloc(&self) -> f32 {

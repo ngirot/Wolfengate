@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 
-use crate::domain::topology::coord::Position;
+use crate::domain::topology::coord::{Position, ProjectedSprite};
+use crate::domain::ui::view::ViewScreen;
 
 pub const ANGLE_RIGHT: Angle = Angle::init(0.0);
 pub const ANGLE_UP: Angle = Angle::init(PI / 2.0);
@@ -133,6 +134,10 @@ impl Angle {
         }
     }
 
+    pub fn to_position(&self, force: f32) -> Position {
+        Position::new(self.cos() * force, self.sin() * force)
+    }
+
     pub fn from_degree(degree: f32) -> Self {
         Angle::new(degree * PI / 180.0)
     }
@@ -189,6 +194,27 @@ impl Angle {
         result
     }
 
+    pub fn position_in_discreet_cone_straight(&self,
+                                              view: &ViewScreen,
+                                              view_orientation: &Angle,
+                                              sprite: Position) -> Option<ProjectedSprite> {
+        let camera = Position::new(view_orientation.cos(), view_orientation.sin());
+        let plane = view.view_plane(view_orientation);
+
+        let inverse_det = 1.0 / (plane.x() * camera.y() - camera.x() * plane.y());//required for correct matrix multiplication
+
+        let x = inverse_det * (camera.y() * sprite.x() - camera.x() * sprite.y());
+        let y = inverse_det * (-plane.y() * sprite.x() + plane.x() * sprite.y()); //this is actually the depth inside the screen, that what Z is in 3D
+
+        if y <= 0.0 {
+            None
+        } else {
+            let x = 1.0 + x / y;
+            let screen_adjustment = view.width() as f32 - ((view.width() as f32/ 2.0) * x);
+            Some(ProjectedSprite::new(screen_adjustment, y))
+        }
+    }
+
     pub fn position_in_discreet_cone(
         &self,
         cone_angle: Angle,
@@ -226,6 +252,14 @@ impl Angle {
 
     pub fn to_radiant(&self) -> f32 {
         self.radiant
+    }
+
+    pub fn multiplication(&self, factor: f32) -> Self {
+        Angle::new(self.radiant * factor)
+    }
+
+    pub fn addition(&self, angle_to_add: Angle) -> Self {
+        Angle::new(self.radiant + angle_to_add.radiant)
     }
 }
 
@@ -305,6 +339,38 @@ mod angle_test {
     fn angle_could_be_created_from_degrees_modulo_2_pi() {
         let angle = Angle::from_degree(540.0);
         assert_that!(angle.to_radiant()).is_close_to(PI, 0.001)
+    }
+
+    #[test]
+    fn angle_should_be_multiplied_by_a_factor_lower_than_1() {
+        let angle = Angle::new(1.2);
+        let result = angle.multiplication(0.5);
+
+        assert_that!(result.to_radiant()).is_close_to(0.6, 0.001);
+    }
+
+    #[test]
+    fn angle_should_be_multiplied_by_a_factor_greater_than_1() {
+        let angle = Angle::new(1.2);
+        let result = angle.multiplication(3.2);
+
+        assert_that!(result.to_radiant()).is_close_to(3.84, 0.001);
+    }
+
+    #[test]
+    fn angle_should_be_added_with_a_positive_angle() {
+        let angle = Angle::new(1.2);
+        let result = angle.addition(Angle::new(2.5));
+
+        assert_that!(result.to_radiant()).is_close_to(3.7, 0.001);
+    }
+
+    #[test]
+    fn angle_should_be_added_with_a_negative_angle() {
+        let angle = Angle::new(1.2);
+        let result = angle.addition(Angle::new(-2.5));
+
+        assert_that!(result.to_radiant()).is_close_to(-1.3, 0.001);
     }
 }
 
