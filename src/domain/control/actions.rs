@@ -175,7 +175,7 @@ impl ActionState for NothingActionState {
     }
 
     fn openable(&self) -> Box<dyn Openable> {
-        Box::new(LateralOpening::new())
+        Box::new(LateralOpening::default())
     }
 
     fn activated_percentage(&self) -> f32 {
@@ -262,7 +262,7 @@ mod linear_action_state_test {
 
     #[test]
     fn should_activate_at_50_percentage_at_mid_timer() {
-        let action = LinearActionState::new(SpeedStats::new(1.0), Box::new(LateralOpening::new()))
+        let action = LinearActionState::new(SpeedStats::new(1.0), Box::new(LateralOpening::default()))
             .trigger()
             .elapsed(500000);
 
@@ -271,7 +271,7 @@ mod linear_action_state_test {
 
     #[test]
     fn should_activate_at_25_percentage_at_quarter_timer() {
-        let action = LinearActionState::new(SpeedStats::new(0.5), Box::new(LateralOpening::new()))
+        let action = LinearActionState::new(SpeedStats::new(0.5), Box::new(LateralOpening::default()))
             .trigger()
             .elapsed(500000);
 
@@ -280,7 +280,7 @@ mod linear_action_state_test {
 
     #[test]
     fn percentage_should_not_go_below_0() {
-        let action = LinearActionState::new(SpeedStats::new(999.0), Box::new(LateralOpening::new()))
+        let action = LinearActionState::new(SpeedStats::new(999.0), Box::new(LateralOpening::default()))
             .elapsed(99999999999999999999999);
 
         assert_that!(action.activated_percentage()).is_equal_to(0.0);
@@ -288,7 +288,7 @@ mod linear_action_state_test {
 
     #[test]
     fn percentage_should_not_go_above_1() {
-        let action = LinearActionState::new(SpeedStats::new(999.0), Box::new(LateralOpening::new()))
+        let action = LinearActionState::new(SpeedStats::new(999.0), Box::new(LateralOpening::default()))
             .trigger()
             .elapsed(99999999999999999999999);
 
@@ -297,7 +297,7 @@ mod linear_action_state_test {
 
     #[test]
     fn should_keep_opening_percentage_when_reactivating_before_previous_state_finished() {
-        let action = LinearActionState::new(SpeedStats::new(1.0), Box::new(LateralOpening::new()))
+        let action = LinearActionState::new(SpeedStats::new(1.0), Box::new(LateralOpening::default()))
             .trigger()
             .elapsed(500000)
             .trigger()

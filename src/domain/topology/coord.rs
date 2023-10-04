@@ -87,7 +87,7 @@ impl Position {
             .map(|a| a.cos())
             .map(|cos| cos.abs())
             .filter(|n| !n.is_nan())
-            .unwrap_or_else(|| 1.0);
+            .unwrap_or(1.0);
 
 
         hypothenuse * factor

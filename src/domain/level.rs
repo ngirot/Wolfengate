@@ -178,7 +178,6 @@ impl Level {
         }
     }
 }
-
 #[cfg(test)]
 mod level_test {
     use std::f32::consts::PI;

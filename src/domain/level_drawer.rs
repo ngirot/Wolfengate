@@ -116,8 +116,7 @@ pub fn build_enemies(
         let sprite = enemy.position().with_reference_point(&view_position);
         let sprite_projection = angle.position_in_discreet_cone_straight(&view, orientation, sprite);
 
-        if sprite_projection.is_some() {
-            let projected = sprite_projection.unwrap();
+        if let Some(projected) = sprite_projection {
             let sprite_height = object_height(view, projected.distance());
             let start = ScreenPoint::new(
                 (projected.column() - sprite_height / 2.0) as i32,

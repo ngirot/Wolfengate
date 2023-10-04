@@ -24,7 +24,7 @@ impl Speed {
     pub fn to_move(&self, microseconds_elapsed: u128) -> Move {
         Move::new(
             self.orientation,
-            microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds as f32,
+            microseconds_elapsed as f32 / 1000000.0 * self.units_per_seconds,
         )
     }
 

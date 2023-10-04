@@ -221,7 +221,7 @@ impl Angle {
         number_of_angle: i32,
         angle_negative: bool,
     ) -> f32 {
-        let step = number_of_angle as f32 / cone_angle.radiant as f32;
+        let step = number_of_angle as f32 / cone_angle.radiant;
         let angle_sign = if angle_negative { -1.0 } else { 1.0 };
         number_of_angle as f32 / 2.0 + self.radiant * step * angle_sign
     }

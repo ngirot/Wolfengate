@@ -12,13 +12,13 @@ pub struct CentralOpening {}
 pub struct LateralOpening {}
 
 impl CentralOpening {
-    pub fn new() -> Self {
+    pub fn default() -> Self {
         Self {}
     }
 }
 
 impl LateralOpening {
-    pub fn new() -> Self {
+    pub fn default() -> Self {
         Self {}
     }
 }
@@ -68,7 +68,7 @@ mod openable_test {
 
     #[test]
     fn lateral_door_full_closed_should_return_texture_offset_equals_to_position_offset() {
-        let door = LateralOpening::new();
+        let door = LateralOpening::default();
 
         test_on_range(|offset| {
             let texture = door.door_column(0.0, offset);
@@ -78,7 +78,7 @@ mod openable_test {
 
     #[test]
     fn lateral_door_full_opened_should_return_no_texture_offset() {
-        let door = LateralOpening::new();
+        let door = LateralOpening::default();
 
 
         test_on_range(|offset| {
@@ -89,7 +89,7 @@ mod openable_test {
 
     #[test]
     fn lateral_door_partially_opened_should_get_texture_of_visible_part() {
-        let door = LateralOpening::new();
+        let door = LateralOpening::default();
 
         let texture = door.door_column(0.25, 0.1);
         assert_that!(texture).is_some().is_equal_to(0.35);
@@ -97,7 +97,7 @@ mod openable_test {
 
     #[test]
     fn lateral_door_partially_opened_should_get_not_texture_of_invisible_part() {
-        let door = LateralOpening::new();
+        let door = LateralOpening::default();
 
         let texture = door.door_column(0.25, 0.76);
         assert_that!(texture).is_none();
@@ -105,7 +105,7 @@ mod openable_test {
 
     #[test]
     fn central_door_full_closed_should_return_texture_offset_equals_to_position_offset() {
-        let door = CentralOpening::new();
+        let door = CentralOpening::default();
 
         test_on_range(|offset| {
             let texture = door.door_column(0.0, offset);
@@ -115,7 +115,7 @@ mod openable_test {
 
     #[test]
     fn central_door_full_opened_should_return_no_texture_offset() {
-        let door = CentralOpening::new();
+        let door = CentralOpening::default();
 
 
         test_on_range(|offset| {
@@ -126,7 +126,7 @@ mod openable_test {
 
     #[test]
     fn central_door_partially_opened_should_get_texture_of_visible_part_on_left() {
-        let door = CentralOpening::new();
+        let door = CentralOpening::default();
 
         let texture = door.door_column(0.25, 0.1);
         assert_that!(texture).is_some().is_equal_to(0.225);
@@ -134,7 +134,7 @@ mod openable_test {
 
     #[test]
     fn central_door_partially_opened_should_get_not_texture_of_invisible_part_on_left() {
-        let door = CentralOpening::new();
+        let door = CentralOpening::default();
 
         let texture = door.door_column(0.25, 0.45);
         assert_that!(texture).is_none();
@@ -142,7 +142,7 @@ mod openable_test {
 
     #[test]
     fn central_door_partially_opened_should_get_texture_of_visible_part_on_right() {
-        let door = CentralOpening::new();
+        let door = CentralOpening::default();
 
         let texture = door.door_column(0.25, 0.9);
         assert_that!(texture).is_some().is_equal_to(0.775);
@@ -150,7 +150,7 @@ mod openable_test {
 
     #[test]
     fn central_door_partially_opened_should_get_not_texture_of_invisible_part_on_right() {
-        let door = CentralOpening::new();
+        let door = CentralOpening::default();
 
         let texture = door.door_column(0.25, 0.55);
         assert_that!(texture).is_none();

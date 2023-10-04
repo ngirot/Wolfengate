@@ -235,7 +235,7 @@ pub mod map_test {
     pub const DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS: f32 = 3.0;
 
     pub fn default_configuration() -> MapConfiguration {
-        let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::new()))));
+        let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::default()))));
         let glass_state_builder = ActionStateBuilder::new(Box::new(NothingActionState::new()));
         let weapon_animation = AnimationStep::new(0.1, TextureIndex::new(0));
         let weapon_configuration =WeaponConfiguration::new(TextureIndex::new(0), weapon_animation, weapon_animation, weapon_animation);

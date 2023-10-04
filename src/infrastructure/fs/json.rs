@@ -98,9 +98,9 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
                 },
                 |state| {
                     let openable: Box<dyn Openable> = if state.opening_mode == "CENTER" {
-                        Box::new(CentralOpening::new())
+                        Box::new(CentralOpening::default())
                     } else {
-                        Box::new(LateralOpening::new())
+                        Box::new(LateralOpening::default())
                     };
                     ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(state.speed), openable)))
                 });
