@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::domain::actors::actor::{Enemy, Player, PlayerStats};
+use crate::domain::actors::shoot::{Weapon, WeaponConfiguration};
 use crate::domain::control::actions::ActionStateBuilder;
 use crate::domain::maths::Angle;
 use crate::domain::topology::coord::Position;
@@ -11,6 +12,7 @@ pub struct Map {
     border_texture: TextureIndex,
     enemies: Vec<Enemy>,
     player: Option<Player>,
+    weapon: WeaponConfiguration,
     width: i16,
     height: i16,
 }
@@ -39,6 +41,7 @@ pub struct MapConfiguration {
     spawn: HashMap<char, SpawnPoint>,
     map_border_texture: TextureIndex,
     player_conf: PlayerStats,
+    weapon: WeaponConfiguration,
 }
 
 impl Map {
@@ -98,6 +101,7 @@ impl Map {
             player,
             height,
             width,
+           weapon: configuration.weapon,
         })
     }
 
@@ -131,6 +135,10 @@ impl Map {
         self.player.clone()
     }
 
+    pub fn generate_weapon(&self) -> Weapon {
+        Weapon::new(self.weapon)
+    }
+
     pub fn width(&self) -> i16 {
         self.width
     }
@@ -146,13 +154,14 @@ impl Map {
 }
 
 impl MapConfiguration {
-    pub fn new(map_border_texture: TextureIndex, player_conf: PlayerStats) -> Self {
+    pub fn new(map_border_texture: TextureIndex, player_conf: PlayerStats, weapon: WeaponConfiguration) -> Self {
         Self {
             conf: HashMap::new(),
             map_border_texture,
             enemies: HashMap::new(),
             spawn: HashMap::new(),
             player_conf,
+            weapon,
         }
     }
 
@@ -216,6 +225,7 @@ pub mod map_test {
     use spectral::prelude::*;
 
     use crate::domain::actors::actor::{AccelerationStats, PlayerStats, SpeedStats};
+    use crate::domain::actors::shoot::{AnimationStep, WeaponConfiguration};
     use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
     use crate::domain::maths::{ANGLE_DOWN, ANGLE_LEFT, ANGLE_RIGHT, ANGLE_UP};
     use crate::domain::topology::door::LateralOpening;
@@ -227,8 +237,10 @@ pub mod map_test {
     pub fn default_configuration() -> MapConfiguration {
         let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::new()))));
         let glass_state_builder = ActionStateBuilder::new(Box::new(NothingActionState::new()));
+        let weapon_animation = AnimationStep::new(0.1, TextureIndex::new(0));
+        let weapon_configuration =WeaponConfiguration::new(TextureIndex::new(0), weapon_animation, weapon_animation, weapon_animation);
 
-        let mut configuration = MapConfiguration::new(TextureIndex::new(0), default_stats());
+        let mut configuration = MapConfiguration::new(TextureIndex::new(0), default_stats(), weapon_configuration);
         configuration.add('#', Tile::SOLID(TextureIndex::new(1)));
         configuration.add('D', Tile::DYNAMIC(TextureIndex::new(2), TextureIndex::new(4), door_state_builder));
         configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), glass_state_builder));

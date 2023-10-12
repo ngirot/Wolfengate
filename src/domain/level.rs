@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 use rayon::prelude::*;
 
 use crate::domain::actors::actor::{Enemy, Player};
+use crate::domain::actors::shoot::{Weapon, ShootState};
 use crate::domain::control::actions::Actions;
 use crate::domain::control::force::Force;
 use crate::domain::maths::{Angle, signed_angle, Vector};
@@ -20,6 +21,7 @@ pub struct Level {
     actions: Actions,
     player: Player,
     enemies: Vec<Enemy>,
+    current_weapon: Weapon,
 }
 
 struct DrawActionZIndex {
@@ -33,6 +35,7 @@ impl Level {
 
         Self {
             view,
+            current_weapon: map.generate_weapon(),
             player: map.generate_player().unwrap(),
             enemies: map.generate_enemies(),
             map,
@@ -51,6 +54,32 @@ impl Level {
             .with_inertia(no_limit.inertia())
     }
 
+    pub fn apply_shoots(&mut self) {
+        if matches!(self.current_weapon.state(), ShootState::Active) {
+            Level::sword(&mut self.enemies, self.player);
+        }
+    }
+
+    pub fn sword(enemies: &mut Vec<Enemy>, player: Player) {
+        let range_distance = 0.5;
+        let range_angle = Angle::new(PI / 4.0);
+
+        enemies.par_iter_mut().for_each(|enemy| {
+            let enemy_size = 0.5;
+            let distance = player.position().distance(&enemy.position());
+            let look_at = Vector::from_angle(player.orientation());
+            let enemy_look = Vector::new(*player.position(), enemy.position());
+
+            let hit = look_at.angle(enemy_look)
+                .map(|angle| distance < range_distance + enemy_size && angle.to_radiant() < range_angle.to_radiant())
+                .unwrap_or(false);
+
+            if hit {
+                println!("Enemy hit!");
+            }
+        });
+    }
+
     pub fn handle_action(&mut self) {
         let action_projected = project(*self.player.position(), self.player.orientation(), &self.map, &self.actions);
         if !action_projected.is_empty() {
@@ -63,27 +92,12 @@ impl Level {
     }
 
     pub fn handle_shoot(&mut self) {
-        let range_distance = 0.5;
-        let range_angle = Angle::new(PI / 4.0);
-
-        self.enemies.par_iter_mut().for_each(|enemy| {
-            let enemy_size = 0.5;
-            let distance = self.player.position().distance(&enemy.position());
-            let look_at = Vector::from_angle(self.player.orientation());
-            let enemy_look = Vector::new(*self.player.position(), enemy.position());
-
-            let hit = look_at.angle(enemy_look)
-                .map(|angle| distance < range_distance + enemy_size && angle.to_radiant() < range_angle.to_radiant())
-                .unwrap_or(false);
-
-            if hit {
-                println!("Enemy hit!");
-            }
-        });
+        self.current_weapon.action();
     }
 
     pub fn notify_elapsed(&mut self, microseconds: u128) {
         self.actions.notify_elapsed(microseconds);
+        self.current_weapon.notify_elapsed(microseconds);
     }
 
     pub fn generate_actions(&self) -> Vec<DrawAction> {
@@ -111,6 +125,8 @@ impl Level {
 
         actions_ordered.sort_by(|a, b| a.z_index.total_cmp(&b.z_index).reverse());
         actions.extend(actions_ordered.iter().map(|ordered| ordered.action.clone()));
+
+        actions.push(build_weapons(self.view, self.current_weapon));
 
         actions
     }
@@ -175,6 +191,23 @@ impl DrawActionZIndex {
 
 fn build_clear_actions() -> Vec<DrawAction> {
     vec![DrawAction::Clear(Color::new(0, 0, 0))]
+}
+
+fn build_weapons(view: ViewScreen, weapon: Weapon) -> DrawAction {
+    let state = weapon.state();
+
+    let texture = match state {
+        ShootState::Startup => weapon.configuration().startup().texture(),
+        ShootState::Active => weapon.configuration().active().texture(),
+        ShootState::Recovery => weapon.configuration().recovery().texture(),
+        ShootState::Finished => weapon.configuration().default(),
+    };
+
+    DrawAction::Sprite(
+        ScreenPoint::new(0, 0),
+        ScreenPoint::new(view.width(), view.height()),
+        texture,
+    )
 }
 
 fn build_background_actions(view: ViewScreen) -> Vec<DrawAction> {
@@ -271,7 +304,6 @@ fn build_enemies(
             let action = DrawAction::Sprite(start, end, enemy.texture());
             actions.push(DrawActionZIndex::new(action, projected.distance()))
         }
-
     }
     actions
 }

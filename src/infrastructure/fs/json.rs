@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::domain::actors::actor::{AccelerationStats, PlayerStats, SpeedStats};
+use crate::domain::actors::shoot::{AnimationStep, WeaponConfiguration};
 use crate::domain::control::actions::{ActionStateBuilder, LinearActionState, NothingActionState};
 use crate::domain::maths::Angle;
 use crate::domain::topology::door::{CentralOpening, LateralOpening, Openable};
@@ -31,9 +32,24 @@ pub struct JsonPlayer {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct Animation {
+    pub texture: String,
+    pub duration: f32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Weapon {
+    idle: String,
+    startup: Animation,
+    active: Animation,
+    recovery: Animation,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct Json {
     player: JsonPlayer,
     tiles: Vec<Tile>,
+    weapon: Weapon,
 }
 
 pub fn load_configuration(content: String, resource_registry: &mut dyn ResourceRegistryLoader) -> MapConfiguration {
@@ -48,7 +64,12 @@ fn load(content: String) -> Json {
 fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> MapConfiguration {
     let player_conf = player_conf(data.player);
     let transparency = resource_registry.load_texture(String::from("transparency.png"));
-    let mut conf = MapConfiguration::new(transparency, player_conf);
+
+    let shoot_configuration = WeaponConfiguration::new(resource_registry.load_texture(data.weapon.idle),
+                                                       AnimationStep::new(data.weapon.startup.duration, resource_registry.load_texture(data.weapon.startup.texture)),
+                                                       AnimationStep::new(data.weapon.active.duration, resource_registry.load_texture(data.weapon.active.texture)),
+                                                       AnimationStep::new(data.weapon.recovery.duration, resource_registry.load_texture(data.weapon.recovery.texture)), );
+    let mut conf = MapConfiguration::new(transparency, player_conf, shoot_configuration);
 
     for tile in data.tiles {
         let texture = tile.texture

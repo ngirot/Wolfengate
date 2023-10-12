@@ -4,6 +4,21 @@
     "deceleration": 40,
     "maximum_speed": 6
   },
+  "weapon": {
+    "idle": "sword.png",
+    "startup": {
+      "duration": 0.05,
+      "texture": "sword_startup.png"
+    },
+    "active": {
+      "duration": 0.05,
+      "texture": "sword_active.png"
+    },
+    "recovery": {
+      "duration": 0.05,
+      "texture": "sword_recovery.png"
+    }
+  },
   "tiles": [
     {
       "id": "#",

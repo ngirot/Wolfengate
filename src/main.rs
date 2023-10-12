@@ -68,6 +68,7 @@ fn main() -> Result<(), String> {
 
         level.notify_elapsed(elapsed);
         level.apply_forces(current_force, elapsed);
+        level.apply_shoots();
 
         // Render
         render(&mut sdl_context, &level, &debug_info, &registry);
