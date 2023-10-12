@@ -91,7 +91,11 @@ impl Weapon {
     }
 
     pub fn action(&mut self) {
-        self.elapsed_in_microseconds = 0;
+        let current_state = self.state();
+
+        if current_state == ShootState::Finished {
+            self.elapsed_in_microseconds = 0;
+        }
     }
 
     pub fn state(&self) -> ShootState {
@@ -105,6 +109,35 @@ impl Weapon {
 
     pub fn configuration(&self) -> WeaponConfiguration {
         self.configuration
+    }
+}
+
+#[cfg(test)]
+mod weapon_test {
+    use crate::domain::actors::shoot::{AnimationStep, Weapon, WeaponConfiguration};
+    use crate::domain::topology::index::TextureIndex;
+
+    #[test]
+    fn should_go_to_finished_state() {
+        let conf = build_configuration(0.1, 1.0, 1.0);
+        let mut weapon = Weapon::new(conf);
+
+        weapon.action();
+        weapon.notify_elapsed(100);
+
+        weapon.action();
+
+        assert_eq!(100, weapon.elapsed_in_microseconds);
+    }
+
+    fn build_configuration(startup: f32, active: f32, recovery: f32) -> WeaponConfiguration {
+        let texture: TextureIndex = TextureIndex::new(0);
+
+        let startup = AnimationStep::new(startup, texture);
+        let active = AnimationStep::new(active, texture);
+        let recovery = AnimationStep::new(recovery, texture);
+
+        WeaponConfiguration::new(texture, startup, active, recovery)
     }
 }
 
@@ -134,12 +167,6 @@ mod weapon_configuration_test {
         assert_eq!(ShootState::Recovery, conf.state(to_microseconds(1.2)));
     }
 
-    #[test]
-    fn should_go_to_finished_state() {
-        let conf = build_configuration(0.1, 1.0, 1.0);
-
-        assert_eq!(ShootState::Finished, conf.state(to_microseconds(2.2)));
-    }
 
     fn build_configuration(startup: f32, active: f32, recovery: f32) -> WeaponConfiguration {
         let texture: TextureIndex = TextureIndex::new(0);
