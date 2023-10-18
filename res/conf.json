@@ -6,6 +6,7 @@
   },
   "weapon": {
     "idle": "sword.png",
+    "damage": 25,
     "startup": {
       "duration": 0.05,
       "texture": "sword_startup.png"
@@ -57,7 +58,8 @@
     {
       "id": "E",
       "tile_type": "ENEMY",
-      "texture": "enemy.png"
+      "texture": "enemy.png",
+      "health": 150
     },
     {
       "id": "P",

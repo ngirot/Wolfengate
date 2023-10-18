@@ -12,6 +12,7 @@ pub struct WeaponConfiguration {
     active: AnimationStep,
     recovery: AnimationStep,
     default: TextureIndex,
+    damage: u32,
 }
 
 #[derive(Debug, PartialEq)]
@@ -29,12 +30,13 @@ pub struct Weapon {
 }
 
 impl WeaponConfiguration {
-    pub fn new(default: TextureIndex, startup: AnimationStep, active: AnimationStep, recovery: AnimationStep) -> Self {
+    pub fn new(default: TextureIndex, startup: AnimationStep, active: AnimationStep, recovery: AnimationStep, damage: u32) -> Self {
         Self {
             default,
             startup,
             active,
             recovery,
+            damage,
         }
     }
 
@@ -62,6 +64,9 @@ impl WeaponConfiguration {
     }
     pub fn recovery(&self) -> AnimationStep {
         self.recovery
+    }
+    pub fn damage(&self) -> u32 {
+        self.damage
     }
 }
 
@@ -137,7 +142,7 @@ mod weapon_test {
         let active = AnimationStep::new(active, texture);
         let recovery = AnimationStep::new(recovery, texture);
 
-        WeaponConfiguration::new(texture, startup, active, recovery)
+        WeaponConfiguration::new(texture, startup, active, recovery, 100)
     }
 }
 
@@ -175,7 +180,7 @@ mod weapon_configuration_test {
         let active = AnimationStep::new(active, texture);
         let recovery = AnimationStep::new(recovery, texture);
 
-        let conf = WeaponConfiguration::new(texture, startup, active, recovery);
+        let conf = WeaponConfiguration::new(texture, startup, active, recovery, 150);
         conf
     }
 

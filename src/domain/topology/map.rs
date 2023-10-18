@@ -27,6 +27,7 @@ pub enum Tile {
 #[derive(Copy, Clone)]
 pub struct EnemyType {
     texture: TextureIndex,
+    health: u32,
 }
 
 #[derive(Copy, Clone)]
@@ -65,7 +66,7 @@ impl Map {
                     pav_x[x].push(Tile::NOTHING);
                 } else if let Some(enemy) = Self::char_to_enemy(&configuration, char) {
                     let position = Position::new(x as f32 + 0.5, y as f32 + 0.5);
-                    enemies.push(Enemy::new(enemy.texture(), position));
+                    enemies.push(Enemy::new(enemy.texture(), position, enemy.health()));
                     pav_x[x].push(Tile::NOTHING)
                 } else {
                     let tile = Self::char_to_tile(&configuration, char)?;
@@ -101,7 +102,7 @@ impl Map {
             player,
             height,
             width,
-           weapon: configuration.weapon,
+            weapon: configuration.weapon,
         })
     }
 
@@ -199,14 +200,20 @@ impl MapConfiguration {
 }
 
 impl EnemyType {
-    pub fn new(texture: TextureIndex) -> Self {
+    pub fn new(texture: TextureIndex, health: u32) -> Self {
         Self {
-            texture
+            texture,
+            health,
         }
     }
 
     pub fn texture(&self) -> TextureIndex {
         self.texture
+    }
+
+
+    pub fn health(&self) -> u32 {
+        self.health
     }
 }
 
@@ -238,7 +245,7 @@ pub mod map_test {
         let door_state_builder = ActionStateBuilder::new(Box::new(LinearActionState::new(SpeedStats::new(DOOR_OPENING_SPEED_IN_UNITS_PER_SECONDS), Box::new(LateralOpening::default()))));
         let glass_state_builder = ActionStateBuilder::new(Box::new(NothingActionState::new()));
         let weapon_animation = AnimationStep::new(0.1, TextureIndex::new(0));
-        let weapon_configuration =WeaponConfiguration::new(TextureIndex::new(0), weapon_animation, weapon_animation, weapon_animation);
+        let weapon_configuration = WeaponConfiguration::new(TextureIndex::new(0), weapon_animation, weapon_animation, weapon_animation, 30);
 
         let mut configuration = MapConfiguration::new(TextureIndex::new(0), default_stats(), weapon_configuration);
         configuration.add('#', Tile::SOLID(TextureIndex::new(1)));
@@ -246,7 +253,7 @@ pub mod map_test {
         configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), glass_state_builder));
         configuration.add(' ', Tile::NOTHING);
 
-        configuration.add_enemy('E', EnemyType::new(TextureIndex::new(4)));
+        configuration.add_enemy('E', EnemyType::new(TextureIndex::new(4), 150));
 
         configuration.add_spawn('u', SpawnPoint::new(ANGLE_UP));
         configuration.add_spawn('d', SpawnPoint::new(ANGLE_DOWN));

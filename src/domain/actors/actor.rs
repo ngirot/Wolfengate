@@ -32,6 +32,7 @@ pub struct SpeedStats {
 #[derive(Copy, Clone)]
 pub struct Enemy {
     position: Position,
+    health: u32,
     texture: TextureIndex,
 }
 
@@ -153,8 +154,8 @@ impl PlayerStats {
 }
 
 impl Enemy {
-    pub fn new(texture: TextureIndex, position: Position) -> Self {
-        Self { position, texture }
+    pub fn new(texture: TextureIndex, position: Position, health: u32) -> Self {
+        Self { position, texture, health }
     }
 
     pub fn position(&self) -> Position {
@@ -164,6 +165,21 @@ impl Enemy {
 
     pub fn texture(&self) -> TextureIndex {
         self.texture
+    }
+
+
+
+    pub fn damage(&self, damage: u32) -> Self {
+        let new_health = if self.health < damage { 0 } else { self.health - damage };
+        Self {
+            position: self.position,
+            texture: self.texture,
+            health: new_health,
+        }
+    }
+
+    pub fn health(&self) -> u32 {
+        self.health
     }
 }
 
@@ -290,6 +306,32 @@ mod actor_test {
 
         assert_that!(after_move.position.x()).is_close_to(1.0, 0.001);
         assert_that!(after_move.position.y()).is_equal_to(4.0);
+    }
+}
+
+#[cfg(test)]
+mod enemy_test {
+    use spectral::prelude::*;
+    use crate::domain::actors::actor::Enemy;
+    use crate::domain::topology::coord::Position;
+    use crate::domain::topology::index::TextureIndex;
+
+    #[test]
+    fn enemy_should_take_damage() {
+        let enemy = Enemy::new(TextureIndex::new(0), Position::new(0.0, 0.0), 100);
+
+        let damaged = enemy.damage(25);
+
+        assert_that!(damaged.health()).is_equal_to(75);
+    }
+
+    #[test]
+    fn enemy_should_not_have_health_lower_than_0() {
+        let enemy = Enemy::new(TextureIndex::new(0), Position::new(0.0, 0.0), 150);
+
+        let damaged = enemy.damage(25000);
+
+        assert_that!(damaged.health()).is_equal_to(0);
     }
 }
 

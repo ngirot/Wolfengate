@@ -22,6 +22,7 @@ pub struct Tile {
     pub texture: Option<String>,
     pub state: Option<State>,
     pub orientation_in_degrees: Option<f32>,
+    pub health: Option<u32>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -40,6 +41,7 @@ pub struct Animation {
 #[derive(Serialize, Deserialize)]
 pub struct Weapon {
     idle: String,
+    damage: u32,
     startup: Animation,
     active: Animation,
     recovery: Animation,
@@ -65,10 +67,12 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
     let player_conf = player_conf(data.player);
     let transparency = resource_registry.load_texture(String::from("transparency.png"));
 
-    let shoot_configuration = WeaponConfiguration::new(resource_registry.load_texture(data.weapon.idle),
-                                                       AnimationStep::new(data.weapon.startup.duration, resource_registry.load_texture(data.weapon.startup.texture)),
-                                                       AnimationStep::new(data.weapon.active.duration, resource_registry.load_texture(data.weapon.active.texture)),
-                                                       AnimationStep::new(data.weapon.recovery.duration, resource_registry.load_texture(data.weapon.recovery.texture)), );
+    let shoot_configuration = WeaponConfiguration::new(
+        resource_registry.load_texture(data.weapon.idle),
+        AnimationStep::new(data.weapon.startup.duration, resource_registry.load_texture(data.weapon.startup.texture)),
+        AnimationStep::new(data.weapon.active.duration, resource_registry.load_texture(data.weapon.active.texture)),
+        AnimationStep::new(data.weapon.recovery.duration, resource_registry.load_texture(data.weapon.recovery.texture)),
+        data.weapon.damage);
     let mut conf = MapConfiguration::new(transparency, player_conf, shoot_configuration);
 
     for tile in data.tiles {
@@ -85,7 +89,8 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
             conf.add(id_char, crate::domain::topology::map::Tile::SOLID(texture))
         }
         if tile.tile_type == "ENEMY" {
-            conf.add_enemy(id_char, EnemyType::new(texture));
+            let health = tile.health.unwrap();
+            conf.add_enemy(id_char, EnemyType::new(texture, health));
         }
         if tile.tile_type == "PLAYER" {
             let angle = Angle::from_degree(tile.orientation_in_degrees.unwrap());

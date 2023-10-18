@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 use rayon::prelude::*;
 
 use crate::domain::actors::actor::{Enemy, Player};
-use crate::domain::actors::shoot::{Weapon, ShootState};
+use crate::domain::actors::shoot::{Weapon, ShootState, WeaponConfiguration};
 use crate::domain::control::actions::Actions;
 use crate::domain::control::force::Force;
 use crate::domain::level_drawer::{build_background_actions, build_clear_actions, build_enemies, build_walls, build_weapons, DrawActionZIndex};
@@ -52,11 +52,11 @@ impl Level {
 
     pub fn apply_shoots(&mut self) {
         if matches!(self.current_weapon.state(), ShootState::Active) {
-            Level::sword(&mut self.enemies, self.player);
+            Level::sword(&mut self.enemies, self.player, self.current_weapon.configuration());
         }
     }
 
-    fn sword(enemies: &mut Vec<Enemy>, player: Player) {
+    fn sword(enemies: &mut Vec<Enemy>, player: Player, weapon: WeaponConfiguration) {
         let range_distance = 0.5;
         let range_angle = Angle::new(PI / 4.0);
 
@@ -71,7 +71,8 @@ impl Level {
                 .unwrap_or(false);
 
             if hit {
-                println!("Enemy hit!");
+                *enemy = enemy.damage(weapon.damage());
+                println!("Enemy hit! Now at {} hp", enemy.health());
             }
         });
     }
