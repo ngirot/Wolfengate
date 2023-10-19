@@ -27,6 +27,7 @@ pub enum Tile {
 #[derive(Copy, Clone)]
 pub struct EnemyType {
     texture: TextureIndex,
+    texture_dead: TextureIndex,
     health: u32,
 }
 
@@ -66,7 +67,7 @@ impl Map {
                     pav_x[x].push(Tile::NOTHING);
                 } else if let Some(enemy) = Self::char_to_enemy(&configuration, char) {
                     let position = Position::new(x as f32 + 0.5, y as f32 + 0.5);
-                    enemies.push(Enemy::new(enemy.texture(), position, enemy.health()));
+                    enemies.push(Enemy::new(enemy.texture(), enemy.texture_dead(), position, enemy.health()));
                     pav_x[x].push(Tile::NOTHING)
                 } else {
                     let tile = Self::char_to_tile(&configuration, char)?;
@@ -200,9 +201,10 @@ impl MapConfiguration {
 }
 
 impl EnemyType {
-    pub fn new(texture: TextureIndex, health: u32) -> Self {
+    pub fn new(texture: TextureIndex, texture_dead: TextureIndex, health: u32) -> Self {
         Self {
             texture,
+            texture_dead,
             health,
         }
     }
@@ -211,6 +213,9 @@ impl EnemyType {
         self.texture
     }
 
+    pub fn texture_dead(&self) -> TextureIndex {
+        self.texture_dead
+    }
 
     pub fn health(&self) -> u32 {
         self.health
@@ -253,7 +258,7 @@ pub mod map_test {
         configuration.add('G', Tile::DYNAMIC(TextureIndex::new(3), TextureIndex::new(4), glass_state_builder));
         configuration.add(' ', Tile::NOTHING);
 
-        configuration.add_enemy('E', EnemyType::new(TextureIndex::new(4), 150));
+        configuration.add_enemy('E', EnemyType::new(TextureIndex::new(5), TextureIndex::new(5), 150));
 
         configuration.add_spawn('u', SpawnPoint::new(ANGLE_UP));
         configuration.add_spawn('d', SpawnPoint::new(ANGLE_DOWN));

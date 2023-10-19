@@ -59,6 +59,7 @@
       "id": "E",
       "tile_type": "ENEMY",
       "texture": "enemy.png",
+      "texture_dead": "enemy_dead.png",
       "health": 150
     },
     {

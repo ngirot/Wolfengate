@@ -21,6 +21,9 @@ License: CC0 [https://creativecommons.org/publicdomain/zero/1.0/]
 - enemy.png
 Generated with Dall-E (https://labs.openai.com/)
 
+- enemy_dead.png
+Generated with Dall-E (https://labs.openai.com/)
+
 - sword.png and sword_*.png
 Url: https://www.deviantart.com/xxheavy-swagxx/art/Uncter-styalet-FPS-Slash-Animation-2-789426964
 Author: xxHeavy-Swagxx

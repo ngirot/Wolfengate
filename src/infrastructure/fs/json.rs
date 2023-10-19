@@ -20,6 +20,7 @@ pub struct Tile {
     pub id: String,
     pub tile_type: String,
     pub texture: Option<String>,
+    pub texture_dead: Option<String>,
     pub state: Option<State>,
     pub orientation_in_degrees: Option<f32>,
     pub health: Option<u32>,
@@ -89,8 +90,13 @@ fn to_conf(data: Json, resource_registry: &mut dyn ResourceRegistryLoader) -> Ma
             conf.add(id_char, crate::domain::topology::map::Tile::SOLID(texture))
         }
         if tile.tile_type == "ENEMY" {
+            let texture_dead = tile.texture_dead
+                .map_or_else(
+                    || transparency,
+                    |id| resource_registry.load_texture(id));
+
             let health = tile.health.unwrap();
-            conf.add_enemy(id_char, EnemyType::new(texture, health));
+            conf.add_enemy(id_char, EnemyType::new(texture, texture_dead, health));
         }
         if tile.tile_type == "PLAYER" {
             let angle = Angle::from_degree(tile.orientation_in_degrees.unwrap());

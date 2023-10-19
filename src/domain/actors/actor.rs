@@ -34,6 +34,7 @@ pub struct Enemy {
     position: Position,
     health: u32,
     texture: TextureIndex,
+    texture_dead: TextureIndex,
 }
 
 impl Player {
@@ -154,28 +155,34 @@ impl PlayerStats {
 }
 
 impl Enemy {
-    pub fn new(texture: TextureIndex, position: Position, health: u32) -> Self {
-        Self { position, texture, health }
+    pub fn new(texture: TextureIndex, texture_dead: TextureIndex, position: Position, health: u32) -> Self {
+        Self { position, texture, texture_dead, health }
     }
 
     pub fn position(&self) -> Position {
         self.position
     }
 
-
-    pub fn texture(&self) -> TextureIndex {
-        self.texture
-    }
-
-
-
     pub fn damage(&self, damage: u32) -> Self {
         let new_health = if self.health < damage { 0 } else { self.health - damage };
         Self {
             position: self.position,
             texture: self.texture,
+            texture_dead: self.texture_dead,
             health: new_health,
         }
+    }
+
+    pub fn is_dead(&self) -> bool {
+        self.health <= 0
+    }
+
+    pub fn texture(&self) -> TextureIndex {
+        self.texture
+    }
+
+    pub fn texture_dead(&self) -> TextureIndex {
+        self.texture_dead
     }
 
     pub fn health(&self) -> u32 {
@@ -318,7 +325,7 @@ mod enemy_test {
 
     #[test]
     fn enemy_should_take_damage() {
-        let enemy = Enemy::new(TextureIndex::new(0), Position::new(0.0, 0.0), 100);
+        let enemy = build_enemy(100);
 
         let damaged = enemy.damage(25);
 
@@ -327,11 +334,29 @@ mod enemy_test {
 
     #[test]
     fn enemy_should_not_have_health_lower_than_0() {
-        let enemy = Enemy::new(TextureIndex::new(0), Position::new(0.0, 0.0), 150);
+        let enemy = build_enemy(150);
 
         let damaged = enemy.damage(25000);
 
         assert_that!(damaged.health()).is_equal_to(0);
+    }
+
+    #[test]
+    fn enemy_with_health_greater_than_zero_is_not_dead() {
+        let enemy = build_enemy(150);
+
+        assert_that!(enemy.is_dead()).is_false();
+    }
+
+    #[test]
+    fn enemy_with_health_equals_to_zero_is_dead() {
+        let enemy = build_enemy(0);
+
+        assert_that!(enemy.is_dead()).is_true();
+    }
+
+    fn build_enemy(health: u32) -> Enemy {
+        Enemy::new(TextureIndex::new(0), TextureIndex::new(0), Position::new(0.0, 0.0), health)
     }
 }
 

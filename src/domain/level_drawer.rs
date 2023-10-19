@@ -127,7 +127,13 @@ pub fn build_enemies(
                 (view.height() as f32 / 2.0 + sprite_height / 2.0) as i32,
             );
 
-            let action = DrawAction::Sprite(start, end, enemy.texture());
+            let texture = if enemy.is_dead() {
+                enemy.texture_dead()
+            } else {
+                enemy.texture()
+            };
+
+            let action = DrawAction::Sprite(start, end, texture);
             actions.push(DrawActionZIndex::new(action, projected.distance()))
         }
     }
