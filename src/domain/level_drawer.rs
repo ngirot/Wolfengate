@@ -82,7 +82,7 @@ pub fn build_weapons(view: ViewScreen, weapon: Weapon) -> DrawAction {
 
     let texture = match state {
         ShootState::Startup => weapon.configuration().startup().texture(),
-        ShootState::Active => weapon.configuration().active().texture(),
+        ShootState::Active | ShootState::AlreadyHit => weapon.configuration().active().texture(),
         ShootState::Recovery => weapon.configuration().recovery().texture(),
         ShootState::Finished => weapon.configuration().default(),
     };

@@ -19,6 +19,7 @@ pub struct WeaponConfiguration {
 pub enum ShootState {
     Startup,
     Active,
+    AlreadyHit,
     Recovery,
     Finished,
 }
@@ -26,6 +27,7 @@ pub enum ShootState {
 #[derive(Clone, Copy)]
 pub struct Weapon {
     configuration: WeaponConfiguration,
+    already_hit: bool,
     elapsed_in_microseconds: u128,
 }
 
@@ -91,6 +93,7 @@ impl Weapon {
     pub fn new(configuration: WeaponConfiguration) -> Self {
         Self {
             configuration,
+            already_hit: false,
             elapsed_in_microseconds: 0,
         }
     }
@@ -99,12 +102,22 @@ impl Weapon {
         let current_state = self.state();
 
         if current_state == ShootState::Finished {
+            self.already_hit = false;
             self.elapsed_in_microseconds = 0;
         }
     }
 
+    pub fn notify_hit(&mut self) {
+        self.already_hit = true;
+    }
+
     pub fn state(&self) -> ShootState {
-        self.configuration.state(self.elapsed_in_microseconds)
+        let normal_state = self.configuration.state(self.elapsed_in_microseconds);
+        if normal_state == ShootState::Active && self.already_hit {
+            ShootState::AlreadyHit
+        } else {
+            normal_state
+        }
     }
 
     pub fn notify_elapsed(&mut self, microseconds: u128) {
@@ -119,7 +132,7 @@ impl Weapon {
 
 #[cfg(test)]
 mod weapon_test {
-    use crate::domain::actors::shoot::{AnimationStep, Weapon, WeaponConfiguration};
+    use crate::domain::actors::shoot::{AnimationStep, ShootState, Weapon, WeaponConfiguration};
     use crate::domain::topology::index::TextureIndex;
 
     #[test]
@@ -133,6 +146,33 @@ mod weapon_test {
         weapon.action();
 
         assert_eq!(100, weapon.elapsed_in_microseconds);
+    }
+
+    #[test]
+    fn should_go_to_already_hit_state() {
+        let conf = build_configuration(0.1, 100.0, 1.0);
+
+        let mut weapon = Weapon::new(conf);
+        weapon.action();
+        weapon.notify_elapsed(1000000);
+        weapon.notify_hit();
+
+        assert_eq!(weapon.state(), ShootState::AlreadyHit);
+    }
+
+    #[test]
+    fn already_hit_should_be_reset_after_a_new_action_call() {
+        let conf = build_configuration(0.1, 100.0, 1.0);
+
+        let mut weapon = Weapon::new(conf);
+        weapon.action();
+        weapon.notify_hit();
+        weapon.notify_elapsed(1000000000);
+
+        weapon.action();
+        weapon.notify_elapsed(1000000);
+
+        assert_eq!(weapon.state(), ShootState::Active);
     }
 
     fn build_configuration(startup: f32, active: f32, recovery: f32) -> WeaponConfiguration {

@@ -1,8 +1,7 @@
 use std::f32::consts::PI;
-use rayon::prelude::*;
 
 use crate::domain::actors::actor::{Enemy, Player};
-use crate::domain::actors::shoot::{Weapon, ShootState, WeaponConfiguration};
+use crate::domain::actors::shoot::{Weapon, ShootState};
 use crate::domain::control::actions::Actions;
 use crate::domain::control::force::Force;
 use crate::domain::level_drawer::{build_background_actions, build_clear_actions, build_enemies, build_walls, build_weapons, DrawActionZIndex};
@@ -52,15 +51,15 @@ impl Level {
 
     pub fn apply_shoots(&mut self) {
         if matches!(self.current_weapon.state(), ShootState::Active) {
-            Level::sword(&mut self.enemies, self.player, self.current_weapon.configuration());
+            Level::sword(&mut self.enemies, self.player, &mut self.current_weapon);
         }
     }
 
-    fn sword(enemies: &mut Vec<Enemy>, player: Player, weapon: WeaponConfiguration) {
+    fn sword(enemies: &mut Vec<Enemy>, player: Player, weapon: &mut Weapon) {
         let range_distance = 0.5;
         let range_angle = Angle::new(PI / 4.0);
 
-        enemies.par_iter_mut().for_each(|enemy| {
+        enemies.iter_mut().for_each(|enemy| {
             let enemy_size = 0.5;
             let distance = player.position().distance(&enemy.position());
             let look_at = Vector::from_angle(player.orientation());
@@ -71,7 +70,8 @@ impl Level {
                 .unwrap_or(false);
 
             if hit {
-                *enemy = enemy.damage(weapon.damage());
+                *enemy = enemy.damage(weapon.configuration().damage());
+                weapon.notify_hit();
                 println!("Enemy hit! Now at {} hp", enemy.health());
             }
         });
@@ -179,6 +179,7 @@ impl Level {
         }
     }
 }
+
 #[cfg(test)]
 mod level_test {
     use std::f32::consts::PI;
